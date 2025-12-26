@@ -10,8 +10,9 @@ import java.time.Instant;
 @Getter
 @Setter
 @Builder
-
-public class User {
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) 
     private Long id;
@@ -27,5 +28,6 @@ public class User {
 
     private boolean banned;
 
-    private Instant createdAt =Instant.now();
+    private final Instant createdAt =Instant.now();
+    private final Instant updatedAt =Instant.now();
 }

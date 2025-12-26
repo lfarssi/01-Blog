@@ -1,9 +1,11 @@
 package com.blog.service;
 
-import com.blog.dto.UserResponse;
+import org.springframework.stereotype.Service;
 
-public interface UserService {
-    UserResponse getUserProfile(String username);
-    UserResponse updateUserProfile(String username);
-    void banUser(long userId);
+import com.blog.dto.UserResponse;
+@Service
+public class UserService {
+    // UserResponse getUserProfile(String username);
+    // UserResponse updateUserProfile(String username);
+    // void banUser(long userId);
 }
