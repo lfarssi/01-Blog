@@ -1,8 +1,8 @@
-package com.blog.auth.presistence;
+package com.blog.presistence;
 
 import org.springframework.stereotype.Repository;
 
-import com.blog.auth.entity.User;
+import com.blog.entity.User;
 
 import java.util.Optional;
 

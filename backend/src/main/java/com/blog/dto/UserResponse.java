@@ -1,4 +1,4 @@
-package com.blog.auth.dto;
+package com.blog.dto;
 
 import java.time.Instant;
 

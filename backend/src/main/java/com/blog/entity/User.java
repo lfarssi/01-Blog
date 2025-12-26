@@ -1,4 +1,4 @@
-package com.blog.auth.entity;
+package com.blog.entity;
 
 
 import jakarta.persistence.*;

@@ -1,4 +1,4 @@
-package com.blog.auth.controller;
+package com.blog.controller;
 
 public class UserController {
     

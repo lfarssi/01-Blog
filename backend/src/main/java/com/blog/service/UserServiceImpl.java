@@ -1,10 +1,10 @@
-package com.blog.auth.service;
+package com.blog.service;
 
 import org.springframework.stereotype.Service;
 
-import com.blog.auth.dto.UserResponse;
-import com.blog.auth.entity.User;
-import com.blog.auth.presistence.UserRepository;
+import com.blog.dto.UserResponse;
+import com.blog.entity.User;
+import com.blog.presistence.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
