@@ -12,7 +12,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name="comment")
+@Table(name="comments")
 @Getter
 @Setter
 @Builder

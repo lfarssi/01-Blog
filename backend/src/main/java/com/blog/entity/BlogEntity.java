@@ -7,15 +7,19 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name="blog")
+@Table(name="blogs")
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class BlogEntity {
      @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) 
@@ -27,12 +31,13 @@ public class BlogEntity {
 
     private Long user_id;
 
-    private String[] media;
+    private String media;
 
     private Long like_count;
 
     private Long comment_count;
 
 
+    private final Instant createdAt =Instant.now();
     private final Instant updatedAt =Instant.now();
 }

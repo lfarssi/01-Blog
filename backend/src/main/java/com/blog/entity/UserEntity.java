@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.Instant;
 
 @Entity
-@Table(name="user")
+@Table(name="users")
 @Getter
 @Setter
 @Builder
@@ -26,8 +26,9 @@ public class UserEntity {
     @Column(nullable = false, unique=true)
     private String password;
 
-    private boolean banned;
+    private Boolean banned;
+
+    private String role;
 
     private final Instant createdAt =Instant.now();
-    private final Instant updatedAt =Instant.now();
 }

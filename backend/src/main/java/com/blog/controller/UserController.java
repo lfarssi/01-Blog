@@ -4,9 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.blog.dto.UserResponse;
 import com.blog.service.UserService;
-
-import org.springframework.web.bind.annotation.GetMapping;
 
 
 @RestController
@@ -16,7 +15,7 @@ public class UserController {
     UserService userService;
 
     @GetMapping("/{username}")
-    public ResponseEntity<String> getUser(@PathVariable String username){
-        return ResponseEntity.ok("userService.getUserProfile(username)");
+    public ResponseEntity<UserResponse> getUser(@PathVariable String username){
+        return ResponseEntity.ok(userService.getUserProfile(username));
     }
 }
