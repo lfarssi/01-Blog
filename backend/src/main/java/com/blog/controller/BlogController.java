@@ -9,7 +9,7 @@ import com.blog.service.BlogService;
 
 
 @RestController
-@RequestMapping("/api/blogs")
+@RequestMapping("/blogs")
 public class BlogController {
     @Autowired
     BlogService blogService;
