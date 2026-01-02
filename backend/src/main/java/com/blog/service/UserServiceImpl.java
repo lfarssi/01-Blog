@@ -1,31 +1,47 @@
 package com.blog.service;
 
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
-
+import com.blog.dto.UserRequest;
 import com.blog.dto.UserResponse;
-import com.blog.mapper.UserMapper;
 import com.blog.entity.UserEntity;
+import com.blog.mapper.UserMapper;
 import com.blog.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService, UserDetailsService {
+public class UserServiceImpl implements UserService {
+
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
-    public UserResponse getUserProfile(String username){
-        UserEntity user = userRepository.findByUsername(username).orElseThrow(()-> new RuntimeException("User not found"));
-        return  UserMapper.toResponse(user);
+    public UserResponse getUserProfile(String username) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return UserMapper.toResponse(user);
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'loadUserByUsername'");
+    public void register(UserRequest request) {
+
+        if (userRepository.existsByUsername(request.username())) {
+            throw new RuntimeException("Username already exists");
+        }
+
+        if (userRepository.existsByEmail(request.email())) {
+            throw new RuntimeException("Email already exists");
+        }
+
+        UserEntity user = UserEntity.builder()
+                .username(request.username())
+                .email(request.email())
+                .password(passwordEncoder.encode(request.password()))
+                .role("user")
+                .build();
+
+        userRepository.save(user);
     }
 }
