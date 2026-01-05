@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.*;
 import com.blog.dto.UserRequest;
 import com.blog.dto.UserResponse;
 import com.blog.service.UserService;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 
 
@@ -25,5 +28,12 @@ public class UserController {
         userService.register(request);
         return ResponseEntity.ok("User registered successfully");
     }
+    @PostMapping("/login")
+    public String login(@RequestBody String entity) {
+        //TODO: process POST request
+        
+        return entity;
+    }
+    
     
 }

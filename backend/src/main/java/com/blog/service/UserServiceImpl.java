@@ -6,6 +6,8 @@ import com.blog.entity.UserEntity;
 import com.blog.mapper.UserMapper;
 import com.blog.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -36,10 +38,9 @@ public class UserServiceImpl implements UserService {
         }
 
         UserEntity user = UserEntity.builder()
-                .username(request.username())
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
-                .role("user")
+                .username(request.username())
                 .build();
 
         userRepository.save(user);

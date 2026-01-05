@@ -26,9 +26,9 @@ public class UserEntity {
     @Column(nullable = false, unique=true)
     private String password;
 
-    private Boolean banned;
+    private final Boolean banned=false;
 
-    private String role;
+    private final String role="user";
 
     private final Instant createdAt =Instant.now();
 }
