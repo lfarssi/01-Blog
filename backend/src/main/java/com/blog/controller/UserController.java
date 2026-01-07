@@ -28,12 +28,7 @@ public class UserController {
         userService.register(request);
         return ResponseEntity.ok("User registered successfully");
     }
-    @PostMapping("/login")
-    public String login(@RequestBody String entity) {
-        //TODO: process POST request
-        
-        return entity;
-    }
+
     
     
 }
