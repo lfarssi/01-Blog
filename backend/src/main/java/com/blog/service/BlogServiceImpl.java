@@ -1,116 +1,22 @@
 package com.blog.service;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import com.blog.dto.BlogRequest;
 import com.blog.dto.BlogResponse;
-import com.blog.dto.BlogUpdateRequest;
 import com.blog.mapper.BlogMapper;
 import com.blog.entity.BlogEntity;
-import com.blog.entity.UserEntity;
 import com.blog.repository.BlogRepository;
-import com.blog.repository.UserRepository;
-
 import lombok.RequiredArgsConstructor;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class BlogServiceImpl implements BlogService {
     private final BlogRepository blogRepository;
-    private final UserRepository userRepository;
 
     @Override
-    public BlogResponse getBlogDetails(Long id) {
-        BlogEntity blog = blogRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Blog not found"));
-        return BlogMapper.toResponse(blog);
-    }
-
-    @Override
-    @Transactional
-    public BlogResponse createBlog(BlogRequest request, String username) {
-        UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        BlogEntity blog = BlogEntity.builder()
-                .title(request.title())
-                .content(request.content())
-                .media(request.media())
-                .user_id(user.getId())
-                .like_count(0L)
-                .comment_count(0L)
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .build();
-
-        blog = blogRepository.save(blog);
-        return BlogMapper.toResponse(blog);
-    }
-
-    @Override
-    @Transactional
-    public BlogResponse updateBlog(Long id, BlogUpdateRequest request, String username) {
-        UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        BlogEntity blog = blogRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Blog not found"));
-
-        if (!blog.getUser_id().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized to update this blog");
-        }
-
-        if (request.title() != null) {
-            blog.setTitle(request.title());
-        }
-        if (request.content() != null) {
-            blog.setContent(request.content());
-        }
-        if (request.media() != null) {
-            blog.setMedia(request.media());
-        }
-        blog.setUpdatedAt(Instant.now());
-
-        blog = blogRepository.save(blog);
-        return BlogMapper.toResponse(blog);
-    }
-
-    @Override
-    @Transactional
-    public void deleteBlog(Long id, String username) {
-        UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        BlogEntity blog = blogRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Blog not found"));
-
-        if (!blog.getUser_id().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized to delete this blog");
-        }
-
-        blogRepository.delete(blog);
-    }
-
-    @Override
-    public List<BlogResponse> getAllBlogs() {
-        return blogRepository.findAll().stream()
-                .map(BlogMapper::toResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<BlogResponse> getBlogsByUser(String username) {
-        UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        return blogRepository.findAll().stream()
-                .filter(blog -> blog.getUser_id().equals(user.getId()))
-                .map(BlogMapper::toResponse)
-                .collect(Collectors.toList());
+    public BlogResponse getBlogDetails(Integer id){
+        BlogEntity user = blogRepository.findById(id).orElseThrow(()-> new RuntimeException("Blog not found"));
+        return  BlogMapper.toResponse(user);
     }
 }

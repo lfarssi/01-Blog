@@ -7,10 +7,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
@@ -18,11 +16,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class CommentEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) 
     private Long id;
 
     private Long blog_id;
@@ -31,6 +27,6 @@ public class CommentEntity {
 
     private String content;
 
-    private Instant createdAt;
-    private Instant updatedAt;
+    private final Instant createdAt =Instant.now();
+    private final Instant updatedAt =Instant.now();
 }
