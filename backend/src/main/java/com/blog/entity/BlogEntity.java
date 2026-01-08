@@ -37,7 +37,6 @@ public class BlogEntity {
 
     private Long comment_count;
 
-
-    private final Instant createdAt =Instant.now();
-    private final Instant updatedAt =Instant.now();
+    private Instant createdAt;
+    private Instant updatedAt;
 }
