@@ -10,7 +10,6 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
@@ -18,7 +17,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
 public class BlogEntity {
      @Id
@@ -38,6 +36,6 @@ public class BlogEntity {
     private Long comment_count;
 
 
-    private final Instant createdAt =Instant.now();
-    private final Instant updatedAt =Instant.now();
+    private final Instant createdAt;
+    private  Instant updatedAt;
 }

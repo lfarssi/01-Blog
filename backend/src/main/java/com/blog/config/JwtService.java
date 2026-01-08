@@ -2,6 +2,8 @@ package com.blog.config;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -9,10 +11,8 @@ import java.util.Date;
 
 @Service
 public class JwtService {
-
-    private static final String SECRET =
-            "THIS_IS_A_VERY_LONG_SECRET_KEY_FOR_JWT_256_BITS";
-
+    @Value("${SECRET_KEY}")
+    private  String SECRET;
     private static final long EXPIRATION = 1000 * 60 * 60 * 24; // 24h
 
     private Key getSigningKey() {
