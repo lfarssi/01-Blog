@@ -40,6 +40,6 @@ public class ReportEntity {
 
     private String type;
 
-    private final Instant createdAt =Instant.now();
-    private final Instant updatedAt =Instant.now();
+    private final Instant createdAt;
+    private final Instant updatedAt;
 }

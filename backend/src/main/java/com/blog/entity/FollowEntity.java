@@ -24,7 +24,7 @@ public class FollowEntity {
 
     private Long user_to_id;
 
-    private final Instant createdAt =Instant.now();
-    private final Instant updatedAt =Instant.now();
+    private final Instant createdAt;
+    private final Instant updatedAt;
 
 }
