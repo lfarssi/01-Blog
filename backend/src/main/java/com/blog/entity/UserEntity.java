@@ -10,6 +10,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
 @AllArgsConstructor
 public class UserEntity {
     @Id
@@ -29,5 +30,5 @@ public class UserEntity {
 
     private final String role="user";
 
-    private final Instant createdAt ;
+    private  Instant createdAt ;
 }

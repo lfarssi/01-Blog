@@ -33,7 +33,7 @@ public class LikeServiceImpl implements LikeService {
         BlogEntity blog = blogRepository.findById(blogId)
                 .orElseThrow(() -> new RuntimeException("Blog not found"));
 
-        Optional<LikeEntity> existingLike = likeRepository.findByBlog_idAndUser_id(blogId, user.getId());
+        Optional<LikeEntity> existingLike = likeRepository.findByBlog_IdAndUser_Id(blogId, user.getId());
 
         boolean liked;
         if (existingLike.isPresent()) {
@@ -41,8 +41,8 @@ public class LikeServiceImpl implements LikeService {
             liked = false;
         } else {
             LikeEntity like = LikeEntity.builder()
-                    .blog_id(blogId)
-                    .user_id(user.getId())
+                    .blog(blog)
+                    .user(user)
                     .createdAt(Instant.now())
                     .updatedAt(Instant.now())
                     .build();
@@ -50,7 +50,7 @@ public class LikeServiceImpl implements LikeService {
             liked = true;
         }
 
-        Long likeCount = likeRepository.countByBlog_id(blogId);
+        Long likeCount = likeRepository.countByBlog_Id(blogId);
         blog.setLike_count(likeCount);
         blogRepository.save(blog);
 
@@ -65,8 +65,8 @@ public class LikeServiceImpl implements LikeService {
         blogRepository.findById(blogId)
                 .orElseThrow(() -> new RuntimeException("Blog not found"));
 
-        boolean liked = likeRepository.existsByBlog_idAndUser_id(blogId, user.getId());
-        Long likeCount = likeRepository.countByBlog_id(blogId);
+        boolean liked = likeRepository.existsByBlog_IdAndUser_Id(blogId, user.getId());
+        Long likeCount = likeRepository.countByBlog_Id(blogId);
 
         return new LikeResponse(liked, likeCount);
     }

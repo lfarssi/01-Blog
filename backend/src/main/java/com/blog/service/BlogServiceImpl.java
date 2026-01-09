@@ -2,8 +2,10 @@ package com.blog.service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.blog.dto.BlogRequest;
@@ -25,7 +27,7 @@ public class BlogServiceImpl implements BlogService {
     private final UserRepository userRepository;
 
     @Override
-    public BlogResponse getBlogDetails(Integer id){
+    public BlogResponse getBlogDetails(Long id){
         BlogEntity user = blogRepository.findById(id).orElseThrow(()-> new RuntimeException("Blog not found"));
         return  BlogMapper.toResponse(user);
     }
@@ -45,7 +47,7 @@ public class BlogServiceImpl implements BlogService {
                 .title(request.title())
                 .content(request.content())
                 .media(request.media())
-                .user_id(user.getId())
+                .userId(user)
                 .like_count(0L)
                 .comment_count(0L)
                 .createdAt(Instant.now())
@@ -59,15 +61,19 @@ public class BlogServiceImpl implements BlogService {
 
         @Override
     @Transactional
-    public BlogResponse updateBlog(Integer id, BlogUpdateRequest request, String username) {
+    public BlogResponse updateBlog(Long id, BlogUpdateRequest request, String username) {
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         BlogEntity blog = blogRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Blog not found"));
 
-        if (!blog.getUser_id().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized to update this blog");
+        if (!Objects.equals(blog.getUserId().getId(), user.getId())) {
+          System.out.printf(
+    "updateBlog: blogId=%s, blogUserId=%s, authUserId=%s, username=%s%n",
+    id, blog.getUserId(), user.getId(), username
+);
+            throw new AccessDeniedException("Unauthorized to update this blog");
         }
 
         if (request.title() != null) {
@@ -85,14 +91,14 @@ public class BlogServiceImpl implements BlogService {
         return BlogMapper.toResponse(blog);
     }
     @Transactional
-    public void deleteBlog(Integer id, String username) {
+    public void deleteBlog(Long id, String username) {
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         BlogEntity blog = blogRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Blog not found"));
 
-        if (!blog.getUser_id().equals(user.getId())) {
+        if (!blog.getUserId().equals(user.getId())) {
             throw new RuntimeException("Unauthorized to delete this blog");
         }
 
@@ -105,7 +111,7 @@ public class BlogServiceImpl implements BlogService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return blogRepository.findAll().stream()
-                .filter(blog -> blog.getUser_id().equals(user.getId()))
+                .filter(blog -> blog.getUserId().equals(user.getId()))
                 .map(BlogMapper::toResponse)
                 .collect(Collectors.toList());
     }

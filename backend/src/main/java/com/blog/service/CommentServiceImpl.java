@@ -17,11 +17,14 @@ import com.blog.repository.CommentRepository;
 import com.blog.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 @Service
+@RequiredArgsConstructor
+
 public class CommentServiceImpl implements CommentService {
-    private  CommentRepository commentRepository;
-    private  UserRepository userRepository;
-    private  BlogRepository blogRepository;
+    private final  CommentRepository commentRepository;
+    private  final UserRepository userRepository;
+    private  final BlogRepository blogRepository;
 
     @Override
     @Transactional
@@ -31,8 +34,8 @@ public class CommentServiceImpl implements CommentService {
          BlogEntity blog = blogRepository.findById(blogId)
                 .orElseThrow(() -> new RuntimeException("Blog not found"));
         CommentEntity comment = CommentEntity.builder()
-                .blog_id(blogId)
-                .user_id(user.getId())
+                .blog(blog)
+                .user(user)
                 .content(request.content())
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
@@ -40,7 +43,7 @@ public class CommentServiceImpl implements CommentService {
 
         comment = commentRepository.save(comment);
 
-        blog.setComment_count(commentRepository.countByBlog_id(blogId));
+        blog.setComment_count(commentRepository.countByBlog_Id(blogId));
         blogRepository.save(blog);
 
         return CommentMapper.toResponse(comment, user);
@@ -50,11 +53,11 @@ public class CommentServiceImpl implements CommentService {
     
     @Override
     public List<CommentResponse> getCommentsByBlogId(Long blogId) {
-        List<CommentEntity> comments = commentRepository.findByBlog_id(blogId);
+        List<CommentEntity> comments = commentRepository.findByBlog_Id(blogId);
 
         return comments.stream()
                 .map(comment -> {
-                    UserEntity user = userRepository.findById(comment.getUser_id())
+                    UserEntity user = userRepository.findById(comment.getUser().getId())
                             .orElseThrow(() -> new RuntimeException("User not found"));
                     return CommentMapper.toResponse(comment, user);
                 })
@@ -70,16 +73,16 @@ public class CommentServiceImpl implements CommentService {
         CommentEntity comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
 
-        if (!comment.getUser_id().equals(user.getId())) {
+        if (!comment.getUser().equals(user.getId())) {
             throw new RuntimeException("Unauthorized to delete this comment");
         }
 
-        Long blogId = comment.getBlog_id();
+        BlogEntity blogId = comment.getBlog();
         commentRepository.delete(comment);
 
-        BlogEntity blog = blogRepository.findById(blogId)
+        BlogEntity blog = blogRepository.findById(blogId.getId())
                 .orElseThrow(() -> new RuntimeException("Blog not found"));
-        blog.setComment_count(commentRepository.countByBlog_id(blogId));
+        blog.setComment_count(commentRepository.countByBlog_Id(blogId.getId()));
         blogRepository.save(blog);
     }
 }

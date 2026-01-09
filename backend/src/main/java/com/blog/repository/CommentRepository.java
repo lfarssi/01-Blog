@@ -9,7 +9,11 @@ import java.util.List;
 
 @Repository
 public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
-    List<CommentEntity> findByBlog_id(Long blogId);
-    Long countByBlog_id(Long blogId);
-    void deleteByIdAndUser_id(Long id, Long userId);
+
+    List<CommentEntity> findByBlog_Id(Long blogId);
+
+    long countByBlog_Id(Long blogId);
+
+    void deleteByIdAndUser_Id(Long id, Long userId);
 }
+

@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,9 +22,12 @@ public class FollowEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY) 
     private Long id;
 
-    private Long user_id;
-
-    private Long user_to_id;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private UserEntity follower;
+    @ManyToOne
+    @JoinColumn(name = "user_to_id")
+    private UserEntity following;
 
     private final Instant createdAt;
     private final Instant updatedAt;
