@@ -12,8 +12,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
@@ -21,18 +23,19 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ReportEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) 
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
 
     @ManyToOne
     @JoinColumn(name = "reported_by_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private UserEntity reported_by_id;
+    private UserEntity reportedBy;
 
-    private Long target_id;
+    private Long targetId;
 
     private String reason;
 
@@ -40,6 +43,6 @@ public class ReportEntity {
 
     private String type;
 
-    private final Instant createdAt;
-    private final Instant updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 }

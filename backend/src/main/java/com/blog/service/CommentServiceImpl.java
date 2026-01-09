@@ -10,10 +10,12 @@ import com.blog.dto.CommentRequest;
 import com.blog.dto.CommentResponse;
 import com.blog.entity.BlogEntity;
 import com.blog.entity.CommentEntity;
+import com.blog.entity.NotificationEntity;
 import com.blog.entity.UserEntity;
 import com.blog.mapper.CommentMapper;
 import com.blog.repository.BlogRepository;
 import com.blog.repository.CommentRepository;
+import com.blog.repository.NotificationRepository;
 import com.blog.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -25,6 +27,7 @@ public class CommentServiceImpl implements CommentService {
     private final  CommentRepository commentRepository;
     private  final UserRepository userRepository;
     private  final BlogRepository blogRepository;
+    private final NotificationRepository notificationRepository;
 
     @Override
     @Transactional
@@ -45,6 +48,19 @@ public class CommentServiceImpl implements CommentService {
 
         blog.setComment_count(commentRepository.countByBlog_Id(blogId));
         blogRepository.save(blog);
+
+        if (!blog.getUserId().getId().equals(user.getId())) {
+            NotificationEntity notification = NotificationEntity.builder()
+                    .user(blog.getUserId())
+                    .type("COMMENT")
+                    .content(user.getUsername() + " commented on your blog")
+                    .relatedId(blogId)
+                    .isRead(false)
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build();
+            notificationRepository.save(notification);
+        }
 
         return CommentMapper.toResponse(comment, user);
 
