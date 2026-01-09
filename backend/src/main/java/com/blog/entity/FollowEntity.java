@@ -23,10 +23,10 @@ public class FollowEntity {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "follower_id")
     private UserEntity follower;
     @ManyToOne
-    @JoinColumn(name = "user_to_id")
+    @JoinColumn(name = "following_id")
     private UserEntity following;
 
     private final Instant createdAt;
