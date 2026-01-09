@@ -12,23 +12,24 @@ import com.blog.dto.BlogResponse;
 import com.blog.dto.BlogUpdateRequest;
 import com.blog.service.BlogService;
 
-
 @RestController
 @RequestMapping("/blogs")
 public class BlogController {
     @Autowired
     private BlogService blogService;
+
     @GetMapping
-    public ResponseEntity<List<BlogResponse>> getAllBlogs(){
-        List<BlogResponse> blogs=blogService.getAllBlogs();
+    public ResponseEntity<List<BlogResponse>> getAllBlogs() {
+        List<BlogResponse> blogs = blogService.getAllBlogs();
         return ResponseEntity.ok(blogs);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BlogResponse> getBlog(@PathVariable Long id){
+    public ResponseEntity<BlogResponse> getBlog(@PathVariable Long id) {
         return ResponseEntity.ok(blogService.getBlogDetails(id));
     }
-      @GetMapping("/user/{username}")
+
+    @GetMapping("/user/{username}")
     public ResponseEntity<List<BlogResponse>> getBlogsByUser(@PathVariable String username) {
         List<BlogResponse> blogs = blogService.getBlogsByUser(username);
         return ResponseEntity.ok(blogs);

@@ -10,9 +10,6 @@ import com.blog.service.UserService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-
-
-
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -20,15 +17,14 @@ public class UserController {
     UserService userService;
 
     @GetMapping("/{username}")
-    public ResponseEntity<UserResponse> getUser(@PathVariable String username){
+    public ResponseEntity<UserResponse> getUser(@PathVariable String username) {
         return ResponseEntity.ok(userService.getUserProfile(username));
     }
-     @PostMapping("/register")
+
+    @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody UserRequest request) {
         userService.register(request);
         return ResponseEntity.ok("User registered successfully");
     }
 
-    
-    
 }

@@ -59,16 +59,16 @@ public class FollowServiceImpl implements FollowService {
             followRepository.save(follow);
             following = true;
 
-            // NotificationEntity notification = NotificationEntity.builder()
-            //         .user(targetUser)
-            //         .type("FOLLOW")
-            //         .content(currentUser.getUsername() + " started following you")
-            //         .relatedId(currentUser.getId())
-            //         .isRead(false)
-            //         .createdAt(Instant.now())
-            //         .updatedAt(Instant.now())
-            //         .build();
-            // notificationRepository.save(notification);
+            NotificationEntity notification = NotificationEntity.builder()
+                    .user(targetUser)
+                    .type("FOLLOW")
+                    .content(currentUser.getUsername() + " started following you")
+                    .relatedId(currentUser.getId())
+                    .isRead(false)
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build();
+            notificationRepository.save(notification);
         }
 
         Long followerCount = followRepository.countByFollowing_Id(targetUser.getId());

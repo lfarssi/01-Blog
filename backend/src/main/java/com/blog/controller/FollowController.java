@@ -16,14 +16,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 
-
-
 @RestController
 @RequestMapping("/follow")
 public class FollowController {
     @Autowired
     private FollowService followService;
-
 
     @PostMapping("/{username}")
     public ResponseEntity<FollowResponse> toggleFollow(@PathVariable String username, Authentication authentication) {
@@ -31,7 +28,7 @@ public class FollowController {
         FollowResponse response = followService.toggleFollow(username, currentUsername);
         return ResponseEntity.ok(response);
     }
-  
+
     @GetMapping("/{username}/status")
     public ResponseEntity<FollowResponse> getFollowStatus(
             @PathVariable String username,
@@ -53,5 +50,5 @@ public class FollowController {
         List<FollowerListResponse> following = followService.getFollowing(username);
         return ResponseEntity.ok(following);
     }
-    
+
 }
