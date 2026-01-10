@@ -12,6 +12,8 @@ import com.blog.dto.BlogResponse;
 import com.blog.dto.BlogUpdateRequest;
 import com.blog.service.BlogService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/blogs")
 public class BlogController {
@@ -37,7 +39,7 @@ public class BlogController {
 
     @PostMapping
     public ResponseEntity<BlogResponse> createBlog(
-            @RequestBody BlogRequest request,
+            @Valid @RequestBody BlogRequest request,
             Authentication authentication) {
 
         String username = authentication.getName();

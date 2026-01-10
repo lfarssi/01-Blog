@@ -9,6 +9,8 @@ import com.blog.dto.CommentRequest;
 import com.blog.dto.CommentResponse;
 import com.blog.service.CommentService;
 
+import jakarta.validation.Valid;
+
 import java.util.List;
 
 @RestController
@@ -21,7 +23,7 @@ public class CommentController {
     @PostMapping("/blogs/{blogId}")
     public ResponseEntity<CommentResponse> createComment(
             @PathVariable Long blogId,
-            @RequestBody CommentRequest request,
+            @Valid @RequestBody CommentRequest request,
             Authentication authentication) {
 
         String username = authentication.getName();

@@ -1,3 +1,6 @@
 package com.blog.dto;
 
-public record CommentRequest(String content) {}
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public record CommentRequest(@NotBlank @Size(min=3, max=20000) String content) {}

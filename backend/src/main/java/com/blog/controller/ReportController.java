@@ -12,6 +12,8 @@ import com.blog.dto.ReportRequest;
 import com.blog.dto.ReportResponse;
 import com.blog.service.ReportService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/reports")
 public class ReportController {
@@ -21,7 +23,7 @@ public class ReportController {
 
     @PostMapping
     public ResponseEntity<ReportResponse> createReport(
-            @RequestBody ReportRequest request,
+            @Valid @RequestBody ReportRequest request,
             Authentication authentication) {
 
         String username = authentication.getName();

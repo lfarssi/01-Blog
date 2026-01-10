@@ -1,7 +1,9 @@
 package com.blog.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record ReportRequest(
         Long targetId,
-        String type,
-        String reason
+        @NotBlank String type,
+        @NotBlank String reason
 ) {}
