@@ -1,38 +1,47 @@
 <form [formGroup]="form" (ngSubmit)="submit()">
-  <div>
-    <label for="email">Email</label>
-    <input id="email" type="email" formControlName="email" />
-    @if (f.password.touched && f.password.errors?.['required'] ) {
-    <small>Email is required</small>
+  <!-- Email field -->
+  <mat-form-field appearance="outline" class="w-30 mb-3">
+    <mat-label>Email</mat-label>
+    <input 
+      matInput 
+      id="email" 
+      type="email" 
+      formControlName="email" />
+    
+    @if (f.email.touched && f.email.errors?.['required']) {
+      <mat-error>Email is required</mat-error>
     }
-    @if (f.password.touched && f.password.errors?.['email'] ) {
-    <small>Enter a valid email</small>
+    @if (f.email.touched && f.email.errors?.['email']) {
+      <mat-error>Enter a valid email</mat-error>
     }
-  </div>
+  </mat-form-field>
 
-  <div>
-    <label for="password">Password</label>
-    <input id="password" type="password" formControlName="password" />
-
-    @if (f.password.touched && f.password.errors?.['required'] ) {
-
-    <small>Password is required</small>
+  <!-- Password field -->
+  <mat-form-field appearance="outline" class="w-30 mb-3">
+    <mat-label >Password</mat-label>
+    <input 
+      matInput 
+      id="password" 
+      type="password" 
+      formControlName="password" />
+    
+    @if (f.password.touched && f.password.errors?.['required']) {
+      <mat-error>Password is required</mat-error>
     }
-    @if (f.password.touched && f.password.errors?.['minlength'] ) {
-
-    <small>
-      Password must be at least 8 characters
-    </small>
+    @if (f.password.touched && f.password.errors?.['minlength']) {
+      <mat-error>Password must be at least 8 characters</mat-error>
     }
+  </mat-form-field>
 
+  @if (errorMsg) {
+    <mat-error class="mb-3">{{ errorMsg }}</mat-error>
+  }
 
-  </div>
-
-  <button type="submit" [disabled]="loading || form.invalid">
+  <button 
+    mat-raised-button 
+    color="primary" 
+    type="submit" 
+    [disabled]="loading || form.invalid">
     {{ loading ? 'Logging in...' : 'Login' }}
   </button>
-  @if (f.password.errors?.['errorMsg'] ) {
-
-  <p>{{ errorMsg }}</p>
-  }
 </form>
