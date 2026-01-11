@@ -12,6 +12,8 @@ import com.blog.dto.ReportRequest;
 import com.blog.dto.ReportResponse;
 import com.blog.entity.ReportEntity;
 import com.blog.entity.UserEntity;
+import com.blog.exception.ResourceAlreadyExistsException;
+import com.blog.exception.ResourceNotFoundException;
 import com.blog.mapper.ReportMapper;
 import com.blog.repository.ReportRepository;
 import com.blog.repository.UserRepository;
@@ -29,11 +31,11 @@ public class ReportServiceImpl implements ReportService {
     @Transactional
     public ReportResponse createReport(ReportRequest request, String username) {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (reportRepository.existsByReportedBy_IdAndTargetIdAndType(
                 user.getId(), request.targetId(), request.type())) {
-            throw new RuntimeException("You have already reported this content");
+            throw new ResourceAlreadyExistsException("You have already reported this content");
         }
 
         ReportEntity report = ReportEntity.builder()
@@ -75,7 +77,7 @@ public class ReportServiceImpl implements ReportService {
     @Transactional
     public void updateReportStatus(Long reportId, String status) {
         ReportEntity report = reportRepository.findById(reportId)
-                .orElseThrow(() -> new RuntimeException("Report not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Report not found"));
 
         report.setStatus(status);
         report.setUpdatedAt(Instant.now());
@@ -86,7 +88,7 @@ public class ReportServiceImpl implements ReportService {
     @Transactional
     public void deleteReport(Long reportId) {
         ReportEntity report = reportRepository.findById(reportId)
-                .orElseThrow(() -> new RuntimeException("Report not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Report not found"));
 
         reportRepository.delete(report);
     }

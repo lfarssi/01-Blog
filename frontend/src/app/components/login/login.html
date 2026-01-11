@@ -1,33 +1,38 @@
 <form [formGroup]="form" (ngSubmit)="submit()">
   <div>
-    <label >Email</label>
-    <input type="email"  formControlName="email" />
-
-    <small *ngIf="f.email.touched && f.email.errors?.['required']">Email is required</small>
-    <small *ngIf="f.email.touched && f.email.errors?.['email']">Enter a valid email</small>
+    <label for="email">Email</label>
+    <input id="email" type="email" formControlName="email" />
+    @if (f.password.touched && f.password.errors?.['required'] ) {
+    <small>Email is required</small>
+    }
+    @if (f.password.touched && f.password.errors?.['email'] ) {
+    <small>Enter a valid email</small>
+    }
   </div>
 
   <div>
-    <label>Password</label>
-    <input type="password" formControlName="password" />
+    <label for="password">Password</label>
+    <input id="password" type="password" formControlName="password" />
 
     @if (f.password.touched && f.password.errors?.['required'] ) {
 
-    <small >Password is required</small>
+    <small>Password is required</small>
     }
-     @if (f.password.touched && f.password.errors?.['minlength'] ) {
+    @if (f.password.touched && f.password.errors?.['minlength'] ) {
 
-        <small >
-         Password must be at least 8 characters
+    <small>
+      Password must be at least 8 characters
     </small>
     }
-    
-     
+
+
   </div>
 
   <button type="submit" [disabled]="loading || form.invalid">
     {{ loading ? 'Logging in...' : 'Login' }}
   </button>
+  @if (f.password.errors?.['errorMsg'] ) {
 
-  <p *ngIf="errorMsg">{{ errorMsg }}</p>
+  <p>{{ errorMsg }}</p>
+  }
 </form>

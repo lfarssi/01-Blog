@@ -8,6 +8,7 @@ import com.blog.entity.BlogEntity;
 import com.blog.entity.LikeEntity;
 import com.blog.entity.NotificationEntity;
 import com.blog.entity.UserEntity;
+import com.blog.exception.ResourceNotFoundException;
 import com.blog.repository.BlogRepository;
 import com.blog.repository.LikeRepository;
 import com.blog.repository.NotificationRepository;
@@ -31,10 +32,10 @@ public class LikeServiceImpl implements LikeService {
     @Transactional
     public LikeResponse toggleLike(Long blogId, String username) {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         BlogEntity blog = blogRepository.findById(blogId)
-                .orElseThrow(() -> new RuntimeException("Blog not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
 
         Optional<LikeEntity> existingLike = likeRepository.findByBlog_IdAndUser_Id(blogId, user.getId());
 
@@ -75,10 +76,10 @@ public class LikeServiceImpl implements LikeService {
     @Override
     public LikeResponse getLikeStatus(Long blogId, String username) {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         blogRepository.findById(blogId)
-                .orElseThrow(() -> new RuntimeException("Blog not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
 
         boolean liked = likeRepository.existsByBlog_IdAndUser_Id(blogId, user.getId());
         Long likeCount = likeRepository.countByBlog_Id(blogId);

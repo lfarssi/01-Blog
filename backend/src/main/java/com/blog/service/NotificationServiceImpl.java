@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.blog.dto.NotificationResponse;
 import com.blog.entity.NotificationEntity;
 import com.blog.entity.UserEntity;
+import com.blog.exception.AccessDeniedException;
+import com.blog.exception.ResourceNotFoundException;
 import com.blog.mapper.NotificationMapper;
 import com.blog.repository.NotificationRepository;
 import com.blog.repository.UserRepository;
@@ -26,7 +28,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public List<NotificationResponse> getUserNotifications(String username) {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         List<NotificationEntity> notifications = notificationRepository
                 .findByUser_IdOrderByCreatedAtDesc(user.getId());
@@ -39,7 +41,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public List<NotificationResponse> getUnreadNotifications(String username) {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         List<NotificationEntity> notifications = notificationRepository
                 .findByUser_IdAndIsReadOrderByCreatedAtDesc(user.getId(), false);
@@ -53,13 +55,13 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public void markAsRead(Long notificationId, String username) {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         NotificationEntity notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
 
         if (!notification.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized to update this notification");
+            throw new AccessDeniedException("Unauthorized to update this notification");
         }
 
         notification.setIsRead(true);
@@ -71,7 +73,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public void markAllAsRead(String username) {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         List<NotificationEntity> unreadNotifications = notificationRepository
                 .findByUser_IdAndIsReadOrderByCreatedAtDesc(user.getId(), false);
@@ -88,13 +90,13 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public void deleteNotification(Long notificationId, String username) {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         NotificationEntity notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
 
         if (!notification.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized to delete this notification");
+            throw new AccessDeniedException("Unauthorized to delete this notification");
         }
 
         notificationRepository.delete(notification);
@@ -103,7 +105,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public Long getUnreadCount(String username) {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         return notificationRepository.countByUser_IdAndIsRead(user.getId(), false);
     }

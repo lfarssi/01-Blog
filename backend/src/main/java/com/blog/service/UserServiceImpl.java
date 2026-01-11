@@ -3,6 +3,7 @@ package com.blog.service;
 import com.blog.dto.UserRequest;
 import com.blog.dto.UserResponse;
 import com.blog.entity.UserEntity;
+import com.blog.exception.ResourceAlreadyExistsException;
 import com.blog.mapper.UserMapper;
 import com.blog.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse getUserProfile(String username) {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceAlreadyExistsException("User not found"));
 
         return UserMapper.toResponse(user);
     }
@@ -31,11 +32,11 @@ public class UserServiceImpl implements UserService {
     public void register(UserRequest request) {
 
         if (userRepository.existsByUsername(request.username())) {
-            throw new RuntimeException("Username already exists");
+            throw new ResourceAlreadyExistsException("Username already exists");
         }
 
         if (userRepository.existsByEmail(request.email())) {
-            throw new RuntimeException("Email already exists");
+            throw new ResourceAlreadyExistsException("Email already exists");
         }
 
         UserEntity user = UserEntity.builder()

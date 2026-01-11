@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.blog.dto.BlogRequest;
@@ -14,6 +13,8 @@ import com.blog.dto.BlogUpdateRequest;
 import com.blog.mapper.BlogMapper;
 import com.blog.entity.BlogEntity;
 import com.blog.entity.UserEntity;
+import com.blog.exception.AccessDeniedException;
+import com.blog.exception.ResourceNotFoundException;
 import com.blog.repository.BlogRepository;
 import com.blog.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -28,7 +29,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public BlogResponse getBlogDetails(Long id){
-        BlogEntity user = blogRepository.findById(id).orElseThrow(()-> new RuntimeException("Blog not found"));
+        BlogEntity user = blogRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Blog not found"));
         return  BlogMapper.toResponse(user);
     }
     @Override
@@ -41,7 +42,7 @@ public class BlogServiceImpl implements BlogService {
     @Transactional
     public BlogResponse createBlog(BlogRequest request, String username) {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         BlogEntity blog = BlogEntity.builder()
                 .title(request.title())
@@ -63,10 +64,10 @@ public class BlogServiceImpl implements BlogService {
     @Transactional
     public BlogResponse updateBlog(Long id, BlogUpdateRequest request, String username) {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         BlogEntity blog = blogRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Blog not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
 
         if (!Objects.equals(blog.getUserId().getId(), user.getId())) {
           System.out.printf(
@@ -93,13 +94,13 @@ public class BlogServiceImpl implements BlogService {
     @Transactional
     public void deleteBlog(Long id, String username) {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         BlogEntity blog = blogRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Blog not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
 
         if (!blog.getUserId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized to delete this blog");
+            throw new AccessDeniedException("Unauthorized to delete this blog");
         }
 
         blogRepository.delete(blog);
@@ -108,7 +109,7 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public List<BlogResponse> getBlogsByUser(String username) {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         return blogRepository.findAll().stream()
                 .filter(blog -> blog.getUserId().equals(user.getId()))

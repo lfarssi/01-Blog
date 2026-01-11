@@ -12,6 +12,8 @@ import com.blog.entity.BlogEntity;
 import com.blog.entity.CommentEntity;
 import com.blog.entity.NotificationEntity;
 import com.blog.entity.UserEntity;
+import com.blog.exception.AccessDeniedException;
+import com.blog.exception.ResourceNotFoundException;
 import com.blog.mapper.CommentMapper;
 import com.blog.repository.BlogRepository;
 import com.blog.repository.CommentRepository;
@@ -34,9 +36,9 @@ public class CommentServiceImpl implements CommentService {
         @Transactional
         public CommentResponse createComment(Long blogId, CommentRequest request, String username) {
                 UserEntity user = userRepository.findByUsername(username)
-                                .orElseThrow(() -> new RuntimeException("User not found"));
+                                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
                 BlogEntity blog = blogRepository.findById(blogId)
-                                .orElseThrow(() -> new RuntimeException("Blog not found"));
+                                .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
                 CommentEntity comment = CommentEntity.builder()
                                 .blog(blog)
                                 .user(user)
@@ -61,7 +63,7 @@ public class CommentServiceImpl implements CommentService {
                 return comments.stream()
                                 .map(comment -> {
                                         UserEntity user = userRepository.findById(comment.getUser().getId())
-                                                        .orElseThrow(() -> new RuntimeException("User not found"));
+                                                        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
                                         return CommentMapper.toResponse(comment, user);
                                 })
                                 .collect(Collectors.toList());
@@ -71,20 +73,20 @@ public class CommentServiceImpl implements CommentService {
         @Transactional
         public void deleteComment(Long commentId, String username) {
                 UserEntity user = userRepository.findByUsername(username)
-                                .orElseThrow(() -> new RuntimeException("User not found"));
+                                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
                 CommentEntity comment = commentRepository.findById(commentId)
-                                .orElseThrow(() -> new RuntimeException("Comment not found"));
+                                .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
 
                 if (!comment.getUser().equals(user.getId())) {
-                        throw new RuntimeException("Unauthorized to delete this comment");
+                        throw new AccessDeniedException("Unauthorized to delete this comment");
                 }
 
                 Long blogId = comment.getBlog().getId();
                 commentRepository.delete(comment);
 
                 BlogEntity blog = blogRepository.findById(blogId)
-                                .orElseThrow(() -> new RuntimeException("Blog not found"));
+                                .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
                 blog.setComment_count(commentRepository.countByBlog_Id(blogId));
                 blogRepository.save(blog);
                 if (!blog.getUserId().getId().equals(user.getId())) {
