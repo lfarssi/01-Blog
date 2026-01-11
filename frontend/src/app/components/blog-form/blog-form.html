@@ -1,0 +1,59 @@
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <mat-card class="shadow-sm">
+        <mat-card-header>
+          <mat-card-title>Create a New Blog Post</mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content class="mt-3">
+          <form [formGroup]="form" (ngSubmit)="submit()">
+            <!-- Title -->
+            <mat-form-field appearance="outline" class="w-100 mb-3">
+              <mat-label>Title</mat-label>
+              <input
+                matInput
+                formControlName="title"
+                placeholder="Enter blog title"
+              />
+              @if (f['title'].touched && f['title'].errors?.['required']) {
+                <mat-error>Title is required</mat-error>
+              }
+              @if (f['title'].touched && f['title'].errors?.['minlength']) {
+                <mat-error>Title must be at least 5 characters</mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Content -->
+            <mat-form-field appearance="outline" class="w-100 mb-3">
+              <mat-label>Content</mat-label>
+              <textarea
+                matInput
+                formControlName="content"
+                rows="6"
+                placeholder="Write your blog post here..."
+              ></textarea>
+              @if (f['content'].touched && f['content'].errors?.['required']) {
+                <mat-error>Content is required</mat-error>
+              }
+              @if (f['content'].touched && f['content'].errors?.['minlength']) {
+                <mat-error>Content must be at least 20 characters</mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Submit Button -->
+            <button
+              mat-raised-button
+              color="primary"
+              type="submit"
+              class="w-100"
+              [disabled]="loading || form.invalid"
+            >
+              {{ loading ? 'Saving...' : 'Create Blog' }}
+            </button>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

@@ -1,4 +1,4 @@
-// Make Material fields look more integrated
+// Make Material fields look better
 mat-form-field {
   .mat-mdc-form-field {
     border-radius: 8px;
@@ -16,9 +16,10 @@ button[mat-raised-button] {
   font-weight: 500;
 }
 
-// Responsive adjustments
-@media (max-width: 575.98px) {
-  .card-body {
-    padding: 1.5rem;
+// Responsive: smaller padding on mobile
+@media (max-width: 767.98px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 }

@@ -1,28 +1,40 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component } from '@angular/core';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { Header } from './components/header/header';
 import { Footer } from './components/footer/footer';
-import { Login } from './components/login/login';
-import { Register } from './components/register/register';
-import { Home } from './home/home';
-
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Header, Footer, Login, Register, Home],
-  template: `
-    <app-header />
-      <main>
-         <app-home />
-        <app-login />
-        <app-register />
-      </main>
-     
-    <app-footer />
+  imports: [
+    RouterOutlet,
+    Header,
+    Footer,
 
-    <router-outlet />
+  ],
+  template: `
+    @if (showLayout) {
+      <app-header />
+    }
+    <main>
+      <router-outlet />
+    </main>
+    @if (showLayout) {
+      <app-footer />
+    }
   `,
-  styles: [],
+  styles: []
 })
 export class App {
-  protected readonly title = signal('frontend');
+  protected readonly title = 'frontend';
+  showLayout = true; // Show header/footer by default
+
+  constructor(private router: Router) {
+    // Listen to route changes
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        // Hide layout on login and register
+        const hideOn = ['/login', '/register'];
+        this.showLayout = !hideOn.includes(event.urlAfterRedirects);
+      }
+    });
+  }
 }

@@ -1,1 +1,47 @@
-<p>header works!</p>
+<mat-toolbar color="primary" class="header-toolbar">
+  <div class="container d-flex justify-content-between align-items-center">
+    <!-- Logo -->
+    <div class="d-flex align-items-center">
+      <span class="logo">01Blog</span>
+    </div>
+
+    <!-- Navigation Links (hidden on small screens) -->
+    <div class="d-none d-md-flex align-items-center">
+      <a href="#" class="nav-link text-primary me-3">Home</a>
+      <a href="#" class="nav-link text-primary me-3">Features</a>
+      <a href="#" class="nav-link text-primary me-3">Pricing</a>
+      <a href="#" class="nav-link text-primary me-3">About</a>
+    </div>
+
+    <!-- Login / Register / Logout -->
+    <div class="d-flex align-items-center">
+      @if (!isLoggedIn()) {
+        <button
+          mat-button
+          class="btn-primary-outline me-2"
+          (click)="navigateToLogin()"
+        >
+          Login
+        </button>
+        <button
+          mat-raised-button
+          color="accent"
+            class="btn-primary-outline me-2"
+
+          (click)="navigateToRegister()"
+        >
+          Register
+        </button>
+      } @else {
+        <span class="text-white me-3">Welcome!</span>
+        <button
+          mat-button
+          class="text-danger"
+          (click)="logout()"
+        >
+          Logout
+        </button>
+      }
+    </div>
+  </div>
+</mat-toolbar>

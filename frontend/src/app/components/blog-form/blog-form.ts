@@ -3,42 +3,36 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-  selector: 'app-login',
-  templateUrl: './login.html',
-  styleUrls: ['./login.scss'],
+  selector: 'app-blog-form',
+  templateUrl: './blog-form.html',
+  styleUrls: ['./blog-form.scss'],
   standalone: true,
   imports: [
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatIconModule,
     MatCardModule,
+    MatIconModule,
     ReactiveFormsModule
   ]
 })
-export class Login {
+export class BlogFormComponent {
   form: FormGroup;
-  errorMsg: string | null = null;
   loading = false;
-  showPassword = false;
 
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8)]]
+      title: ['', [Validators.required, Validators.minLength(5)]],
+      content: ['', [Validators.required, Validators.minLength(20)]]
     });
   }
 
   get f() {
     return this.form.controls;
-  }
-
-  togglePassword(): void {
-    this.showPassword = !this.showPassword;
   }
 
   submit(): void {
@@ -48,12 +42,12 @@ export class Login {
     }
 
     this.loading = true;
-    this.errorMsg = null;
 
-    // Simulate login (replace with your auth service)
+    // Simulate saving (replace with your API call)
     setTimeout(() => {
       this.loading = false;
-      this.errorMsg = 'Invalid email or password'; // Example error
+      alert('Blog post created!');
+      this.form.reset();
     }, 1500);
   }
 }

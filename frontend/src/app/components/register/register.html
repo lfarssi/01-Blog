@@ -1,1 +1,133 @@
-<p>register works!</p>
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+  <div class="card shadow-lg border-0 rounded-4" style="max-width: 480px; width: 100%;">
+    <div class="card-body p-4 p-md-5">
+      <!-- Logo / Title -->
+      <div class="text-center mb-4">
+        <h4 class="fw-bold text-primary">MyApp</h4>
+        <p class="text-muted mb-0">Create your account</p>
+      </div>
+
+      <!-- Register Form -->
+      <form [formGroup]="form" (ngSubmit)="submit()" class="needs-validation">
+        <!-- First Name -->
+        <mat-form-field appearance="outline" class="w-100 mb-3">
+          <mat-label>First Name</mat-label>
+          <input
+            matInput
+            type="text"
+            formControlName="firstName"
+            placeholder="Enter your first name"
+          />
+          @if (f['firstName'].touched && f['firstName'].errors?.['required']) {
+            <mat-error>First name is required</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Last Name -->
+        <mat-form-field appearance="outline" class="w-100 mb-3">
+          <mat-label>Last Name</mat-label>
+          <input
+            matInput
+            type="text"
+            formControlName="lastName"
+            placeholder="Enter your last name"
+          />
+          @if (f['lastName'].touched && f['lastName'].errors?.['required']) {
+            <mat-error>Last name is required</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Email -->
+        <mat-form-field appearance="outline" class="w-100 mb-3">
+          <mat-label>Email</mat-label>
+          <input
+            matInput
+            type="email"
+            formControlName="email"
+            placeholder="Enter your email"
+          />
+          @if (f['email'].touched && f['email'].errors?.['required']) {
+            <mat-error>Email is required</mat-error>
+          }
+          @if (f['email'].touched && f['email'].errors?.['email']) {
+            <mat-error>Enter a valid email</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Password -->
+        <mat-form-field appearance="outline" class="w-100 mb-3">
+          <mat-label>Password</mat-label>
+          <input
+            matInput
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="Enter your password"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="togglePassword()"
+            aria-label="Toggle password visibility"
+          >
+            <mat-icon>{{ showPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+          </button>
+          @if (f['password'].touched && f['password'].errors?.['required']) {
+            <mat-error>Password is required</mat-error>
+          }
+          @if (f['password'].touched && f['password'].errors?.['minlength']) {
+            <mat-error>Password must be at least 8 characters</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Confirm Password -->
+        <mat-form-field appearance="outline" class="w-100 mb-3">
+          <mat-label>Confirm Password</mat-label>
+          <input
+            matInput
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            formControlName="confirmPassword"
+            placeholder="Confirm your password"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="toggleConfirmPassword()"
+            aria-label="Toggle confirm password visibility"
+          >
+            <mat-icon>{{ showConfirmPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+          </button>
+          @if (f['confirmPassword'].touched && f['confirmPassword'].errors?.['required']) {
+            <mat-error>Confirm password is required</mat-error>
+          }
+          @if (form.errors?.['passwordMismatch']) {
+            <mat-error>Passwords do not match</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Error Message -->
+        @if (errorMsg) {
+          <mat-error class="d-block text-center mb-3">{{ errorMsg }}</mat-error>
+        }
+
+        <!-- Submit Button -->
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="w-100"
+          [disabled]="loading || form.invalid"
+        >
+          {{ loading ? 'Registering...' : 'Register' }}
+        </button>
+
+        <!-- Login link -->
+        <div class="text-center mt-3">
+          <small class="text-muted">Already have an account? </small>
+          <a href="/login" class="text-decoration-none text-primary small">Login</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

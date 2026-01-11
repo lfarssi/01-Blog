@@ -1,0 +1,48 @@
+.header-toolbar {
+  height: 64px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: rgb(38, 96, 255);
+  text-decoration: none;
+}
+
+.nav-link {
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.2s;
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.btn-primary-outline {
+  border: 1px solid currentColor;
+  color: var(--mdc-theme-primary, #1976d2);
+  background: transparent;
+
+  &:hover {
+    color: white;
+    background: var(--mdc-theme-primary, #1976d2);
+    border-color: var(--mdc-theme-primary, #1976d2);
+  }
+
+  .mat-mdc-button-persistent-ripple::before,
+  .mat-mdc-button-persistent-ripple::after {
+    opacity: 0 !important;
+  }
+}
+
+
+// Responsive: collapse on small screens
+@media (max-width: 767.98px) {
+  .header-toolbar {
+    .container {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
+}
