@@ -17,17 +17,16 @@ import com.blog.service.BlogService;
 import jakarta.validation.Valid;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:4200") // <-- add this
-
 @RequestMapping("/blogs")
 public class BlogController {
     @Autowired
     private BlogService blogService;
 
     @GetMapping
-    public ResponseEntity<List<BlogResponse>> getAllBlogs() {
+    public ResponseEntity<Object> getAllBlogs() {
         List<BlogResponse> blogs = blogService.getAllBlogs();
-        return ResponseEntity.ok(blogs);
+
+        return  ApiResponse.from(200, "Blogs Received successfully", blogs);
     }
 
     @GetMapping("/{id}")

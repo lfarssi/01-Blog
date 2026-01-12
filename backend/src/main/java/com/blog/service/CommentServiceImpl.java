@@ -25,82 +25,82 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-
 public class CommentServiceImpl implements CommentService {
-        private final CommentRepository commentRepository;
-        private final UserRepository userRepository;
-        private final BlogRepository blogRepository;
-        private final NotificationRepository notificationRepository;
+    private final CommentRepository commentRepository;
+    private final UserRepository userRepository;
+    private final BlogRepository blogRepository;
+    private final NotificationRepository notificationRepository;
 
-        @Override
-        @Transactional
-        public CommentResponse createComment(Long blogId, CommentRequest request, String username) {
-                UserEntity user = userRepository.findByUsername(username)
-                                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-                BlogEntity blog = blogRepository.findById(blogId)
-                                .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
-                CommentEntity comment = CommentEntity.builder()
-                                .blog(blog)
-                                .user(user)
-                                .content(request.content())
-                                .createdAt(Instant.now())
-                                .updatedAt(Instant.now())
-                                .build();
+    @Override
+    @Transactional
+    public CommentResponse createComment(Long blogId, CommentRequest request, String username) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        BlogEntity blog = blogRepository.findById(blogId)
+                .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
+        
+        CommentEntity comment = CommentEntity.builder()
+                .blog(blog)
+                .user(user)
+                .content(request.content())
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
 
-                comment = commentRepository.save(comment);
+        comment = commentRepository.save(comment);
 
-                blog.setComment_count(commentRepository.countByBlog_Id(blogId));
-                blogRepository.save(blog);
+        // Update comment count
+        blog.setComment_count(commentRepository.countByBlog_Id(blogId));
+        blogRepository.save(blog);
 
-                return CommentMapper.toResponse(comment, user);
-
+        // Create notification if not self-comment
+        if (!blog.getUserId().getId().equals(user.getId())) {
+            NotificationEntity notification = NotificationEntity.builder()
+                    .user(blog.getUserId())
+                    .type("COMMENT")
+                    .content(user.getUsername() + " commented on your blog")
+                    .relatedId(blogId)
+                    .isRead(false)
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build();
+            notificationRepository.save(notification);
         }
 
-        @Override
-        public List<CommentResponse> getCommentsByBlogId(Long blogId) {
-                List<CommentEntity> comments = commentRepository.findByBlog_Id(blogId);
+        return CommentMapper.toResponse(comment);
+    }
 
-                return comments.stream()
-                                .map(comment -> {
-                                        UserEntity user = userRepository.findById(comment.getUser().getId())
-                                                        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-                                        return CommentMapper.toResponse(comment, user);
-                                })
-                                .collect(Collectors.toList());
+    @Override
+    public List<CommentResponse> getCommentsByBlogId(Long blogId) {
+        List<CommentEntity> comments = commentRepository.findByBlog_Id(blogId);
+
+        return comments.stream()
+                .map(CommentMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void deleteComment(Long commentId, String username) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        CommentEntity comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
+
+        // Fix: Compare user objects, not user with Long ID
+        if (!comment.getUser().getId().equals(user.getId())) {
+            throw new AccessDeniedException("Unauthorized to delete this comment");
         }
 
-        @Override
-        @Transactional
-        public void deleteComment(Long commentId, String username) {
-                UserEntity user = userRepository.findByUsername(username)
-                                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Long blogId = comment.getBlog().getId();
+        commentRepository.delete(comment);
 
-                CommentEntity comment = commentRepository.findById(commentId)
-                                .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
-
-                if (!comment.getUser().equals(user.getId())) {
-                        throw new AccessDeniedException("Unauthorized to delete this comment");
-                }
-
-                Long blogId = comment.getBlog().getId();
-                commentRepository.delete(comment);
-
-                BlogEntity blog = blogRepository.findById(blogId)
-                                .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
-                blog.setComment_count(commentRepository.countByBlog_Id(blogId));
-                blogRepository.save(blog);
-                if (!blog.getUserId().getId().equals(user.getId())) {
-                        NotificationEntity notification = NotificationEntity.builder()
-                                        .user(blog.getUserId())
-                                        .type("COMMENT")
-                                        .content(user.getUsername() + " commented on your blog")
-                                        .relatedId(blogId)
-                                        .isRead(false)
-                                        .createdAt(Instant.now())
-                                        .updatedAt(Instant.now())
-                                        .build();
-                        notificationRepository.save(notification);
-                }
-
-        }
+        // Update comment count
+        BlogEntity blog = blogRepository.findById(blogId)
+                .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
+        blog.setComment_count(commentRepository.countByBlog_Id(blogId));
+        blogRepository.save(blog);
+    }
 }

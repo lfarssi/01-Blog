@@ -7,10 +7,18 @@ public class BlogMapper {
     public static BlogResponse toResponse(BlogEntity blog) {
         return new BlogResponse(
                 blog.getId(),
-                blog.getContent(),
                 blog.getTitle(),
+                blog.getContent(),
                 blog.getMedia(),
-                blog.getCreatedAt());
-
+                blog.getLike_count(),
+                blog.getComment_count(),
+                blog.getCreatedAt(),
+                blog.getUpdatedAt(),
+                new BlogResponse.UserInfo(
+                        blog.getUserId().getId(),
+                        blog.getUserId().getUsername(),
+                        blog.getUserId().getEmail()
+                )
+        );
     }   
 }

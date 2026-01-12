@@ -6,6 +6,16 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router'; // Import Router
+
+// Define the response interface to match your backend
+interface LoginResponse {
+  status: number;
+  message: string;
+  data: {
+    token: string;
+  };
+}
 
 @Component({
   selector: 'app-login',
@@ -27,10 +37,13 @@ export class Login {
   loading = false;
   showPassword = false;
 
-  // inject HttpClient
-  constructor(private fb: FormBuilder, private http: HttpClient) {
+  constructor(
+    private fb: FormBuilder, 
+    private http: HttpClient,
+    private router: Router // Inject Router
+  ) {
     this.form = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
+      username: ['', [Validators.required]],
       password: ['', [Validators.required, Validators.minLength(8)]]
     });
   }
@@ -53,22 +66,25 @@ export class Login {
     this.errorMsg = null;
 
     const body = {
-      email: this.form.value.email,
+      username: this.form.value.username,
       password: this.form.value.password
     };
 
-    // change URL to your backend login endpoint
-    this.http.post<{ token: string }>('http://localhost:8080/api/auth/login', body)
+    this.http.post<LoginResponse>('http://localhost:8080/api/auth/login', body)
       .subscribe({
         next: (res) => {
           this.loading = false;
-          // example: save token and redirect
-          localStorage.setItem('token', res.token);
-          // TODO: navigate to home/dashboard
+          console.log(res);
+          
+          // Access token from nested data object
+          localStorage.setItem('token', res.data.token);
+          
+          // Navigate to home page
+          this.router.navigate(['/blogs']);
         },
         error: (err) => {
           this.loading = false;
-          this.errorMsg = err.error?.message || 'Invalid email or password';
+          this.errorMsg = err.error?.message || 'Invalid username/email or password';
         }
       });
   }

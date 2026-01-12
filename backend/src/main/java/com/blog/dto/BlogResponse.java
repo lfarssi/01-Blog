@@ -4,8 +4,18 @@ import java.time.Instant;
 
 public record BlogResponse(
         Long id,
-        String content,
         String title,
+        String content,
         String media,
-        Instant createdAt
-) {}
+        Long likeCount,
+        Long commentCount,
+        Instant createdAt,
+        Instant updatedAt,
+        UserInfo author
+) {
+    public record UserInfo(
+            Long id,
+            String username,
+            String email
+    ) {}
+}

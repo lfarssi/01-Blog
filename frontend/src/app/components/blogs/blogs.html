@@ -1,10 +1,6 @@
 <div class="container py-4">
   <h2 class="mb-3">Blogs</h2>
 
-  @if (loading) {
-    <div class="mb-3">Loading blogs...</div>
-  }
-
   @if (errorMsg) {
     <div class="mb-3 text-danger">{{ errorMsg }}</div>
   }
@@ -16,11 +12,11 @@
   @for (blog of blogs; track blog.id) {
     <div class="row g-3 mb-3">
       <div class="col-12">
-        <mat-card class="h-100">
+        <mat-card class="h-100 blog-card" (click)="viewBlogDetail(blog.id)">
           <mat-card-header>
             <mat-card-title>{{ blog.title }}</mat-card-title>
             <mat-card-subtitle>
-              {{ blog.author }} • {{ blog.createdAt | date:'mediumDate' }}
+              anonymous • {{ blog.createdAt | date:'mediumDate' }}
             </mat-card-subtitle>
           </mat-card-header>
           <mat-card-content>

@@ -9,20 +9,17 @@
 
       <!-- Login Form -->
       <form [formGroup]="form" (ngSubmit)="submit()" class="needs-validation">
-        <!-- Email Field -->
+        <!-- Username/Email Field -->
         <mat-form-field appearance="outline" class="w-100 mb-3">
-          <mat-label>Email</mat-label>
+          <mat-label>Username or Email</mat-label>
           <input
             matInput
-            type="email"
-            formControlName="email"
-            placeholder="Enter your email"
+            type="text"
+            formControlName="username"
+            placeholder="Enter your username or email"
           />
-          @if (f['email'].touched && f['email'].errors?.['required']) {
-            <mat-error>Email is required</mat-error>
-          }
-          @if (f['email'].touched && f['email'].errors?.['email']) {
-            <mat-error>Enter a valid email</mat-error>
+          @if (f['username'].touched && f['username'].errors?.['required']) {
+            <mat-error>Username or email is required</mat-error>
           }
         </mat-form-field>
 
@@ -86,7 +83,7 @@
         <!-- Sign up link -->
         <div class="text-center mt-3">
           <small class="text-muted">Don't have an account? </small>
-          <a href="/register" class="text-decoration-none text-primary small">Sign up</a>
+          <a href="/auth/register" class="text-decoration-none text-primary small">Sign up</a>
         </div>
       </form>
     </div>

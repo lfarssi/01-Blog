@@ -1,47 +1,43 @@
-// src/app/blogs/blogs.component.ts
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router'; // Import Router
 import { HttpClient } from '@angular/common/http';
-import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
-import { Blog } from '../../models/blogs';
-
-interface ApiResponse<T> {
-  status: number;
-  message: string;
-  data: T;
-}
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-blogs',
   standalone: true,
-  imports: [CommonModule, MatCardModule],
+  imports: [MatCardModule, CommonModule],
   templateUrl: './blogs.html',
   styleUrls: ['./blogs.scss']
 })
-export class Blogs {
-  blogs: Blog[] = [];
-  loading = false;
+export class Blogs implements OnInit {
+  blogs: any[] = [];
+  loading = true;
   errorMsg: string | null = null;
 
-  constructor(private http: HttpClient) {
-    this.loadBlogs();
-  }
+  constructor(
+    private http: HttpClient,
+    private router: Router // Inject Router
+  ) {}
 
-  loadBlogs(): void {
-    this.loading = true;
-    this.errorMsg = null;
-
-    this.http
-      .get<ApiResponse<Blog[]>>('http://localhost:8080/api/blogs')
+  ngOnInit(): void {
+    this.http.get<any>('http://localhost:8080/api/blogs')
       .subscribe({
         next: (res) => {
+          console.log(res);
+          
+          this.blogs = res.data || res;
           this.loading = false;
-          this.blogs = res.data || [];
         },
         error: (err) => {
+          this.errorMsg = 'Failed to load blogs';
           this.loading = false;
-          this.errorMsg = err.error?.message || 'Failed to load blogs';
         }
       });
+  }
+
+  viewBlogDetail(blogId: number): void {
+    this.router.navigate(['/blogs', blogId]);
   }
 }
