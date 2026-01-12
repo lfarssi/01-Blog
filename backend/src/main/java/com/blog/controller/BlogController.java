@@ -17,6 +17,8 @@ import com.blog.service.BlogService;
 import jakarta.validation.Valid;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200") // <-- add this
+
 @RequestMapping("/blogs")
 public class BlogController {
     @Autowired
