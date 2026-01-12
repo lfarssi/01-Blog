@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import com.blog.dto.ApiResponse;
+
 import com.blog.dto.BlogRequest;
 import com.blog.dto.BlogResponse;
 import com.blog.dto.BlogUpdateRequest;
@@ -27,44 +29,44 @@ public class BlogController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BlogResponse> getBlog(@PathVariable Long id) {
-        return ResponseEntity.ok(blogService.getBlogDetails(id));
+    public ResponseEntity<Object> getBlog(@PathVariable Long id) {
+        return  ApiResponse.from(200, "Blog Received successfully", blogService.getBlogDetails(id));
     }
 
     @GetMapping("/user/{username}")
-    public ResponseEntity<List<BlogResponse>> getBlogsByUser(@PathVariable String username) {
+    public ResponseEntity<Object> getBlogsByUser(@PathVariable String username) {
         List<BlogResponse> blogs = blogService.getBlogsByUser(username);
-        return ResponseEntity.ok(blogs);
+        return  ApiResponse.from(200, "Blogs Received successfully", blogs);
     }
 
     @PostMapping
-    public ResponseEntity<BlogResponse> createBlog(
+    public ResponseEntity<Object> createBlog(
             @Valid @RequestBody BlogRequest request,
             Authentication authentication) {
 
         String username = authentication.getName();
         BlogResponse blog = blogService.createBlog(request, username);
-        return ResponseEntity.ok(blog);
+        return  ApiResponse.from(200, "Blog Created successfully", blog);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BlogResponse> updateBlog(
+    public ResponseEntity<Object> updateBlog(
             @PathVariable Long id,
             @RequestBody BlogUpdateRequest request,
             Authentication authentication) {
 
         String username = authentication.getName();
         BlogResponse blog = blogService.updateBlog(id, request, username);
-        return ResponseEntity.ok(blog);
+        return  ApiResponse.from(200, "Blog Updated successfully", blog);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteBlog(
+    public ResponseEntity<Object> deleteBlog(
             @PathVariable Long id,
             Authentication authentication) {
 
         String username = authentication.getName();
         blogService.deleteBlog(id, username);
-        return ResponseEntity.ok("Blog deleted successfully");
+        return  ApiResponse.from(200, "Blog Deleted successfully", null);
     }
 }

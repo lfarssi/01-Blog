@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -27,10 +28,9 @@ export class Register {
   showPassword = false;
   showConfirmPassword = false;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private http: HttpClient) {
     this.form = this.fb.group({
-      firstName: ['', [Validators.required]],
-      lastName: ['', [Validators.required]],
+      username: ['', [Validators.required]],  // <-- changed
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]]
@@ -66,10 +66,26 @@ export class Register {
     this.loading = true;
     this.errorMsg = null;
 
-    // Simulate registration (replace with your auth service)
-    setTimeout(() => {
-      this.loading = false;
-      this.errorMsg = 'Email already exists'; // Example error
-    }, 1500);
+    // body with username (same login pattern)
+    const body = {
+      username: this.form.value.username,  // <-- changed
+      email: this.form.value.email,
+      password: this.form.value.password
+    };
+
+    // change URL to your backend register endpoint
+    this.http.post('http://localhost:8080/api/auth/register', body)
+      .subscribe({
+        next: (res) => {
+          this.loading = false;
+          // TODO: navigate to login page
+          console.log('Registration successful', res);
+        },
+        error: (err) => {
+          this.loading = false;
+          console.log(err)
+          this.errorMsg = err.error?.message || 'Registration failed';
+        }
+      });
   }
 }

@@ -1,5 +1,6 @@
 package com.blog.controller;
 
+import com.blog.dto.ApiResponse;
 import com.blog.dto.LoginRequest;
 import com.blog.dto.LoginResponse;
 import com.blog.dto.UserRequest;
@@ -17,6 +18,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200") // <-- add this
+
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
@@ -26,7 +29,7 @@ public class AuthController {
     private final JwtService jwtService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<Object> login(@Valid @RequestBody LoginRequest request) {
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -35,12 +38,14 @@ public class AuthController {
 
         String token = jwtService.generateToken(request.username());
 
-        return ResponseEntity.ok(new LoginResponse(token));
+    
+
+        return ApiResponse.from(201, "User Logged successfully", new LoginResponse(token));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody UserRequest request) {
+    public ResponseEntity<Object> register(@Valid @RequestBody UserRequest request) {
         userService.register(request);
-        return ResponseEntity.ok("User registered successfully");
+        return ApiResponse.from(201, "User registered successfully", null);
     }
 }

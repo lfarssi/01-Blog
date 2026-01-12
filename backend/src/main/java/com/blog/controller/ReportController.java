@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import com.blog.dto.ApiResponse;
 import com.blog.dto.ReportRequest;
 import com.blog.dto.ReportResponse;
 import com.blog.service.ReportService;
@@ -22,45 +23,45 @@ public class ReportController {
     private ReportService reportService;
 
     @PostMapping
-    public ResponseEntity<ReportResponse> createReport(
+    public ResponseEntity<Object> createReport(
             @Valid @RequestBody ReportRequest request,
             Authentication authentication) {
 
         String username = authentication.getName();
         ReportResponse response = reportService.createReport(request, username);
-        return ResponseEntity.ok(response);
+        return  ApiResponse.from(200, "Report Created successfully",response);
     }
 
     @GetMapping
-    public ResponseEntity<List<ReportResponse>> getAllReports() {
+    public ResponseEntity<Object> getAllReports() {
         List<ReportResponse> reports = reportService.getAllReports();
-        return ResponseEntity.ok(reports);
+        return  ApiResponse.from(200, "All Reports Received successfully",reports);
     }
 
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<ReportResponse>> getReportsByStatus(@PathVariable String status) {
+    public ResponseEntity<Object> getReportsByStatus(@PathVariable String status) {
         List<ReportResponse> reports = reportService.getReportsByStatus(status);
-        return ResponseEntity.ok(reports);
+        return  ApiResponse.from(200, "Report By Status Received successfully",reports);
     }
 
     @GetMapping("/type/{type}")
-    public ResponseEntity<List<ReportResponse>> getReportsByType(@PathVariable String type) {
+    public ResponseEntity<Object> getReportsByType(@PathVariable String type) {
         List<ReportResponse> reports = reportService.getReportsByType(type);
-        return ResponseEntity.ok(reports);
+        return  ApiResponse.from(200, "Report By Type Received successfully",reports);
     }
 
     @PutMapping("/{reportId}/status")
-    public ResponseEntity<String> updateReportStatus(
+    public ResponseEntity<Object> updateReportStatus(
             @PathVariable Long reportId,
             @RequestParam String status) {
 
         reportService.updateReportStatus(reportId, status);
-        return ResponseEntity.ok("Report status updated successfully");
+        return  ApiResponse.from(200, "Report Status updated  successfully",null);
     }
 
     @DeleteMapping("/{reportId}")
-    public ResponseEntity<String> deleteReport(@PathVariable Long reportId) {
+    public ResponseEntity<Object> deleteReport(@PathVariable Long reportId) {
         reportService.deleteReport(reportId);
-        return ResponseEntity.ok("Report deleted successfully");
+        return  ApiResponse.from(200, "Report deleted successfully",null);
     }
 }

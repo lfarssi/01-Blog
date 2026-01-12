@@ -9,31 +9,17 @@
 
       <!-- Register Form -->
       <form [formGroup]="form" (ngSubmit)="submit()" class="needs-validation">
-        <!-- First Name -->
+        <!-- Username (replaces first/last name) -->
         <mat-form-field appearance="outline" class="w-100 mb-3">
-          <mat-label>First Name</mat-label>
+          <mat-label>Username</mat-label>
           <input
             matInput
             type="text"
-            formControlName="firstName"
-            placeholder="Enter your first name"
+            formControlName="username"
+            placeholder="Enter your username"
           />
-          @if (f['firstName'].touched && f['firstName'].errors?.['required']) {
-            <mat-error>First name is required</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- Last Name -->
-        <mat-form-field appearance="outline" class="w-100 mb-3">
-          <mat-label>Last Name</mat-label>
-          <input
-            matInput
-            type="text"
-            formControlName="lastName"
-            placeholder="Enter your last name"
-          />
-          @if (f['lastName'].touched && f['lastName'].errors?.['required']) {
-            <mat-error>Last name is required</mat-error>
+          @if (f['username'].touched && f['username'].errors?.['required']) {
+            <mat-error>Username is required</mat-error>
           }
         </mat-form-field>
 

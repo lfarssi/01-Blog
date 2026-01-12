@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import com.blog.dto.ApiResponse;
 import com.blog.dto.CommentRequest;
 import com.blog.dto.CommentResponse;
 import com.blog.service.CommentService;
@@ -38,12 +39,12 @@ public class CommentController {
     }
 
     @DeleteMapping("/{commentId}")
-    public ResponseEntity<String> deleteComment(
+    public ResponseEntity<Object> deleteComment(
             @PathVariable Long commentId,
             Authentication authentication) {
 
         String username = authentication.getName();
         commentService.deleteComment(commentId, username);
-        return ResponseEntity.ok("Comment deleted successfully");
+        return  ApiResponse.from(200, "Comment Deleted successfully", null);
     }
 }

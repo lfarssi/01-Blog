@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import com.blog.dto.ApiResponse;
 import com.blog.dto.NotificationResponse;
 import com.blog.service.NotificationService;
 
@@ -18,54 +19,55 @@ public class NotificationController {
     private NotificationService notificationService;
 
     @GetMapping
-    public ResponseEntity<List<NotificationResponse>> getUserNotifications(
+    public ResponseEntity<Object> getUserNotifications(
             Authentication authentication) {
 
         String username = authentication.getName();
         List<NotificationResponse> notifications = notificationService.getUserNotifications(username);
-        return ResponseEntity.ok(notifications);
+        return  ApiResponse.from(200, "User Notifications Received successfully", notifications);
     }
 
     @GetMapping("/unread")
-    public ResponseEntity<List<NotificationResponse>> getUnreadNotifications(
+    public ResponseEntity<Object> getUnreadNotifications(
             Authentication authentication) {
 
         String username = authentication.getName();
         List<NotificationResponse> notifications = notificationService.getUnreadNotifications(username);
-        return ResponseEntity.ok(notifications);
+        return  ApiResponse.from(200, "User Unread Notifications Received successfully", notifications);
     }
 
     @GetMapping("/unread/count")
-    public ResponseEntity<Long> getUnreadCount(Authentication authentication) {
+    public ResponseEntity<Object> getUnreadCount(Authentication authentication) {
         String username = authentication.getName();
         Long count = notificationService.getUnreadCount(username);
-        return ResponseEntity.ok(count);
+        return  ApiResponse.from(200, "Count Notifications Received successfully", count);
     }
 
     @PutMapping("/{notificationId}/read")
-    public ResponseEntity<String> markAsRead(
+    public ResponseEntity<Object> markAsRead(
             @PathVariable Long notificationId,
             Authentication authentication) {
 
         String username = authentication.getName();
         notificationService.markAsRead(notificationId, username);
-        return ResponseEntity.ok("Notification marked as read");
+        return  ApiResponse.from(200, "Notification Marked As Read",null);
     }
 
     @PutMapping("/read-all")
-    public ResponseEntity<String> markAllAsRead(Authentication authentication) {
+    public ResponseEntity<Object> markAllAsRead(Authentication authentication) {
         String username = authentication.getName();
         notificationService.markAllAsRead(username);
-        return ResponseEntity.ok("All notifications marked as read");
+        return  ApiResponse.from(200, "All Notifications Marked As Read",null);
     }
 
     @DeleteMapping("/{notificationId}")
-    public ResponseEntity<String> deleteNotification(
+    public ResponseEntity<Object> deleteNotification(
             @PathVariable Long notificationId,
             Authentication authentication) {
 
         String username = authentication.getName();
         notificationService.deleteNotification(notificationId, username);
-        return ResponseEntity.ok("Notification deleted successfully");
+        return  ApiResponse.from(200, "Notification Deleted Successfully",null);
+
     }
 }
