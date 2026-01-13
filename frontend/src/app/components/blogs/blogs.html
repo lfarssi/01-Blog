@@ -1,15 +1,23 @@
 <div class="container py-4">
   <h2 class="mb-3">Blogs</h2>
 
-  @if (errorMsg) {
-    <div class="mb-3 text-danger">{{ errorMsg }}</div>
+      @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
   }
 
-  @if (blogs.length === 0 && !loading && !errorMsg) {
+  @if (errorMsg()) {
+    <div class="mb-3 text-danger">{{ errorMsg() }}</div>
+  }
+
+  @if (blogs().length === 0  && !errorMsg) {
     <div class="mb-3">No blogs found.</div>
   }
 
-  @for (blog of blogs; track blog.id) {
+  @for (blog of blogs(); track blog.id) {
     <div class="row g-3 mb-3">
       <div class="col-12">
         <mat-card class="h-100 blog-card" (click)="viewBlogDetail(blog.id)">
@@ -23,7 +31,7 @@
             <p>{{ blog.content }}</p>
           </mat-card-content>
         </mat-card>
-      </div>
-    </div>
+      </div> 
+    </div> 
   }
 </div>

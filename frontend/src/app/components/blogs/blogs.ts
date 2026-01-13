@@ -1,40 +1,38 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router'; // Import Router
-import { HttpClient } from '@angular/common/http';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
+import { BlogsService } from '../../services/blogs.service';
+import { Blog } from '../../models/blog.model';
 
 @Component({
   selector: 'app-blogs',
   standalone: true,
   imports: [MatCardModule, CommonModule],
   templateUrl: './blogs.html',
-  styleUrls: ['./blogs.scss']
+  styleUrls: ['./blogs.scss'],
 })
 export class Blogs implements OnInit {
-  blogs: any[] = [];
-  loading = true;
-  errorMsg: string | null = null;
+  blogs = signal<Blog[]>([]);
+  loading = signal(true);
+  errorMsg = signal<string | null>(null);
 
-  constructor(
-    private http: HttpClient,
-    private router: Router // Inject Router
-  ) {}
+  private blogServices = inject(BlogsService);
+  private router = inject(Router);
 
   ngOnInit(): void {
-    this.http.get<any>('http://localhost:8080/api/blogs')
-      .subscribe({
-        next: (res) => {
-          console.log(res);
-          
-          this.blogs = res.data || res;
-          this.loading = false;
-        },
-        error: (err) => {
-          this.errorMsg = 'Failed to load blogs';
-          this.loading = false;
-        }
-      });
+    this.blogServices.getBlogs().subscribe({
+      next: (res) => {
+        console.log(res);
+        
+        this.blogs.set(res.data);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.errorMsg.set('Failed to load blogs');
+        this.loading.set(false);
+      },
+    });
   }
 
   viewBlogDetail(blogId: number): void {

@@ -32,10 +32,10 @@ public class AuthController {
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.username(),
+                        request.usernameOrEmail(),
                         request.password()));
 
-        String token = jwtService.generateToken(request.username());
+        String token = jwtService.generateToken(request.usernameOrEmail());
 
     
 
