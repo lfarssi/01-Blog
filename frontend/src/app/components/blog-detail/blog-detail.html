@@ -98,7 +98,7 @@
                             mat-raised-button 
                             color="primary" 
                             (click)="postComment()"
-                            [disabled]="!commentText().trim() || postingComment"
+                            [disabled]="!commentText().trim() || postingComment()"
                         >
                             {{ postingComment() ? 'Posting...' : 'Post Comment' }}
                         </button>
@@ -116,7 +116,7 @@
             }
 
             <!-- No Comments -->
-            @if (!loadingComments && comments.length === 0) {
+            @if (!loadingComments() && comments().length === 0) {
             <div class="text-center py-4">
                 <mat-icon class="text-muted" style="font-size: 48px; width: 48px; height: 48px;">
                     chat_bubble_outline
