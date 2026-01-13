@@ -8,6 +8,6 @@ export const routes:Routes=[
   { path: 'blogs', component: Blogs },
     { path: 'blogs/:id', component: BlogDetail },
 
-  { path: 'createBlog', component: BlogFormComponent },
+  { path: 'create_blog', component: BlogFormComponent },
   { path: 'profile', component: Profile },
 ]
