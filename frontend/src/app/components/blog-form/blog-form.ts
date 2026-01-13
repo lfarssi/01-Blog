@@ -5,8 +5,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { HttpClient } from '@angular/common/http';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { BlogsService } from '../../services/blogs.service';
 
 @Component({
   selector: 'app-blog-form',
@@ -25,7 +25,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 })
 export class BlogFormComponent {
   private fb = inject(FormBuilder);
-  private http = inject(HttpClient);
+  private blogsService = inject(BlogsService);
 
   form = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(5)]],
@@ -33,11 +33,9 @@ export class BlogFormComponent {
   });
 
   loading = signal(false);
-  // example: signal-based success / error messages
   successMsg = signal<string | null>(null);
   errorMsg = signal<string | null>(null);
 
-  // convenience for template
   readonly f = this.form.controls;
   readonly disabled = computed(() => this.loading() || this.form.invalid);
 
@@ -51,12 +49,12 @@ export class BlogFormComponent {
     this.successMsg.set(null);
     this.errorMsg.set(null);
 
-    const payload = this.form.value;
+    const payload = this.form.value as { title: string; content: string };
 
-    this.http.post('http://localhost:8080/api/blogs', payload).subscribe({
+    this.blogsService.createBlog(payload).subscribe({
       next: () => {
         this.loading.set(false);
-        this.successMsg.set('Blog post created!');
+        this.successMsg.set('Blog post created successfully!');
         this.form.reset();
       },
       error: () => {
