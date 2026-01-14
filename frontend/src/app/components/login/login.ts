@@ -43,7 +43,7 @@ export class Login {
     private router: Router // Inject Router
   ) {
     this.form = this.fb.group({
-      username: ['', [Validators.required]],
+      usernameOrEmail: ['', [Validators.required]],
       password: ['', [Validators.required, Validators.minLength(8)]]
     });
   }
@@ -66,7 +66,7 @@ export class Login {
     this.errorMsg = null;
 
     const body = {
-      username: this.form.value.username,
+      usernameOrEmail: this.form.value.usernameOrEmail,
       password: this.form.value.password
     };
 

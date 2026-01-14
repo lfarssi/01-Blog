@@ -1,11 +1,21 @@
-import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { Component, inject } from '@angular/core';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+  AbstractControlOptions,
+  FormControl,
+} from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { RegisterRequest } from '../../models/auth.model';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-register',
@@ -18,26 +28,29 @@ import { MatCardModule } from '@angular/material/card';
     MatButtonModule,
     MatIconModule,
     MatCardModule,
-    ReactiveFormsModule
-  ]
+    ReactiveFormsModule,
+  ],
 })
 export class Register {
-  form: FormGroup;
+  readonly fb = inject(FormBuilder);
+  readonly router = inject(Router);
+  readonly authService = inject(AuthService);
+  readonly toast = inject(ToastService);
+
   errorMsg: string | null = null;
   loading = false;
   showPassword = false;
   showConfirmPassword = false;
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {
-    this.form = this.fb.group({
-      username: ['', [Validators.required]],  // <-- changed
+  form = this.fb.group(
+    {
+      username: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
-      confirmPassword: ['', [Validators.required]]
-    }, {
-      validators: this.passwordMatchValidator
-    });
-  }
+      confirmPassword: ['', [Validators.required]],
+    },
+    { validators: [this.passwordMatchValidator] } as AbstractControlOptions
+  );
 
   get f() {
     return this.form.controls;
@@ -51,41 +64,36 @@ export class Register {
     this.showConfirmPassword = !this.showConfirmPassword;
   }
 
-  passwordMatchValidator(group: FormGroup) {
+  passwordMatchValidator(group: FormGroup): any {
     const password = group.get('password')?.value;
     const confirmPassword = group.get('confirmPassword')?.value;
     return password === confirmPassword ? null : { passwordMismatch: true };
   }
 
+  // Remove errorMsg/loading if using toast only
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.toast.error('Please complete all fields correctly');
       return;
     }
 
-    this.loading = true;
-    this.errorMsg = null;
+    this.toast.info('Creating your account...');
 
-    // body with username (same login pattern)
-    const body = {
-      username: this.form.value.username,  // <-- changed
-      email: this.form.value.email,
-      password: this.form.value.password
+    const body: RegisterRequest = {
+      username: this.form.controls.username.value!,
+      email: this.form.controls.email.value!,
+      password: this.form.controls.password.value!,
     };
 
-    // change URL to your backend register endpoint
-    this.http.post('http://localhost:8080/api/auth/register', body)
-      .subscribe({
-        next: (res) => {
-          this.loading = false;
-          // TODO: navigate to login page
-          console.log('Registration successful', res);
-        },
-        error: (err) => {
-          this.loading = false;
-          console.log(err)
-          this.errorMsg = err.error?.message || 'Registration failed';
-        }
-      });
+    this.authService.register(body).subscribe({
+      next: () => {
+        this.toast.success('Account created! Redirecting to login...');
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        this.toast.error(err.error?.message || 'Registration failed');
+      },
+    });
   }
 }

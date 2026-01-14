@@ -35,4 +35,49 @@ body {
   margin: 0;
   height: 100%;
 }
-/* You can add global styles to this file, and also import other style files */
+/* 🎯 100% WORKING TOAST STYLES FOR ANGULAR 21+ */
+
+.mat-mdc-snack-bar-container.toast-success,
+.toast-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border-radius: 16px !important;
+  border-left: 5px solid #047857 !important;
+  box-shadow: 0 20px 60px rgba(16, 185, 129, 0.4) !important;
+  color: white !important;
+}
+
+.mat-mdc-snack-bar-container.toast-error,
+.toast-error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  border-radius: 16px !important;
+  border-left: 5px solid #b91c1c !important;
+  box-shadow: 0 20px 60px rgba(239, 68, 68, 0.4) !important;
+  color: white !important;
+}
+
+.mat-mdc-snack-bar-container.toast-info,
+.toast-info {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  border-radius: 16px !important;
+  border-left: 5px solid #1d4ed8 !important;
+  box-shadow: 0 20px 60px rgba(59, 130, 246, 0.4) !important;
+  color: white !important;
+}
+
+.mat-mdc-snack-bar-container.toast-warning,
+.toast-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  border-radius: 16px !important;
+  border-left: 5px solid #b45309 !important;
+  box-shadow: 0 20px 60px rgba(245, 158, 11, 0.4) !important;
+  color: #1f2937 !important;
+}
+
+/* Button styling */
+.mat-mdc-snack-bar-container .mat-mdc-button {
+  background: rgba(255,255,255,0.2) !important;
+  border-radius: 8px !important;
+  padding: 6px 16px !important;
+  font-weight: 600 !important;
+  color: white !important;
+}

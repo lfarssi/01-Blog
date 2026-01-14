@@ -23,7 +23,6 @@ export class Blogs implements OnInit {
   ngOnInit(): void {
     this.blogServices.getBlogs().subscribe({
       next: (res) => {
-        console.log(res);
         
         this.blogs.set(res.data);
         this.loading.set(false);

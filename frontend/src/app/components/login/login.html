@@ -15,10 +15,10 @@
           <input
             matInput
             type="text"
-            formControlName="username"
+            formControlName="usernameOrEmail"
             placeholder="Enter your username or email"
           />
-          @if (f['username'].touched && f['username'].errors?.['required']) {
+          @if (f['usernameOrEmail'].touched && f['usernameOrEmail'].errors?.['required']) {
             <mat-error>Username or email is required</mat-error>
           }
         </mat-form-field>
