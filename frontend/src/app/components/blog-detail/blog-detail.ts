@@ -20,7 +20,8 @@ import { Blog, Comment } from '../../models/blog.model';
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
-    MatDividerModule
+    MatDividerModule,
+    
   ],
   templateUrl: './blog-detail.html',
   styleUrl: './blog-detail.scss',

@@ -21,8 +21,8 @@ export class Blogs implements OnInit {
   private router = inject(Router);
 
   ngOnInit(): void {
-    this.blogServices.getBlogs().subscribe({
-      next: (res) => {
+    this.blogServices.getAllBlogs().subscribe({
+      next: (res:any) => {
         
         this.blogs.set(res.data);
         this.loading.set(false);

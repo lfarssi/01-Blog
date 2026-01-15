@@ -16,6 +16,12 @@
       {
         "label": "off"
       }
+    ],
+    "axe/aria": [
+      "default",
+      {
+        "aria-progressbar-name": "off"
+      }
     ]
   }
 }
