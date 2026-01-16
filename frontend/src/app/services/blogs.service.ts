@@ -1,36 +1,17 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { Blog, Comment, LikeResponse } from '../models/blog.model';
+import { Blog, BlogPage, Comment, CreateBlogRequest, CreateCommentRequest, LikeResponse, UpdateBlogRequest } from '../models/blog.model';
+import { BASE_URL } from './env';
 
-export interface CreateBlogRequest {
-  title: string;
-  content: string;
-  mediaFile?: File;
-}
 
-export interface UpdateBlogRequest {
-  title?: string;
-  content?: string;
-}
-
-export interface CreateCommentRequest {
-  content: string;
-}
-
-export interface BlogPage {
-  blogs: Blog[];
-  currentPage: number;
-  totalPages: number;
-  totalBlogs: number;
-}
 
 @Injectable({
   providedIn: 'root'
 })
 export class BlogsService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/blogs';
+  private apiUrl = `${BASE_URL}/blogs`;
 
   likedBlogIds = signal<Set<number>>(new Set());
 
@@ -166,7 +147,7 @@ export class BlogsService {
       if (blog.id === blogId) {
         return {
           ...blog,
-          likeCount: likeResponse.likeCount
+          likeCount: likeResponse.likesCount
         };
       }
       return blog;
@@ -178,7 +159,7 @@ export class BlogsService {
       if (blog.id === blogId) {
         return {
           ...blog,
-          commentCount: increment ? blog.commentCount + 1 : blog.commentCount - 1
+          commentCount: increment ? blog.commentsCount + 1 : blog.commentsCount - 1
         };
       }
       return blog;

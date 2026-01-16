@@ -3,7 +3,6 @@ package com.blog.service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -24,27 +23,26 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class FollowServiceImpl implements FollowService {
+
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
 
-
-
-     @Override
+    @Override
     @Transactional
-    public FollowResponse toggleFollow(String targetUsername, String username) {
-        UserEntity currentUser = userRepository.findByUsername(username)
+    public FollowResponse toggleFollow(Long targetUserId, String currentUsername) {
+        UserEntity currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        UserEntity targetUser = userRepository.findByUsername(targetUsername)
+        UserEntity targetUser = userRepository.findById(targetUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Target user not found"));
 
         if (currentUser.getId().equals(targetUser.getId())) {
-            throw new ResourceNotFoundException("Cannot follow yourself");
+            throw new IllegalArgumentException("Cannot follow yourself");
         }
 
-        Optional<FollowEntity> existingFollow = followRepository.findByFollower_IdAndFollowing_Id(
-                currentUser.getId(), targetUser.getId());
+        Optional<FollowEntity> existingFollow = followRepository
+                .findByFollower_IdAndFollowing_Id(currentUser.getId(), targetUser.getId());
 
         boolean following;
         if (existingFollow.isPresent()) {
@@ -78,18 +76,16 @@ public class FollowServiceImpl implements FollowService {
         return new FollowResponse(following, followerCount, followingCount);
     }
 
-
-
     @Override
-    public FollowResponse getFollowStatus(String targetUsername, String username) {
-        UserEntity currentUser = userRepository.findByUsername(username)
+    public FollowResponse getFollowStatus(Long targetUserId, String currentUsername) {
+        UserEntity currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        UserEntity targetUser = userRepository.findByUsername(targetUsername)
+        UserEntity targetUser = userRepository.findById(targetUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Target user not found"));
 
-        boolean following = followRepository.existsByFollower_IdAndFollowing_Id(
-                currentUser.getId(), targetUser.getId());
+        boolean following = followRepository
+                .existsByFollower_IdAndFollowing_Id(currentUser.getId(), targetUser.getId());
 
         Long followerCount = followRepository.countByFollowing_Id(targetUser.getId());
         Long followingCount = followRepository.countByFollower_Id(targetUser.getId());
@@ -98,26 +94,26 @@ public class FollowServiceImpl implements FollowService {
     }
 
     @Override
-    public List<FollowerListResponse> getFollowing(String username) {
-        UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        List<FollowEntity> follows = followRepository.findByFollower_Id(user.getId());
-
-        return follows.stream()
-                .map(follow -> FollowMapper.toFollowingResponse(follow.getFollowing(), follow))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<FollowerListResponse> getFollowers(String username) {
-        UserEntity user = userRepository.findByUsername(username)
+    public List<FollowerListResponse> getFollowers(Long userId) {
+        UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         List<FollowEntity> follows = followRepository.findByFollowing_Id(user.getId());
 
         return follows.stream()
                 .map(follow -> FollowMapper.toFollowerResponse(follow.getFollower(), follow))
-                .collect(Collectors.toList());
+                .toList();
+    }
+
+    @Override
+    public List<FollowerListResponse> getFollowing(Long userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        List<FollowEntity> follows = followRepository.findByFollower_Id(user.getId());
+
+        return follows.stream()
+                .map(follow -> FollowMapper.toFollowingResponse(follow.getFollowing(), follow))
+                .toList();
     }
 }

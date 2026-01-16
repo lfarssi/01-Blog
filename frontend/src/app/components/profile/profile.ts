@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, effect } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -8,30 +8,13 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDialogModule } from '@angular/material/dialog';
 import { UserService } from '../../services/user.serivce';
 import { BlogsService } from '../../services/blogs.service';
-import { FollowService } from '../../services/follows.serivce';
+import { FollowService } from '../../services/follow.serivce';
 import { ReportService } from '../../services/report.serivce';
-
-interface User {
-  id: number;
-  username: string; 
-  email: string;
-  bio?: string;
-  avatarUrl?: string;
-  createdAt: Date;
-  followersCount: number;
-  followingCount: number;
-}
-
-interface Blog {
-  id: number;
-  description: string;
-  mediaUrl?: string;
-  mediaType: 'image' | 'video';
-  timestamp: Date;
-  likesCount: number;
-  commentsCount: number;
-  isLikedByCurrentUser: boolean;
-}
+import { User } from '../../models/user.model';
+import { Blog } from '../../models/blog.model';
+import { FollowResponse } from '../../models/follow.model';
+import { FormsModule } from '@angular/forms';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-profile',
@@ -42,7 +25,9 @@ interface Blog {
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
-    MatDialogModule
+    MatDialogModule,
+    FormsModule,
+    MatTooltipModule
   ],
   templateUrl: './profile.html',
   styleUrl: './profile.scss'
@@ -58,25 +43,48 @@ export class ProfileComponent implements OnInit {
   // Signals for reactive state management
   user = signal<User | null>(null);
   blogs = signal<Blog[]>([]);
-  isFollowing = signal<boolean>(false);
+  followStatus = signal<FollowResponse | null>(null); // NEW: Single source of truth
   isOwnProfile = signal<boolean>(false);
   isLoading = signal<boolean>(true);
   showReportDialog = signal<boolean>(false);
   reportReason = signal<string>('');
   hasAlreadyReported = signal<boolean>(false);
   
-  // Computed values
+  // Computed values (Angular 21 magic)
+  isFollowing = computed(() => this.followStatus()?.following ?? false);
   blogsCount = computed(() => this.blogs().length);
   hasNoBlogs = computed(() => this.blogs().length === 0 && !this.isLoading());
+  followersCount = computed(() => this.followStatus()?.followerCount ?? 0);
+  followingCount = computed(() => this.followStatus()?.followingCount ?? 0);
+
+  constructor() {
+    // Auto-sync user counts with followStatus changes
+    effect(() => {
+      const status = this.followStatus();
+      const currentUser = this.user();
+      if (status && currentUser) {
+        this.user.set({
+          ...currentUser,
+          followersCount: status.followerCount,
+          followingCount: status.followingCount
+        });
+      }
+    });
+  }
 
   ngOnInit(): void {
-    const userId = this.route.snapshot.paramMap.get('id');
+    const userId = Number(this.route.snapshot.paramMap.get('id'));
     
     if (userId) {
-      this.loadUserProfile(+userId);
-      this.checkIfOwnProfile(+userId);
-      this.checkFollowStatus(+userId);
-      this.checkReportStatus(+userId);
+      this.loadUserProfile(userId);
+      this.checkIfOwnProfile(userId);
+      this.loadFollowStatus(userId); // UPDATED
+      this.checkReportStatus(userId);
+      
+      // Load current user following cache
+      this.userService.getCurrentUserId().subscribe(currentId => {
+        this.followService.loadFollowingIds(currentId);
+      });
     }
   }
 
@@ -95,18 +103,18 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-private loadUserBlogs(userId: number): void {
-  this.blogsService.getBlogsByUserId(userId).subscribe({
-    next: (blogsData:any) => {
-      this.blogs.set(blogsData);
-      this.isLoading.set(false);
-    },
-    error: (error: any) => {
-      console.error('Error loading blogs:', error);
-      this.isLoading.set(false);
-    }
-  });
-}
+  private loadUserBlogs(userId: number): void {
+    this.blogsService.getBlogsByUserId(userId).subscribe({
+      next: (blogsData: Blog[]) => {
+        this.blogs.set(blogsData);
+        this.isLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Error loading blogs:', error);
+        this.isLoading.set(false);
+      }
+    });
+  }
 
   private checkIfOwnProfile(userId: number): void {
     this.userService.getCurrentUserId().subscribe({
@@ -116,11 +124,13 @@ private loadUserBlogs(userId: number): void {
     });
   }
 
-  private checkFollowStatus(userId: number): void {
-    this.followService.isFollowing(userId).subscribe({
-      next: (following) => {
-        this.isFollowing.set(following);
-      }
+  /** UPDATED: Uses new getFollowStatus() endpoint */
+  private loadFollowStatus(userId: number): void {
+    this.followService.getFollowStatus(userId).subscribe({
+      next: (status) => {
+        this.followStatus.set(status);
+      },
+      error: (error) => console.error('Error loading follow status:', error)
     });
   }
 
@@ -132,35 +142,17 @@ private loadUserBlogs(userId: number): void {
     });
   }
 
+  /** UPDATED: Single toggleFollow() - handles both follow/unfollow */
   toggleFollow(): void {
     const userId = this.user()?.id;
     if (!userId) return;
 
-    if (this.isFollowing()) {
-      this.followService.unfollow(userId).subscribe({
-        next: () => {
-          this.isFollowing.set(false);
-          this.updateFollowerCount(-1);
-        }
-      });
-    } else {
-      this.followService.follow(userId).subscribe({
-        next: () => {
-          this.isFollowing.set(true);
-          this.updateFollowerCount(1);
-        }
-      });
-    }
-  }
-
-  private updateFollowerCount(change: number): void {
-    const currentUser = this.user();
-    if (currentUser) {
-      this.user.set({
-        ...currentUser,
-        followersCount: currentUser.followersCount + change
-      });
-    }
+    this.followService.toggleFollow(userId).subscribe({
+      next: (response) => {
+        this.followStatus.set(response); // Updates isFollowing + counts automatically
+      },
+      error: (error) => console.error('Toggle follow error:', error)
+    });
   }
 
   editProfile(): void {

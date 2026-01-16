@@ -1,47 +1,30 @@
-<mat-toolbar color="primary" class="header-toolbar">
+<mat-toolbar class="header-toolbar">  <!-- Remove color="primary" -->
   <div class="container d-flex justify-content-between align-items-center">
     <!-- Logo -->
     <div class="d-flex align-items-center">
-      <span class="logo">01Blog</span>
+      <a routerLink="/" class="logo text-decoration-none">01Blog</a>
     </div>
 
-    <!-- Navigation Links (hidden on small screens) -->
+    <!-- Navigation Links -->
     <div class="d-none d-md-flex align-items-center">
-      <a href="#" class="nav-link text-primary me-3">Home</a>
-      <a href="#" class="nav-link text-primary me-3">Features</a>
-      <a href="#" class="nav-link text-primary me-3">Pricing</a>
-      <a href="#" class="nav-link text-primary me-3">About</a>
+      <a routerLink="/blogs" class="nav-link me-3" routerLinkActive="active">Blogs</a>
+      @if (isAdmin()) {
+        <a routerLink="/admin/dashboard" class="nav-link me-3" routerLinkActive="active">Dashboard</a>
+      }
+      <a routerLink="/users/search" class="nav-link me-3" routerLinkActive="active">Users</a>
     </div>
 
-    <!-- Login / Register / Logout -->
+    <!-- User Actions -->
     <div class="d-flex align-items-center">
-      @if (!isLoggedIn()) {
-        <button
-          mat-button
-          class="btn-primary-outline me-2"
-          (click)="navigateToLogin()"
-        >
-          Login
+      <!-- @if (user(); as u) { -->
+        <span class="me-3">{{ 'Welcome!' }}</span>
+        <button mat-button class="me-2" (click)="goToProfile()">
+          <mat-icon>person</mat-icon> Profile
         </button>
-        <button
-          mat-raised-button
-          color="accent"
-            class="btn-primary-outline me-2"
-
-          (click)="navigateToRegister()"
-        >
-          Register
+        <button mat-button (click)="logout()">
+          <mat-icon>logout</mat-icon> Logout
         </button>
-      } @else {
-        <span class="text-white me-3">Welcome!</span>
-        <button
-          mat-button
-          class="text-danger"
-          (click)="logout()"
-        >
-          Logout
-        </button>
-      }
+      <!-- } -->
     </div>
   </div>
 </mat-toolbar>

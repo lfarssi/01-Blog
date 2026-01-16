@@ -16,40 +16,43 @@ import com.blog.service.FollowService;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-
 @RestController
 @RequestMapping("/follow")
 public class FollowController {
+
     @Autowired
     private FollowService followService;
 
-    @PostMapping("/{username}")
-    public ResponseEntity<Object> toggleFollow(@PathVariable String username, Authentication authentication) {
-        String currentUsername = authentication.getName();
-        FollowResponse response = followService.toggleFollow(username, currentUsername);
-        return  ApiResponse.from(200, response.following()? "follow":"unfollow"+"  successfully", response);
+    @PostMapping("/{userId}")
+    public ResponseEntity<Object> toggleFollow(
+            @PathVariable Long userId,
+            Authentication authentication) {
+
+        String currentUsername = authentication.getName(); // still fine here [web:7][web:13]
+        FollowResponse response = followService.toggleFollow(userId, currentUsername);
+        String message = (response.following() ? "follow" : "unfollow") + " successfully";
+        return ApiResponse.from(200, message, response);
     }
 
-    @GetMapping("/{username}/status")
+    @GetMapping("/{userId}/status")
     public ResponseEntity<Object> getFollowStatus(
-            @PathVariable String username,
+            @PathVariable Long userId,
             Authentication authentication) {
 
         String currentUsername = authentication.getName();
-        FollowResponse response = followService.getFollowStatus(username, currentUsername);
-        return  ApiResponse.from(200, "Follow Status Received successfully", response);
+        FollowResponse response = followService.getFollowStatus(userId, currentUsername);
+        return ApiResponse.from(200, "Follow Status received successfully", response);
     }
 
-    @GetMapping("/{username}/followers")
-    public ResponseEntity<Object> getFollowers(@PathVariable String username) {
-        List<FollowerListResponse> followers = followService.getFollowers(username);
-        return  ApiResponse.from(200, "Follower List Received successfully", followers);
+    @GetMapping("/{userId}/followers")
+    public ResponseEntity<Object> getFollowers(@PathVariable Long userId) {
+        List<FollowerListResponse> followers = followService.getFollowers(userId);
+        return ApiResponse.from(200, "Follower list received successfully", followers);
     }
 
-    @GetMapping("/{username}/following")
-    public ResponseEntity<Object> getFollowing(@PathVariable String username) {
-        List<FollowerListResponse> following = followService.getFollowing(username);
-        return  ApiResponse.from(200, "Following List Received successfully", following);
+    @GetMapping("/{userId}/following")
+    public ResponseEntity<Object> getFollowing(@PathVariable Long userId) {
+        List<FollowerListResponse> following = followService.getFollowing(userId);
+        return ApiResponse.from(200, "Following list received successfully", following);
     }
-
 }

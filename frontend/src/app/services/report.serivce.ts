@@ -1,44 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
-export interface Report {
-  id: number;
-  reporterId: number;
-  reporterUsername: string;
-  reportedUserId: number;
-  reportedUsername: string;
-  reportedBlogId?: number;
-  reason: string;
-  status: ReportStatus;
-  createdAt: Date;
-  resolvedAt?: Date;
-  resolvedBy?: number;
-}
-
-export type ReportStatus = 'PENDING' | 'REVIEWED' | 'RESOLVED' | 'DISMISSED';
-
-export interface CreateUserReportRequest {
-  reportedUserId: number;
-  reason: string;
-}
-
-export interface CreateBlogReportRequest {
-  reportedBlogId: number;
-  reason: string;
-}
-
-export interface ResolveReportRequest {
-  status: ReportStatus;
-  action?: 'BAN_USER' | 'DELETE_BLOG' | 'WARNING' | 'NONE';
-}
+import { CreateBlogReportRequest, CreateUserReportRequest, ReportStatus, ResolveReportRequest } from '../models/report.model';
+import { BASE_URL } from './env';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ReportService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/reports';
+  private apiUrl = `${BASE_URL}/reports`;
 
   /**
    * Report a user for inappropriate behavior

@@ -40,11 +40,11 @@
                 <mat-chip-set>
                     <mat-chip>
                         <mat-icon class="me-1">favorite</mat-icon>
-                        {{ blog()?.likeCount }} Likes
+                        {{ blog()?.likesCount }} Likes
                     </mat-chip>
                     <mat-chip>
                         <mat-icon class="me-1">comment</mat-icon>
-                        {{ blog()?.commentCount }} Comments
+                        {{ blog()?.commentsCount }} Comments
                     </mat-chip>
                 </mat-chip-set>
             </div>
@@ -53,9 +53,9 @@
         <mat-divider class="mb-4"></mat-divider>
 
         <!-- Featured Image -->
-        @if (blog()?.media) {
+        @if (blog()?.mediaUrl) {
         <div class="blog-image mb-4">
-            <img [src]="blog()?.media" [alt]="blog()?.title" class="img-fluid rounded shadow" />
+            <img [src]="blog()?.mediaUrl" [alt]="blog()?.title" class="img-fluid rounded shadow" />
         </div>
         }
 
@@ -80,7 +80,7 @@
         <section class="comments-section">
             <h3 class="mb-4">
                 <mat-icon class="align-middle me-2">comment</mat-icon>
-                Comments ({{ blog()?.commentCount }})
+                Comments ({{ blog()?.commentsCount }})
             </h3>
 
             <!-- Comment Input -->

@@ -9,8 +9,8 @@ import com.blog.dto.FollowerListResponse;
 
 @Service
 public interface FollowService {
-    FollowResponse toggleFollow(String targetUsername, String username);
-    FollowResponse getFollowStatus(String targetUsername, String username);
-    List<FollowerListResponse> getFollowers(String username);
-    List<FollowerListResponse> getFollowing(String username);
+    FollowResponse toggleFollow(Long targetUserId, String username);
+    FollowResponse getFollowStatus(Long targetUserId, String username);
+    List<FollowerListResponse> getFollowers(Long userId);
+    List<FollowerListResponse> getFollowing(Long userId);
 }

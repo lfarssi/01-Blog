@@ -2,43 +2,11 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, tap, catchError, of } from 'rxjs';
 import { Router } from '@angular/router';
+import { LoginRequest, LoginResponse, UpdateProfileRequest, User } from '../models/user.model';
+import { RegisterRequest } from '../models/auth.model';
+import { BASE_URL } from './env';
 
-export interface User {
-  id: number;
-  username: string;
-  email: string;
-  bio?: string;
-  avatarUrl?: string;
-  role: UserRole;
-  createdAt: Date;
-  followersCount: number;
-  followingCount: number;
-}
 
-export type UserRole = 'USER' | 'ADMIN';
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-  username: string;
-  email: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  token: string;
-  user: User;
-  expiresIn: number;
-}
-
-export interface UpdateProfileRequest {
-  username?: string;
-  bio?: string;
-  email?: string;
-}
 
 @Injectable({
   providedIn: 'root'
@@ -46,8 +14,8 @@ export interface UpdateProfileRequest {
 export class UserService {
   private http = inject(HttpClient);
   private router = inject(Router);
-  private apiUrl = 'http://localhost:8080/api/users';
-  private authUrl = 'http://localhost:8080/api/auth';
+  private apiUrl = `${BASE_URL}/users`;
+  private authUrl = `${BASE_URL}/auth`;
 
   // Signals for reactive state
   currentUser = signal<User | null>(null);

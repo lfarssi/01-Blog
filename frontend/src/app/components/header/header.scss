@@ -1,48 +1,56 @@
 .header-toolbar {
   height: 64px;
+  background: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.logo {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: rgb(38, 96, 255);
-  text-decoration: none;
-}
-
-.nav-link {
-  text-decoration: none;
-  font-weight: 500;
-  transition: opacity 0.2s;
-  &:hover {
-    opacity: 0.8;
+  
+  // Blue logo
+  .logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1976d2 !important;  // Material blue
   }
-}
-
-.btn-primary-outline {
-  border: 1px solid currentColor;
-  color: var(--mdc-theme-primary, #1976d2);
-  background: transparent;
-
-  &:hover {
-    color: white;
-    background: var(--mdc-theme-primary, #1976d2);
-    border-color: var(--mdc-theme-primary, #1976d2);
-  }
-
-  .mat-mdc-button-persistent-ripple::before,
-  .mat-mdc-button-persistent-ripple::after {
-    opacity: 0 !important;
-  }
-}
-
-
-// Responsive: collapse on small screens
-@media (max-width: 767.98px) {
-  .header-toolbar {
-    .container {
-      padding-left: 1rem;
-      padding-right: 1rem;
+  
+  // Blue nav links
+  .nav-link {
+    text-decoration: none;
+    font-weight: 500;
+    color: #1976d2 !important;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      color: #1565c0;
     }
+    
+    &.active {
+      font-weight: bold;
+      border-bottom: 2px solid #1976d2;
+      padding-bottom: 4px;
+    }
+  }
+  
+  // Buttons (blue outline on white)
+  button.mat-mdc-button {
+    line-height: 1.5;
+    min-height: 36px;
+    color: #1976d2;
+    border: 1px solid #1976d2;
+    
+    &:hover {
+      background-color: #1976d2;
+      color: white;
+    }
+  }
+  
+  // Username dark text
+  span {
+    color: #333;
+    font-weight: 500;
+  }
+}
+
+// Mobile
+@media (max-width: 767.98px) {
+  .header-toolbar .d-none {
+    display: none !important;
   }
 }

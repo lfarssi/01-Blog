@@ -78,7 +78,7 @@ export class BlogDetail implements OnInit {
     this.blogService.toggleLike(currentBlog.id).subscribe({
       next: (res) => {
         this.isLiked.set(res.data.liked);
-        this.blog.update(b => b ? { ...b, likeCount: res.data.likeCount } : null);
+        this.blog.update(b => b ? { ...b, likeCount: res.data.likesCount } : null);
       },
       error: (err) => console.error('Failed to toggle like', err)
     });
@@ -109,7 +109,7 @@ export class BlogDetail implements OnInit {
         this.comments.update(c => [res, ...c]);
         this.commentText.set('');
         this.postingComment.set(false);
-        this.blog.update(b => b ? { ...b, commentCount: b.commentCount + 1 } : null);
+        this.blog.update(b => b ? { ...b, commentCount: b.commentsCount + 1 } : null);
       },
       error: (err) => {
         console.error('Failed to post comment', err);
@@ -124,7 +124,7 @@ export class BlogDetail implements OnInit {
     this.blogService.deleteComment(commentId).subscribe({
       next: () => {
         this.comments.update(c => c.filter(comment => comment.id !== commentId));
-        this.blog.update(b => b ? { ...b, commentCount: b.commentCount - 1 } : null);
+        this.blog.update(b => b ? { ...b, commentCount: b.commentsCount - 1 } : null);
       },
       error: (err) => console.error('Failed to delete comment', err)
     });
