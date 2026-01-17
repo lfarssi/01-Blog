@@ -24,6 +24,7 @@ public class BlogController {
 
     @GetMapping
     public ResponseEntity<Object> getAllBlogs() {
+        
         List<BlogResponse> blogs = blogService.getAllBlogs();
 
         return  ApiResponse.from(200, "Blogs Received successfully", blogs);
@@ -34,9 +35,9 @@ public class BlogController {
         return  ApiResponse.from(200, "Blog Received successfully", blogService.getBlogDetails(id));
     }
 
-    @GetMapping("/user/{username}")
-    public ResponseEntity<Object> getBlogsByUser(@PathVariable String username) {
-        List<BlogResponse> blogs = blogService.getBlogsByUser(username);
+    @GetMapping("/user/{id}")
+    public ResponseEntity<Object> getBlogsByUser(@PathVariable Long id) {
+        List<BlogResponse> blogs = blogService.getBlogsByUser(id);
         return  ApiResponse.from(200, "Blogs Received successfully", blogs);
     }
 

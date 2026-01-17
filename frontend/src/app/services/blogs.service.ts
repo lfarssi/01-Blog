@@ -1,10 +1,8 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { Blog, BlogPage, Comment, CreateBlogRequest, CreateCommentRequest, LikeResponse, UpdateBlogRequest } from '../models/blog.model';
+import { Blog, Comment, CreateBlogRequest, CreateCommentRequest, LikeResponse, UpdateBlogRequest } from '../models/blog.model';
 import { BASE_URL } from './env';
-
-
 
 @Injectable({
   providedIn: 'root'
@@ -15,20 +13,14 @@ export class BlogsService {
 
   likedBlogIds = signal<Set<number>>(new Set());
 
-  getAllBlogs(page: number = 0, size: number = 20): Observable<BlogPage> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
+  getAllBlogs(): Observable<Blog[]> {
+    console.log("ssssssssss");
     
-    return this.http.get<BlogPage>(this.apiUrl, { params });
+    return this.http.get<Blog[]>(this.apiUrl);
   }
 
-  getFollowingBlogs(page: number = 0, size: number = 20): Observable<BlogPage> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
-    
-    return this.http.get<BlogPage>(`${this.apiUrl}/following`, { params });
+  getFollowingBlogs(): Observable<Blog[]> {
+    return this.http.get<Blog[]>(`${this.apiUrl}/following`);
   }
 
   getBlogsByUserId(userId: number): Observable<Blog[]> {
@@ -109,21 +101,14 @@ export class BlogsService {
     return this.http.delete<void>(`${this.apiUrl}/${blogId}/comments/${commentId}`);
   }
 
-  searchBlogs(query: string, page: number = 0, size: number = 20): Observable<BlogPage> {
-    const params = new HttpParams()
-      .set('q', query)
-      .set('page', page.toString())
-      .set('size', size.toString());
-    
-    return this.http.get<BlogPage>(`${this.apiUrl}/search`, { params });
+  searchBlogs(query: string): Observable<Blog[]> {
+    return this.http.get<Blog[]>(`${this.apiUrl}/search`, {
+      params: { q: query }
+    });
   }
 
-  getAllBlogsAdmin(page: number = 0, size: number = 20): Observable<BlogPage> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
-    
-    return this.http.get<BlogPage>(`${this.apiUrl}/admin/all`, { params });
+  getAllBlogsAdmin(): Observable<Blog[]> {
+    return this.http.get<Blog[]>(`${this.apiUrl}/admin/all`);
   }
 
   deleteBlogAdmin(blogId: number): Observable<void> {
@@ -147,7 +132,7 @@ export class BlogsService {
       if (blog.id === blogId) {
         return {
           ...blog,
-          likeCount: likeResponse.likesCount
+          likesCount: likeResponse.likesCount
         };
       }
       return blog;
@@ -159,7 +144,7 @@ export class BlogsService {
       if (blog.id === blogId) {
         return {
           ...blog,
-          commentCount: increment ? blog.commentsCount + 1 : blog.commentsCount - 1
+          commentsCount: increment ? blog.commentsCount + 1 : blog.commentsCount - 1
         };
       }
       return blog;

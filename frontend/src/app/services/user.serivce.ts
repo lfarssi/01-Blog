@@ -1,6 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, tap, catchError, of } from 'rxjs';
+import { Observable, BehaviorSubject, tap, catchError, of, map } from 'rxjs';
 import { Router } from '@angular/router';
 import { LoginRequest, LoginResponse, UpdateProfileRequest, User } from '../models/user.model';
 import { RegisterRequest } from '../models/auth.model';
@@ -22,7 +22,7 @@ export class UserService {
   isAuthenticated = signal<boolean>(false);
   isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
 
-  private readonly TOKEN_KEY = 'auth_token';
+  private readonly TOKEN_KEY = 'token';
   private readonly USER_KEY = 'current_user';
 
   constructor() {
@@ -62,11 +62,11 @@ export class UserService {
   /**
    * Get current user's ID
    */
-  getCurrentUserId(): Observable<number> {
-    const user = this.currentUser();
-    return of(user?.id || 0);
-  }
-
+getCurrentUserId(): Observable<number> {
+  const userId = this.currentUser()?.id || 0;
+  console.log('UserService currentUserId:', userId);
+  return of(userId);
+}
   /**
    * Get user by ID
    */
@@ -74,6 +74,8 @@ export class UserService {
     return this.http.get<User>(`${this.apiUrl}/${userId}`);
   }
 
+
+  
   /**
    * Get current user profile (from server)
    */
@@ -128,12 +130,22 @@ export class UserService {
   /**
    * Search users by username or email
    */
-  searchUsers(query: string): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/search`, {
-      params: { q: query }
-    });
-  }
-
+searchUsers(query: string): Observable<User[]> {
+  return this.http.get<any>(`${this.apiUrl}`, {
+    params: { q: query }
+  }).pipe(
+    map(response => {
+      console.log('Raw search response:', response);
+      const users = response.data || response.users || [];
+      console.log('Extracted users:', users);
+      return Array.isArray(users) ? users : [];
+    }),
+    catchError(error => {
+      console.error('Search error:', error);
+      return of([]);
+    })
+  );
+}
   /**
    * Get all users (Admin only)
    */

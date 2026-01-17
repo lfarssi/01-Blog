@@ -47,9 +47,7 @@ export interface CreateCommentRequest {
   content: string;
 }
 
+// Remove or update if still needed elsewhere
 export interface BlogPage {
   blogs: Blog[];
-  currentPage: number;
-  totalPages: number;
-  totalBlogs: number;
 }

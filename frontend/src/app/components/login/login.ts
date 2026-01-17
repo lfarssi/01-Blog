@@ -8,6 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';  // ADD THIS
+import { BASE_URL } from '../../services/env';
 
 // Updated interface to match backend
 interface LoginResponse {
@@ -36,7 +37,7 @@ interface LoginResponse {
     ReactiveFormsModule
   ]
 })
-export class LoginComponent {
+export class Login {
   form: FormGroup;
   errorMsg: string | null = null;
   loading = false;
@@ -76,7 +77,7 @@ export class LoginComponent {
       password: this.form.value.password
     };
 
-    this.http.post<LoginResponse>('http://localhost:8080/api/auth/login', body)
+    this.http.post<LoginResponse>(`${BASE_URL}/auth/login`, body)
       .subscribe({
         next: (res) => {
           this.loading = false;

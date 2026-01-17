@@ -1,10 +1,11 @@
 package com.blog.service;
 
-
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +27,8 @@ public class ReportServiceImpl implements ReportService {
 
     private final ReportRepository reportRepository;
     private final UserRepository userRepository;
+    @Autowired
+    private UserServiceImpl userService; // To get UserEntity by ID
 
     @Override
     @Transactional
@@ -50,6 +53,15 @@ public class ReportServiceImpl implements ReportService {
 
         report = reportRepository.save(report);
         return ReportMapper.toResponse(report);
+    }
+
+    @Override
+    public boolean hasReportedUser(Long targetUserId, String reporterUsername) {
+        UserEntity reporter = userService.findByUsername(reporterUsername)
+                .orElseThrow(() -> new UsernameNotFoundException("Reporter not found"));
+
+        return reportRepository.existsByReportedByIdAndTargetId(
+                reporter.getId(), targetUserId);
     }
 
     @Override

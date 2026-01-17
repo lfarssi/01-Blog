@@ -13,8 +13,8 @@ export const routes: Routes = [
     path: '',
     loadComponent: () => import('./layouts/home-layout/home-layout').then((m) => m.HomeLayout),
     loadChildren: () => import('./layouts/home-layout/app.routes').then((m) => m.routes),
-    canActivateChild: [publicGuard],
+    canActivateChild: [authGuard],
   },
 
-  { path: '**', redirectTo: 'login' },
+  { path: '**', redirectTo: 'auth/login' },
 ];

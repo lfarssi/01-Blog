@@ -27,7 +27,9 @@ export class Blogs implements OnInit {
         this.blogs.set(res.data);
         this.loading.set(false);
       },
-      error: () => {
+      error: (err) => {
+        console.log(err);
+        
         this.errorMsg.set('Failed to load blogs');
         this.loading.set(false);
       },

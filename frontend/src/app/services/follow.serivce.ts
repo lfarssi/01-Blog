@@ -2,11 +2,11 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { Follower, FollowStats } from '../models/follow.model';
-import { FollowResponse } from '../models/follow.model'; 
+import { FollowResponse } from '../models/follow.model';
 import { BASE_URL } from './env';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class FollowService {
   private http = inject(HttpClient);
@@ -20,18 +20,18 @@ export class FollowService {
    */
   toggleFollow(userId: number): Observable<FollowResponse> {
     return this.http.post<FollowResponse>(`${this.apiUrl}/${userId}`, {}).pipe(
-      tap(response => {
+      tap((response) => {
         const currentFollowing = this.followingIds();
         const updated = new Set(currentFollowing);
-        
+
         if (response.following) {
           updated.add(userId);
         } else {
           updated.delete(userId);
         }
-        
+
         this.followingIds.set(updated);
-      })
+      }),
     );
   }
 
@@ -60,11 +60,21 @@ export class FollowService {
    * Load current user's following list into signal
    */
   loadFollowingIds(currentUserId: number): void {
+    // ✅ Add guards
+    if (!currentUserId || currentUserId <= 0) {
+      console.warn('Invalid currentUserId:', currentUserId);
+      return;
+    }
+
     this.getFollowing(currentUserId).subscribe({
-      next: (following) => {
-        const ids = new Set(following.map(f => f.userId));
+      next: (following: any[]) => {
+        console.log('Following loaded:', following);
+        const ids = new Set(following.map((f) => f.userId).filter((id) => id));
         this.followingIds.set(ids);
-      }
+      },
+      error: (error) => {
+        console.error('Follow load error:', error);
+      },
     });
   }
 

@@ -107,8 +107,8 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public List<BlogResponse> getBlogsByUser(String username) {
-        UserEntity user = userRepository.findByUsername(username)
+    public List<BlogResponse> getBlogsByUser(Long id) {
+        UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         return blogRepository.findAll().stream()

@@ -1,6 +1,5 @@
 package com.blog.controller;
 
-
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +21,17 @@ public class ReportController {
     @Autowired
     private ReportService reportService;
 
+    @GetMapping("/check/user/{targetUserId}")
+    public ResponseEntity<Object> hasReportedUser(
+            @PathVariable Long targetUserId,
+            Authentication authentication) {
+
+        String reporterUsername = authentication.getName();
+        boolean hasReported = reportService.hasReportedUser(targetUserId, reporterUsername);
+
+        return ApiResponse.from(200, "Check complete", hasReported);
+    }
+
     @PostMapping
     public ResponseEntity<Object> createReport(
             @Valid @RequestBody ReportRequest request,
@@ -29,25 +39,25 @@ public class ReportController {
 
         String username = authentication.getName();
         ReportResponse response = reportService.createReport(request, username);
-        return  ApiResponse.from(200, "Report Created successfully",response);
+        return ApiResponse.from(200, "Report Created successfully", response);
     }
 
     @GetMapping
     public ResponseEntity<Object> getAllReports() {
         List<ReportResponse> reports = reportService.getAllReports();
-        return  ApiResponse.from(200, "All Reports Received successfully",reports);
+        return ApiResponse.from(200, "All Reports Received successfully", reports);
     }
 
     @GetMapping("/status/{status}")
     public ResponseEntity<Object> getReportsByStatus(@PathVariable String status) {
         List<ReportResponse> reports = reportService.getReportsByStatus(status);
-        return  ApiResponse.from(200, "Report By Status Received successfully",reports);
+        return ApiResponse.from(200, "Report By Status Received successfully", reports);
     }
 
     @GetMapping("/type/{type}")
     public ResponseEntity<Object> getReportsByType(@PathVariable String type) {
         List<ReportResponse> reports = reportService.getReportsByType(type);
-        return  ApiResponse.from(200, "Report By Type Received successfully",reports);
+        return ApiResponse.from(200, "Report By Type Received successfully", reports);
     }
 
     @PutMapping("/{reportId}/status")
@@ -56,12 +66,12 @@ public class ReportController {
             @RequestParam String status) {
 
         reportService.updateReportStatus(reportId, status);
-        return  ApiResponse.from(200, "Report Status updated  successfully",null);
+        return ApiResponse.from(200, "Report Status updated  successfully", null);
     }
 
     @DeleteMapping("/{reportId}")
     public ResponseEntity<Object> deleteReport(@PathVariable Long reportId) {
         reportService.deleteReport(reportId);
-        return  ApiResponse.from(200, "Report deleted successfully",null);
+        return ApiResponse.from(200, "Report deleted successfully", null);
     }
 }

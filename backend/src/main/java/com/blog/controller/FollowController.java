@@ -28,7 +28,7 @@ public class FollowController {
             @PathVariable Long userId,
             Authentication authentication) {
 
-        String currentUsername = authentication.getName(); // still fine here [web:7][web:13]
+        String currentUsername = authentication.getName(); 
         FollowResponse response = followService.toggleFollow(userId, currentUsername);
         String message = (response.following() ? "follow" : "unfollow") + " successfully";
         return ApiResponse.from(200, message, response);

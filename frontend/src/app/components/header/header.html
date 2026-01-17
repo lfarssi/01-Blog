@@ -1,4 +1,4 @@
-<mat-toolbar class="header-toolbar">  <!-- Remove color="primary" -->
+<mat-toolbar class="header-toolbar">
   <div class="container d-flex justify-content-between align-items-center">
     <!-- Logo -->
     <div class="d-flex align-items-center">
@@ -7,7 +7,6 @@
 
     <!-- Navigation Links -->
     <div class="d-none d-md-flex align-items-center">
-      <a routerLink="/blogs" class="nav-link me-3" routerLinkActive="active">Blogs</a>
       @if (isAdmin()) {
         <a routerLink="/admin/dashboard" class="nav-link me-3" routerLinkActive="active">Dashboard</a>
       }
@@ -15,16 +14,60 @@
     </div>
 
     <!-- User Actions -->
-    <div class="d-flex align-items-center">
-      <!-- @if (user(); as u) { -->
-        <span class="me-3">{{ 'Welcome!' }}</span>
-        <button mat-button class="me-2" (click)="goToProfile()">
-          <mat-icon>person</mat-icon> Profile
-        </button>
-        <button mat-button (click)="logout()">
-          <mat-icon>logout</mat-icon> Logout
-        </button>
-      <!-- } -->
-    </div>
+   @if (isLoggedIn()) {
+  <div class="d-flex align-items-center">
+    <!-- Profile -->
+   @if (showSearch) {
+  <div class="search-container">
+    <mat-form-field appearance="outline">
+      <input 
+        #searchInput
+        matInput 
+        [value]="searchQuery"
+        (input)="searchQuery = $event.target.value"
+        (keyup.enter)="searchUsers()"
+        placeholder="Search users...">
+      <button 
+        mat-icon-button 
+        matSuffix 
+        (click)="searchUsers()"
+        [disabled]="searchQuery.length < 2">
+        <mat-icon>search</mat-icon>
+      </button>
+    </mat-form-field>
+  </div>
+}
+
+    <!-- Search Toggle -->
+    <button mat-button class="me-2" (click)="showSearch = !showSearch">
+      <mat-icon>search</mat-icon>
+    </button>
+
+    <!-- Search Input -->
+   
+
+    <!-- Results -->
+    @if (searchResults().length > 0) {
+      <div class="search-results">
+        @for (user of searchResults(); track user.id) {
+          <div class="user-result" (click)="goToUserProfile(user.id)">
+            <mat-icon>person</mat-icon>
+            <span>{{ user.username }}</span>
+            <small>{{ user.email }}</small>
+          </div>
+        }
+        <button mat-button (click)="clearSearch()">Clear</button>
+      </div>
+    }
+  <button mat-button class="me-2" (click)="goToProfile()">
+      <mat-icon>person</mat-icon>
+    </button>
+    <!-- Logout -->
+    <button mat-button (click)="logout()">
+      <mat-icon>logout</mat-icon>
+    </button>
+  </div>
+}
+
   </div>
 </mat-toolbar>
