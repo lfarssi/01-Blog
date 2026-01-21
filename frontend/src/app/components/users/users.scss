@@ -1,0 +1,47 @@
+.users-sidebar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-input {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.users-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.user-item {
+  cursor: pointer;
+  padding: 0.75rem;
+  
+  &:hover {
+    background: rgba(0,0,0,0.04);
+  }
+}
+
+.user-info {
+  flex: 1;
+  margin-left: 1rem;
+}
+
+.user-role {
+  display: block;
+  font-size: 0.8rem;
+  color: #666;
+  opacity: 0.7;
+}
+
+.follow-btn {
+  width: 40px;
+  height: 40px;
+}

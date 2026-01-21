@@ -1,3 +1,11 @@
 <app-header/>
-<router-outlet/>
-<app-footer/>
+<div class="home-content">
+  <main class="main-feed">
+    <router-outlet></router-outlet> <!-- Primary: Blogs -->
+  </main>
+  <aside class="users-sidebar">
+    <router-outlet name="sidebar"></router-outlet> <!-- Named: Users cards -->
+  </aside>
+</div>
+
+<!-- <app-footer/> -->

@@ -90,8 +90,10 @@ export class Login {
             email: userData.email,
             role: userData.role as 'ADMIN' | 'USER'
           });
+          console.log(res);
           
-          this.router.navigate(['/blogs']);
+          
+          this.router.navigate(['/']);
         },
         error: (err) => {
           this.loading = false;

@@ -1,0 +1,32 @@
+<div class="users-sidebar">
+  <mat-form-field appearance="outline" class="search-input">
+    <input matInput [formControl]="globalSearch" placeholder="Search users">
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  @if (isLoading()) {
+    <div class="loading">
+      <mat-spinner diameter="30"></mat-spinner>
+    </div>
+  }
+
+  <mat-nav-list class="users-list">
+    @for (user of users(); track user.id) {
+      <a mat-list-item (click)="goToProfile(user.id)" class="user-item">
+        <!-- <img matListAvatar [src]="user.avatar || 'assets/default-avatar.png'" alt="Avatar"> -->
+        <div matLine class="user-info">
+          <strong>{{ user.username }}</strong>
+          <span class="user-role">{{ user.role }}</span>
+        </div>
+        <!-- <button 
+          mat-icon-button 
+          class="follow-btn"
+          (click)="toggleFollow(user.id); 
+          $event.stopPropagation()"
+          [color]="user.isFollowing ? 'primary' : ''">
+          <mat-icon>{{ user.isFollowing ? 'person_remove' : 'person_add' }}</mat-icon>
+        </button> -->
+      </a>
+    }
+  </mat-nav-list>
+</div>

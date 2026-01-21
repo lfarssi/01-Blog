@@ -6,8 +6,10 @@ export const publicGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (authService.isLoggedIn()) {
-    return router.createUrlTree(['/home']); // Redirect to home
+  if (authService.currentUser()) {
+    router.navigate(['/']);
+    return false; // Redirect to home
+    
   } else {
     return true; // Allow access to login/register
   }

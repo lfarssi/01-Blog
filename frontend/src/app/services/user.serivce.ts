@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject, tap, catchError, of, map } from 'rxjs';
 import { Router } from '@angular/router';
 import { LoginRequest, LoginResponse, UpdateProfileRequest, User } from '../models/user.model';
@@ -149,11 +149,21 @@ searchUsers(query: string): Observable<User[]> {
   /**
    * Get all users (Admin only)
    */
-  getAllUsers(page: number = 0, size: number = 20): Observable<{ users: User[], totalPages: number }> {
-    return this.http.get<{ users: User[], totalPages: number }>(`${this.apiUrl}`, {
-      params: { page: page.toString(), size: size.toString() }
-    });
+
+getAllUsers(page: number = 0, size: number = 20, searchTerm: string = ''): Observable<{ users: User[], totalPages: number }> {
+  let params = new HttpParams()
+    .set('page', page.toString())
+    .set('size', size.toString());
+
+  if (searchTerm.trim()) {
+    params = params.set('search', searchTerm.trim());
   }
+
+  return this.http.get<{ users: User[], totalPages: number }>(`${this.apiUrl}`, {
+    params
+  });
+}
+
 
   /**
    * Ban a user (Admin only)
