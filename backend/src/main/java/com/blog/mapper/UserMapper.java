@@ -10,7 +10,6 @@ public class UserMapper {
             user.getId(),
             user.getUsername(),
             user.getEmail(),
-            user.getPassword(),
             user.getRole(),
             user.getBanned(),
             user.getCreatedAt()

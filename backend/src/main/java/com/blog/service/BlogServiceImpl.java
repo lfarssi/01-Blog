@@ -5,9 +5,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import com.blog.dto.BlogRequest;
 import com.blog.dto.BlogResponse;
 import com.blog.dto.BlogUpdateRequest;
 import com.blog.mapper.BlogMapper;
@@ -15,39 +16,63 @@ import com.blog.entity.BlogEntity;
 import com.blog.entity.UserEntity;
 import com.blog.exception.AccessDeniedException;
 import com.blog.exception.ResourceNotFoundException;
+import com.blog.helper.MediaValidator;
 import com.blog.repository.BlogRepository;
 import com.blog.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 @Service
 @RequiredArgsConstructor
 public class BlogServiceImpl implements BlogService {
-    private final BlogRepository blogRepository;
-    private final UserRepository userRepository;
+    @Autowired
+    private  BlogRepository blogRepository;
+    @Autowired
+    private  UserRepository userRepository;
+    @Autowired
+    private  MediaStorageService mediaStorageService;
 
     @Override
-    public BlogResponse getBlogDetails(Long id){
-        BlogEntity user = blogRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Blog not found"));
-        return  BlogMapper.toResponse(user);
+    public BlogResponse getBlogDetails(Long id) {
+        BlogEntity blog = blogRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
+        return BlogMapper.toResponse(blog);
     }
+
     @Override
-    public List<BlogResponse> getAllBlogs(){
+    public List<BlogResponse> getAllBlogs() {
         return blogRepository.findAll().stream()
                 .map(BlogMapper::toResponse)
                 .collect(Collectors.toList());
     }
+
     @Override
     @Transactional
-    public BlogResponse createBlog(BlogRequest request, String username) {
+    public BlogResponse createBlog(
+            String title,
+            String content,
+            List<MultipartFile> mediaFiles,
+            String username) {
+
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        MediaValidator.validate(mediaFiles);
+
+        List<String> mediaPaths = mediaStorageService.store(mediaFiles);
+
+        String mediaJson;
+        try {
+            mediaJson = new ObjectMapper().writeValueAsString(mediaPaths);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize media", e);
+        }
+
         BlogEntity blog = BlogEntity.builder()
-                .title(request.title())
-                .content(request.content())
-                .media(request.media())
+                .title(title)
+                .content(content)
+                .media(mediaJson) // ✅ STRING
                 .userId(user)
                 .like_count(0L)
                 .comment_count(0L)
@@ -55,12 +80,10 @@ public class BlogServiceImpl implements BlogService {
                 .updatedAt(Instant.now())
                 .build();
 
-        blog = blogRepository.save(blog);
-        return BlogMapper.toResponse(blog);
+        return BlogMapper.toResponse(blogRepository.save(blog));
     }
 
-
-        @Override
+    @Override
     @Transactional
     public BlogResponse updateBlog(Long id, BlogUpdateRequest request, String username) {
         UserEntity user = userRepository.findByUsername(username)
@@ -70,10 +93,9 @@ public class BlogServiceImpl implements BlogService {
                 .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
 
         if (!Objects.equals(blog.getUserId().getId(), user.getId())) {
-          System.out.printf(
-    "updateBlog: blogId=%s, blogUserId=%s, authUserId=%s, username=%s%n",
-    id, blog.getUserId(), user.getId(), username
-);
+            System.out.printf(
+                    "updateBlog: blogId=%s, blogUserId=%s, authUserId=%s, username=%s%n",
+                    id, blog.getUserId(), user.getId(), username);
             throw new AccessDeniedException("Unauthorized to update this blog");
         }
 
@@ -91,6 +113,7 @@ public class BlogServiceImpl implements BlogService {
         blog = blogRepository.save(blog);
         return BlogMapper.toResponse(blog);
     }
+
     @Transactional
     public void deleteBlog(Long id, String username) {
         UserEntity user = userRepository.findByUsername(username)

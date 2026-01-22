@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, map } from 'rxjs';  // ← ADD map
 import { Follower, FollowStats } from '../models/follow.model';
 import { FollowResponse } from '../models/follow.model';
 import { BASE_URL } from './env';
@@ -12,15 +12,12 @@ export class FollowService {
   private http = inject(HttpClient);
   private apiUrl = `${BASE_URL}/follow`;
 
-  // Signal to track current user's following list
   followingIds = signal<Set<number>>(new Set());
 
-  /**
-   * Toggle follow/unfollow a user (matches backend POST /{userId})
-   */
   toggleFollow(userId: number): Observable<FollowResponse> {
-    return this.http.post<FollowResponse>(`${this.apiUrl}/${userId}`, {}).pipe(
-      tap((response) => {
+    return this.http.post<any>(`${this.apiUrl}/${userId}`, {}).pipe(  // ← any for ApiResponse
+      map((apiResponse: any) => apiResponse.data),  // ← Extract data
+      tap((response: FollowResponse) => {
         const currentFollowing = this.followingIds();
         const updated = new Set(currentFollowing);
 
@@ -35,41 +32,37 @@ export class FollowService {
     );
   }
 
-  /**
-   * Get follow status + counts (matches backend GET /{userId}/status)
-   */
   getFollowStatus(userId: number): Observable<FollowResponse> {
-    return this.http.get<FollowResponse>(`${this.apiUrl}/${userId}/status`);
+    return this.http.get<any>(`${this.apiUrl}/${userId}/status`).pipe(
+      map((apiResponse: any) => apiResponse.data)  // ← Extract data
+    );
   }
 
-  /**
-   * Get list of followers (matches backend)
-   */
   getFollowers(userId: number): Observable<Follower[]> {
-    return this.http.get<Follower[]>(`${this.apiUrl}/${userId}/followers`);
+    return this.http.get<any>(`${this.apiUrl}/${userId}/followers`).pipe(
+      map((apiResponse: any) => apiResponse.data || [])  // ✅ Safe array!
+    );
   }
 
-  /**
-   * Get list of users a user follows (matches backend)
-   */
   getFollowing(userId: number): Observable<Follower[]> {
-    return this.http.get<Follower[]>(`${this.apiUrl}/${userId}/following`);
+    return this.http.get<any>(`${this.apiUrl}/${userId}/following`).pipe(
+      map((apiResponse: any) => {
+        console.log('Raw following response:', apiResponse);  // ← DEBUG
+        return apiResponse.data || [];  // ✅ Safe array!
+      })
+    );
   }
 
-  /**
-   * Load current user's following list into signal
-   */
   loadFollowingIds(currentUserId: number): void {
-    // ✅ Add guards
     if (!currentUserId || currentUserId <= 0) {
       console.warn('Invalid currentUserId:', currentUserId);
       return;
     }
 
     this.getFollowing(currentUserId).subscribe({
-      next: (following: any[]) => {
+      next: (following: Follower[]) => {
         console.log('Following loaded:', following);
-        const ids = new Set(following.map((f) => f.userId).filter((id) => id));
+        const ids = new Set(following.map((f) => f.userId).filter((id): id is number => id > 0));
         this.followingIds.set(ids);
       },
       error: (error) => {
@@ -78,9 +71,6 @@ export class FollowService {
     });
   }
 
-  /**
-   * Check cached following status (signals!)
-   */
   isFollowingCached(userId: number): boolean {
     return this.followingIds().has(userId);
   }

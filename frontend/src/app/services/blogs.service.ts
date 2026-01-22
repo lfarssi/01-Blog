@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { Blog, Comment, CreateBlogRequest, CreateCommentRequest, LikeResponse, UpdateBlogRequest } from '../models/blog.model';
 import { BASE_URL } from './env';
+import { ApiResponse } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -31,17 +32,10 @@ export class BlogsService {
     return this.http.get<Blog>(`${this.apiUrl}/${blogId}`);
   }
 
-  createBlog(request: CreateBlogRequest): Observable<Blog> {
-    const formData = new FormData();
-    formData.append('title', request.title);
-    formData.append('content', request.content);
-    
-    if (request.mediaFile) {
-      formData.append('media', request.mediaFile);
-    }
-    
-    return this.http.post<Blog>(this.apiUrl, formData);
-  }
+createBlog(formData: FormData): Observable<ApiResponse<Blog>> {
+  return this.http.post<ApiResponse<Blog>>(this.apiUrl, formData);
+}
+
 
   updateBlog(blogId: number, request: UpdateBlogRequest): Observable<Blog> {
     return this.http.put<Blog>(`${this.apiUrl}/${blogId}`, request);

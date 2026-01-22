@@ -1,174 +1,165 @@
-import { Component, OnInit, signal, computed, inject, effect } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, DestroyRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatDialogModule } from '@angular/material/dialog';
-import { UserService } from '../../services/user.serivce';        // ✅ FIXED
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+import { UserService } from '../../services/user.serivce';
 import { BlogsService } from '../../services/blogs.service';
-import { FollowService } from '../../services/follow.serivce';   // ✅ FIXED
-import { ReportService } from '../../services/report.serivce';   // ✅ FIXED
+import { FollowService } from '../../services/follow.serivce';
+import { ReportService } from '../../services/report.serivce';
+
 import { User } from '../../models/user.model';
 import { Blog } from '../../models/blog.model';
 import { FollowResponse } from '../../models/follow.model';
-import { FormsModule } from '@angular/forms';
+import { MatCard, MatCardContent, MatCardTitle, MatCardActions, MatCardModule } from '@angular/material/card';
+import { MatIcon, MatIconModule } from '@angular/material/icon';
+import { MatChip, MatChipSet, MatChipsModule } from '@angular/material/chips';
+import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
+    MatCard,
+    MatIcon,
+    MatChip,
+    MatChipSet,
+    MatCardContent,
+    MatCardTitle,
+    MatCardActions,
     MatButtonModule,
     MatIconModule,
-    MatChipsModule,
-    MatDialogModule,
-    FormsModule,
     MatTooltipModule,
-    MatProgressSpinnerModule
+    MatCardModule,
+    MatChipsModule
   ],
   templateUrl: './profile.html',
-  styleUrl: './profile.scss'
+  styleUrl: './profile.scss',
 })
 export class ProfileComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
+
   private userService = inject(UserService);
   private blogsService = inject(BlogsService);
   private followService = inject(FollowService);
   private reportService = inject(ReportService);
 
-  // Signals
+  /* ---------------- Signals (state) ---------------- */
+
   user = signal<User | null>(null);
   blogs = signal<Blog[]>([]);
   followStatus = signal<FollowResponse | null>(null);
-  isOwnProfile = signal<boolean>(false);
-  isLoading = signal<boolean>(true);
-  showReportDialog = signal<boolean>(false);
-  reportReason = signal<string>('');
-  hasAlreadyReported = signal<boolean>(false);
-  
-  // Computed
-  isFollowing = computed(() => this.followStatus()?.following ?? false);
+
+  isOwnProfile = signal(false);
+  isLoading = signal(true);
+  hasAlreadyReported = signal(false);
+  showReportDialog = signal(false);
+  reportReason = signal('');
+
+  /* ---------------- Computed values ---------------- */
+
   blogsCount = computed(() => this.blogs().length);
-  hasNoBlogs = computed(() => this.blogs().length === 0 && !this.isLoading());
+  hasNoBlogs = computed(() => !this.isLoading() && this.blogs().length === 0);
+
+  isFollowing = computed(() => this.followStatus()?.following ?? false);
   followersCount = computed(() => this.followStatus()?.followerCount ?? 0);
   followingCount = computed(() => this.followStatus()?.followingCount ?? 0);
 
-  constructor() {
-    // Safe effect - prevents infinite loop
-    effect(() => {
-      const status = this.followStatus();
-      const currentUser = this.user();
-      if (status && currentUser && status.followerCount !== undefined) {
-        this.user.set({
-          ...currentUser,
-          followersCount: status.followerCount,
-          followingCount: status.followingCount
-        });
-      }
-    });
-  }
+  /* ---------------- Lifecycle ---------------- */
 
   ngOnInit(): void {
-    console.log('Profile ngOnInit');
     const userId = Number(this.route.snapshot.paramMap.get('id'));
-    console.log('Profile userId:', userId);
-    
-    if (!userId || isNaN(userId)) {
-      console.error('Invalid userId');
-      this.isLoading.set(false);
+    if (!userId) {
       this.router.navigate(['/']);
       return;
     }
 
-    // 10s timeout protection
-    const timeout = setTimeout(() => {
-      if (this.isLoading()) {
-        console.error('Profile timeout');
-        this.isLoading.set(false);
-      }
-    }, 10000);
-
-    this.loadUserProfile(userId);
-    this.checkIfOwnProfile(userId);
+    this.loadProfile(userId);
+    this.checkOwnership(userId);
     this.loadFollowStatus(userId);
     this.checkReportStatus(userId);
-    
-    this.userService.getCurrentUserId().subscribe(currentId => {
-      this.followService.loadFollowingIds(currentId);
-    });
   }
 
-  private loadUserProfile(userId: number): void {
-    this.userService.getUserById(userId).subscribe({
-      next: (userData) => {
-        console.log('User loaded:', userData);
-        this.user.set(userData);
-        this.loadUserBlogs(userId);
-      },
-      error: (error) => {
-        console.error('User error:', error);
-        this.isLoading.set(false);
-      }
-    });
+  /* ---------------- Data loaders ---------------- */
+
+  private loadProfile(userId: number): void {
+    this.userService
+      .getUserById(userId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (user) => {
+          this.user.set(user);
+          console.log(this.user());
+          
+          this.loadBlogs(userId);
+        },
+        error: () => this.isLoading.set(false),
+      });
   }
 
-  private loadUserBlogs(userId: number): void {
-    this.blogsService.getBlogsByUserId(userId).subscribe({
-      next: (blogsData) => {
-        console.log('Blogs loaded:', blogsData.length);
-        this.blogs.set(blogsData);
-        this.isLoading.set(false);
-      },
-      error: (error) => {
-        console.error('Blogs error:', error);
-        this.isLoading.set(false);
-      }
-    });
+  private loadBlogs(userId: number): void {
+    this.blogsService
+      .getBlogsByUserId(userId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (blogs) => {
+          this.blogs.set(blogs);
+          this.isLoading.set(false);
+        },
+        error: () => this.isLoading.set(false),
+      });
   }
 
-  private checkIfOwnProfile(userId: number): void {
-    this.userService.getCurrentUserId().subscribe({
-      next: (currentUserId) => {
-        this.isOwnProfile.set(currentUserId === userId);
-      }
-    });
+  private checkOwnership(profileId: number): void {
+    this.userService
+      .getCurrentUserId()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((id) => this.isOwnProfile.set(id === profileId));
   }
 
   private loadFollowStatus(userId: number): void {
-    this.followService.getFollowStatus(userId).subscribe({
-      next: (status) => this.followStatus.set(status),
-      error: (error) => console.error('Follow status error:', error)
-    });
+    this.followService
+      .getFollowStatus(userId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((status) => this.followStatus.set(status));
   }
 
   private checkReportStatus(userId: number): void {
-    this.reportService.hasReportedUser(userId).subscribe({
-      next: (reported) => this.hasAlreadyReported.set(reported)
-    });
+    this.reportService
+      .hasReportedUser(userId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((reported) => this.hasAlreadyReported.set(reported));
   }
+
+  /* ---------------- Actions ---------------- */
 
   toggleFollow(): void {
     const userId = this.user()?.id;
     if (!userId) return;
-    this.followService.toggleFollow(userId).subscribe({
-      next: (response) => this.followStatus.set(response),
-      error: (error) => console.error('Toggle follow error:', error)
-    });
-  }
 
+    this.followService
+      .toggleFollow(userId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((status) => this.followStatus.set(status));
+  }
   editProfile(): void {
-    this.router.navigate(['/profile/edit']);
+  this.router.navigate(['/profile/edit']);
+}
+
+
+  viewBlog(id: number): void {
+    this.router.navigate(['/blogs', id]);
   }
 
-  viewBlog(blogId: number): void {
-    this.router.navigate(['/blogs', blogId]);
+  goBack(): void {
+    this.router.navigate(['/']);
   }
+
+  /* ---------------- Report dialog ---------------- */
 
   openReportDialog(): void {
     if (!this.hasAlreadyReported()) {
@@ -181,26 +172,17 @@ export class ProfileComponent implements OnInit {
     this.reportReason.set('');
   }
 
-  updateReportReason(event: Event): void {
-    const textarea = event.target as HTMLTextAreaElement;
-    this.reportReason.set(textarea.value);
-  }
-
   submitReport(): void {
     const userId = this.user()?.id;
-    const reason = this.reportReason();
-    if (!userId || !reason.trim()) return;
-    
-    this.reportService.reportUser(userId, reason).subscribe({
-      next: () => {
+    const reason = this.reportReason().trim();
+    if (!userId || !reason) return;
+
+    this.reportService
+      .reportUser(userId, reason)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
         this.hasAlreadyReported.set(true);
         this.closeReportDialog();
-      },
-      error: (error) => console.error('Report error:', error)
-    });
-  }
-
-  goBack(): void {
-    this.router.navigate(['/']);
+      });
   }
 }

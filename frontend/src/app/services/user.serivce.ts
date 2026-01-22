@@ -2,14 +2,19 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject, tap, catchError, of, map } from 'rxjs';
 import { Router } from '@angular/router';
-import { LoginRequest, LoginResponse, UpdateProfileRequest, User } from '../models/user.model';
+import {
+  ApiResponse,
+  LoginRequest,
+  LoginResponse,
+  PageResponse,
+  UpdateProfileRequest,
+  User,
+} from '../models/user.model';
 import { RegisterRequest } from '../models/auth.model';
 import { BASE_URL } from './env';
 
-
-
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class UserService {
   private http = inject(HttpClient);
@@ -34,18 +39,18 @@ export class UserService {
    * Register a new user
    */
   register(request: RegisterRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.authUrl}/register`, request).pipe(
-      tap(response => this.handleAuthSuccess(response))
-    );
+    return this.http
+      .post<LoginResponse>(`${this.authUrl}/register`, request)
+      .pipe(tap((response) => this.handleAuthSuccess(response)));
   }
 
   /**
    * Login user with credentials
    */
   login(request: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.authUrl}/login`, request).pipe(
-      tap(response => this.handleAuthSuccess(response))
-    );
+    return this.http
+      .post<LoginResponse>(`${this.authUrl}/login`, request)
+      .pipe(tap((response) => this.handleAuthSuccess(response)));
   }
 
   /**
@@ -62,29 +67,29 @@ export class UserService {
   /**
    * Get current user's ID
    */
-getCurrentUserId(): Observable<number> {
-  const userId = this.currentUser()?.id || 0;
-  console.log('UserService currentUserId:', userId);
-  return of(userId);
-}
+  getCurrentUserId(): Observable<number> {
+    const userId = this.currentUser()?.id || 0;
+    console.log('UserService currentUserId:', userId);
+    return of(userId);
+  }
   /**
    * Get user by ID
    */
   getUserById(userId: number): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/${userId}`);
+    return this.http
+      .get<ApiResponse<User>>(`${this.apiUrl}/${userId}`)
+      .pipe(map((response) => response.data));
   }
 
-
-  
   /**
    * Get current user profile (from server)
    */
   getCurrentUserProfile(): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/me`).pipe(
-      tap(user => {
+      tap((user) => {
         this.currentUser.set(user);
         this.saveUserToStorage(user);
-      })
+      }),
     );
   }
 
@@ -93,10 +98,10 @@ getCurrentUserId(): Observable<number> {
    */
   updateProfile(request: UpdateProfileRequest): Observable<User> {
     return this.http.put<User>(`${this.apiUrl}/me`, request).pipe(
-      tap(user => {
+      tap((user) => {
         this.currentUser.set(user);
         this.saveUserToStorage(user);
-      })
+      }),
     );
   }
 
@@ -106,12 +111,12 @@ getCurrentUserId(): Observable<number> {
   uploadAvatar(file: File): Observable<User> {
     const formData = new FormData();
     formData.append('avatar', file);
-    
+
     return this.http.post<User>(`${this.apiUrl}/me/avatar`, formData).pipe(
-      tap(user => {
+      tap((user) => {
         this.currentUser.set(user);
         this.saveUserToStorage(user);
-      })
+      }),
     );
   }
 
@@ -120,50 +125,46 @@ getCurrentUserId(): Observable<number> {
    */
   deleteAvatar(): Observable<User> {
     return this.http.delete<User>(`${this.apiUrl}/me/avatar`).pipe(
-      tap(user => {
+      tap((user) => {
         this.currentUser.set(user);
         this.saveUserToStorage(user);
-      })
+      }),
     );
   }
 
   /**
    * Search users by username or email
    */
-searchUsers(query: string): Observable<User[]> {
-  return this.http.get<any>(`${this.apiUrl}`, {
-    params: { q: query }
-  }).pipe(
-    map(response => {
-      console.log('Raw search response:', response);
-      const users = response.data || response.users || [];
-      console.log('Extracted users:', users);
-      return Array.isArray(users) ? users : [];
-    }),
-    catchError(error => {
-      console.error('Search error:', error);
-      return of([]);
-    })
-  );
-}
+  searchUsers(query: string): Observable<User[]> {
+    return this.http
+      .get<any>(`${this.apiUrl}`, {
+        params: { q: query },
+      })
+      .pipe(
+        map((response) => {
+          console.log('Raw search response:', response);
+          const users = response.data || response.users || [];
+          console.log('Extracted users:', users);
+          return Array.isArray(users) ? users : [];
+        }),
+        catchError((error) => {
+          console.error('Search error:', error);
+          return of([]);
+        }),
+      );
+  }
   /**
    * Get all users (Admin only)
    */
+  // UserService.getAllUsers()
+  getAllUsers(page = 0, size = 20, searchTerm = ''): Observable<PageResponse> {
+    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    if (searchTerm.trim()) params = params.set('search', searchTerm.trim());
 
-getAllUsers(page: number = 0, size: number = 20, searchTerm: string = ''): Observable<{ users: User[], totalPages: number }> {
-  let params = new HttpParams()
-    .set('page', page.toString())
-    .set('size', size.toString());
-
-  if (searchTerm.trim()) {
-    params = params.set('search', searchTerm.trim());
+    return this.http.get<any>(`${this.apiUrl}`, { params }).pipe(
+      map((apiResponse: any) => apiResponse.data as PageResponse), // ✅ Extract data!
+    );
   }
-
-  return this.http.get<{ users: User[], totalPages: number }>(`${this.apiUrl}`, {
-    params
-  });
-}
-
 
   /**
    * Ban a user (Admin only)
@@ -215,7 +216,7 @@ getAllUsers(page: number = 0, size: number = 20, searchTerm: string = ''): Obser
   refreshAuthStatus(): void {
     if (this.getToken() && !this.isTokenExpired()) {
       this.getCurrentUserProfile().subscribe({
-        error: () => this.logout()
+        error: () => this.logout(),
       });
     } else {
       this.logout();

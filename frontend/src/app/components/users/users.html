@@ -1,6 +1,9 @@
 <div class="users-sidebar">
   <mat-form-field appearance="outline" class="search-input">
-    <input matInput [formControl]="globalSearch" placeholder="Search users">
+    <input matInput 
+           [formControl]="globalSearch" 
+           placeholder="Search users"
+           (input)="onSearch($event)">
     <mat-icon matSuffix>search</mat-icon>
   </mat-form-field>
 
@@ -10,23 +13,19 @@
     </div>
   }
 
+  @if (users().length === 0 && !isLoading()) {
+    <p class="no-results">No users found</p>
+  }
+
   <mat-nav-list class="users-list">
-    @for (user of users(); track user.id) {
-      <a mat-list-item (click)="goToProfile(user.id)" class="user-item">
-        <!-- <img matListAvatar [src]="user.avatar || 'assets/default-avatar.png'" alt="Avatar"> -->
-        <div matLine class="user-info">
-          <strong>{{ user.username }}</strong>
-          <span class="user-role">{{ user.role }}</span>
-        </div>
-        <!-- <button 
-          mat-icon-button 
-          class="follow-btn"
-          (click)="toggleFollow(user.id); 
-          $event.stopPropagation()"
-          [color]="user.isFollowing ? 'primary' : ''">
-          <mat-icon>{{ user.isFollowing ? 'person_remove' : 'person_add' }}</mat-icon>
-        </button> -->
-      </a>
-    }
+ @for (user of users(); track user.id) {
+  <a mat-list-item (click)="goToProfile(user.id)" class="user-item">
+    <div matLine class="user-info">
+      <strong>{{ user.username }}</strong>
+      <span class="user-role">{{ user.role }}</span>
+    </div>
+  </a>
+}
+
   </mat-nav-list>
 </div>

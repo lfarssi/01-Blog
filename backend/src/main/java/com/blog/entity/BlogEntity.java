@@ -2,6 +2,7 @@ package com.blog.entity;
 
 import java.time.Instant;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,7 +18,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name="blogs")
+@Table(name = "blogs")
 @Getter
 @Setter
 @Builder
@@ -25,8 +26,8 @@ import lombok.Setter;
 
 @AllArgsConstructor
 public class BlogEntity {
-     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String title;
@@ -37,13 +38,12 @@ public class BlogEntity {
     @JoinColumn(name = "user_id")
     private UserEntity userId;
 
-    private String media;
-
+    @Column(columnDefinition = "json")
+    private String media; // JSON array string
     private Long like_count;
 
     private Long comment_count;
 
-
-    private  Instant createdAt;
-    private  Instant updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 }

@@ -20,8 +20,8 @@ import { BlogsService } from '../../services/blogs.service';
     MatCardModule,
     MatIconModule,
     MatProgressBarModule,
-    ReactiveFormsModule
-  ]
+    ReactiveFormsModule,
+  ],
 })
 export class BlogFormComponent {
   private fb = inject(FormBuilder);
@@ -37,7 +37,27 @@ export class BlogFormComponent {
   errorMsg = signal<string | null>(null);
 
   readonly f = this.form.controls;
-  readonly disabled = computed(() => this.loading() || this.form.invalid);
+  readonly disabled = computed(() => this.loading() );
+
+  selectedFile: File | null = null;
+  mediaPreview: string | null = null; // ✅ Preview URL
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.selectedFile = input.files[0];
+
+      // Generate preview
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.mediaPreview = reader.result as string;
+      };
+      reader.readAsDataURL(this.selectedFile);
+    } else {
+      this.selectedFile = null;
+      this.mediaPreview = null;
+    }
+  }
 
   submit(): void {
     if (this.form.invalid) {
@@ -49,18 +69,26 @@ export class BlogFormComponent {
     this.successMsg.set(null);
     this.errorMsg.set(null);
 
-    const payload = this.form.value as { title: string; content: string };
+    const formData = new FormData();
+    formData.append('title', this.form.value.title!);
+    formData.append('content', this.form.value.content!);
 
-    this.blogsService.createBlog(payload).subscribe({
+    if (this.selectedFile) {
+      formData.append('media', this.selectedFile); // ✅ Matches backend field
+    }
+
+    this.blogsService.createBlog(formData).subscribe({
       next: () => {
         this.loading.set(false);
         this.successMsg.set('Blog post created successfully!');
         this.form.reset();
+        this.selectedFile = null;
+        this.mediaPreview = null; // Reset preview
       },
       error: () => {
         this.loading.set(false);
         this.errorMsg.set('Failed to create blog post');
-      }
+      },
     });
   }
 }

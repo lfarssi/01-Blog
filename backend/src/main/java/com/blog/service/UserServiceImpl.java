@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +27,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
     @Override
     public Optional<UserEntity> findByUsername(String username) {
         return userRepository.findByUsername(username);
@@ -36,17 +40,19 @@ public class UserServiceImpl implements UserService {
 
         return UserMapper.toResponse(user);
     }
+
     @Override
-    public List<UserResponse> SearchUsers(String query) {  // ✅ "searchUsers" + "query"
-    // ✅ Find MULTIPLE users (LIKE search)
-    List<UserEntity> users = userRepository
-        .findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(query, query);
-    
-    // ✅ Convert ALL to DTO list
-    return users.stream()
-        .map(UserMapper::toResponse)  // ✅ List mapper
-        .collect(Collectors.toList());
-}
+    public List<UserResponse> SearchUsers(String query) { // ✅ "searchUsers" + "query"
+        // ✅ Find MULTIPLE users (LIKE search)
+        List<UserEntity> users = userRepository
+                .findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(query, query);
+
+        // ✅ Convert ALL to DTO list
+        return users.stream()
+                .map(UserMapper::toResponse) // ✅ List mapper
+                .collect(Collectors.toList());
+    }
+
     @Override
     public void register(UserRequest request) {
 
@@ -66,6 +72,20 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         userRepository.save(user);
+    }
+
+    @Override
+    public Page<UserResponse> getAllUsers(int page, int size, String search) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<UserEntity> usersPage;
+        if (search != null && !search.trim().isEmpty()) {
+            usersPage = userRepository.findPublicUsers(search, pageable);
+        } else {
+            usersPage = userRepository.findNonBannedUsers(pageable); // ✅ NEW
+        }
+
+        return usersPage.map(UserMapper::toResponse); // ✅ YOUR MAPPER
     }
 
     @Override

@@ -70,6 +70,10 @@ export class Header {
     this.router.navigate(['/profile', userId]);
     this.clearSearch();
   }
+  createBlog(): void {
+    this.router.navigate(['/create_blog']);
+    this.clearSearch();
+  }
 
   clearSearch(): void {
     this.showSearch = false;

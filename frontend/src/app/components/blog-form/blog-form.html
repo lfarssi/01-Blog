@@ -2,18 +2,18 @@
   <div class="row justify-content-center">
     <div class="col-lg-8 col-md-10">
       <div class="card shadow-lg border-0 rounded-4 overflow-hidden" style="max-width: 600px; margin: 0 auto;">
-        
+
         <!-- Header -->
         <div class="card-header bg-gradient text-white p-4 position-relative overflow-hidden">
           <div class="bg-white bg-opacity-10 rounded-circle p-3 d-inline-block position-absolute" style="top: 20px; left: 20px;">
-            <i class="bi bi-edit  fs-3"></i>
+            <i class="bi bi-edit fs-3"></i>
           </div>
           <h3 class="card-title text-primary fw-bold mb-2 mt-2">Create New Blog</h3>
           <p class="card-subtitle text-primary mb-0 opacity-90">Share your thoughts with the world</p>
         </div>
 
         <div class="card-body p-4 p-md-5">
-          
+
           <!-- Success Alert -->
           @if (successMsg()) {
             <div class="alert alert-success d-flex align-items-center gap-3 rounded-3 border-0 mb-4 shadow-sm" role="alert">
@@ -32,17 +32,11 @@
 
           <!-- Form -->
           <form [formGroup]="form" (ngSubmit)="submit()">
-            
+
             <!-- Title Field -->
             <div class="mb-4">
               <div class="form-floating form-floating-outline mb-3">
-                <input 
-                  matInput 
-                  formControlName="title" 
-                  class="form-control form-control-lg rounded-3 shadow-sm" 
-                  id="titleInput"
-                  placeholder="Enter a catchy title..."
-                />
+                <input matInput formControlName="title" class="form-control form-control-lg rounded-3 shadow-sm" id="titleInput" placeholder="Enter a catchy title..." />
                 <label for="titleInput" class="form-label">
                   <i class="bi bi-type me-2"></i>Blog Title
                 </label>
@@ -61,15 +55,8 @@
             <!-- Content Field -->
             <div class="mb-4">
               <div class="form-floating">
-                <textarea 
-                  matInput 
-                  rows="8" 
-                  formControlName="content"
-                  class="form-control rounded-3 shadow-sm" 
-                  id="contentInput"
-                  placeholder="Write your blog content here..."
-                  style="min-height: 200px;"
-                ></textarea>
+                <textarea matInput rows="8" formControlName="content" class="form-control rounded-3 shadow-sm"
+                  id="contentInput" placeholder="Write your blog content here..." style="min-height: 200px;"></textarea>
                 <label for="contentInput" class="form-label">
                   <i class="bi bi-card-text me-2"></i>Content
                 </label>
@@ -85,34 +72,50 @@
               }
             </div>
 
+            <!-- Media Upload -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-image me-2"></i>Media (image / video / gif)
+              </label>
+              <input type="file" class="form-control" accept="image/*,video/*,gif" (change)="onFileSelected($event)" />
+              <div class="form-text">Optional — Image, GIF, or Video</div>
+
+              <!-- Preview -->
+              @if (selectedFile) {
+                @if (selectedFile.type.startsWith('image/')) {
+                  <img [src]="mediaPreview" class="img-fluid rounded mt-2" />
+                } @else if (selectedFile.type.startsWith('video/')) {
+                  <video [src]="mediaPreview" class="img-fluid rounded mt-2" controls></video>
+                } @else {
+                  <p>{{ selectedFile.name }}</p>
+                }
+              }
+            </div>
+
             <!-- Loading Progress -->
             @if (loading()) {
               <div class="progress mb-4" style="height: 6px;">
-                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 100%"></div>
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar"
+                  style="width: 100%"></div>
               </div>
             }
-          </form>
-        </div>
 
-        <!-- Actions -->
-        <div class="card-footer bg-light p-4 border-top">
-          <button 
-            type="submit" 
-            form="form"
-            class="btn btn-primary btn-lg w-100 rounded-3 shadow fw-semibold py-3 position-relative overflow-hidden"
-            [disabled]="disabled()"
-          >
-            @if (loading()) {
-              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-            } @else {
-              <i class="bi bi-plus-circle me-2"></i>
-            }
-            Create Blog
-          </button>
-          
-          <div class="text-muted small text-center mt-3">
-            <i class="bi bi-asterisk me-1"></i>Required fields
-          </div>
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary btn-lg w-100 rounded-3 shadow fw-semibold py-3 position-relative overflow-hidden"
+              [disabled]="disabled()">
+              @if (loading()) {
+                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              } @else {
+                <i class="bi bi-plus-circle me-2"></i>
+              }
+              Create Blog
+            </button>
+            <div class="text-muted small text-center mt-3">
+              <i class="bi bi-asterisk me-1"></i>Required fields
+            </div>
+
+          </form>
+
         </div>
       </div>
     </div>

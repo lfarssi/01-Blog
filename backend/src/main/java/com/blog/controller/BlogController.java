@@ -6,15 +6,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
+
 
 import com.blog.dto.ApiResponse;
 
-import com.blog.dto.BlogRequest;
 import com.blog.dto.BlogResponse;
 import com.blog.dto.BlogUpdateRequest;
 import com.blog.service.BlogService;
 
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/blogs")
@@ -24,31 +25,39 @@ public class BlogController {
 
     @GetMapping
     public ResponseEntity<Object> getAllBlogs() {
-        
+
         List<BlogResponse> blogs = blogService.getAllBlogs();
 
-        return  ApiResponse.from(200, "Blogs Received successfully", blogs);
+        return ApiResponse.from(200, "Blogs Received successfully", blogs);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Object> getBlog(@PathVariable Long id) {
-        return  ApiResponse.from(200, "Blog Received successfully", blogService.getBlogDetails(id));
+        return ApiResponse.from(200, "Blog Received successfully", blogService.getBlogDetails(id));
     }
 
     @GetMapping("/user/{id}")
     public ResponseEntity<Object> getBlogsByUser(@PathVariable Long id) {
         List<BlogResponse> blogs = blogService.getBlogsByUser(id);
-        return  ApiResponse.from(200, "Blogs Received successfully", blogs);
+        return ApiResponse.from(200, "Blogs Received successfully", blogs);
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Object> createBlog(
-            @Valid @RequestBody BlogRequest request,
+            @RequestParam String title,
+            @RequestParam String content,
+            @RequestParam(value = "media",required = false) List<MultipartFile> media,
             Authentication authentication) {
 
         String username = authentication.getName();
-        BlogResponse blog = blogService.createBlog(request, username);
-        return  ApiResponse.from(200, "Blog Created successfully", blog);
+
+        BlogResponse blog = blogService.createBlog(
+                title,
+                content,
+                media,
+                username);
+
+        return ApiResponse.from(200, "Blog Created successfully", blog);
     }
 
     @PutMapping("/{id}")
@@ -59,7 +68,7 @@ public class BlogController {
 
         String username = authentication.getName();
         BlogResponse blog = blogService.updateBlog(id, request, username);
-        return  ApiResponse.from(200, "Blog Updated successfully", blog);
+        return ApiResponse.from(200, "Blog Updated successfully", blog);
     }
 
     @DeleteMapping("/{id}")
@@ -69,6 +78,6 @@ public class BlogController {
 
         String username = authentication.getName();
         blogService.deleteBlog(id, username);
-        return  ApiResponse.from(200, "Blog Deleted successfully", null);
+        return ApiResponse.from(200, "Blog Deleted successfully", null);
     }
 }

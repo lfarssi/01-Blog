@@ -1,43 +1,38 @@
 <div class="profile-container">
   @if (isLoading()) {
     <div class="loading-spinner">
-      <mat-icon>refresh</mat-icon>
+      <mat-icon class="spin">refresh</mat-icon>
       <p>Loading profile...</p>
     </div>
-  } @else if (user()) {
+
+  } @else if (user(); as u) {
+
     <!-- Profile Header -->
     <mat-card class="profile-header">
       <div class="profile-info">
+
         <div class="avatar-section">
-          @if (user()!.avatarUrl) {
-            <img [src]="user()!.avatarUrl" [alt]="user()!.username" class="avatar">
+          @if (u.avatarUrl) {
+            <img [src]="u.avatarUrl" [alt]="u.username" class="avatar">
           } @else {
             <div class="avatar-placeholder">
               <mat-icon>person</mat-icon>
             </div>
           }
         </div>
-        
+
         <div class="user-details">
-          <h1>{{ user()!.username }}</h1>
-          
-          @if (user()!.bio) {
-            <p class="bio">{{ user()!.bio }}</p>
+          <h1>{{ u.username }}</h1>
+
+          @if (u.bio) {
+            <p class="bio">{{ u.bio }}</p>
           }
-          
-          <div class="stats">
-            <mat-chip-set>
-              <mat-chip>
-                <strong>{{ blogsCount() }}</strong> Blogs
-              </mat-chip>
-              <mat-chip>
-                <strong>{{ followersCount() }}</strong> Followers
-              </mat-chip>
-              <mat-chip>
-                <strong>{{ followingCount() }}</strong> Following
-              </mat-chip>
-            </mat-chip-set>
-          </div>
+
+          <mat-chip-set class="stats">
+            <mat-chip><strong>{{ blogsCount() }}</strong> Blogs</mat-chip>
+            <mat-chip><strong>{{ followersCount() }}</strong> Followers</mat-chip>
+            <mat-chip><strong>{{ followingCount() }}</strong> Following</mat-chip>
+          </mat-chip-set>
         </div>
       </div>
 
@@ -48,31 +43,35 @@
             Edit Profile
           </button>
         } @else {
-          <button 
-            mat-raised-button 
+
+          <button
+            mat-raised-button
             [color]="isFollowing() ? 'accent' : 'primary'"
             (click)="toggleFollow()">
-            <mat-icon>{{ isFollowing() ? 'person_remove' : 'person_add' }}</mat-icon>
-            {{ isFollowing() ? 'Unfollow' : 'Follow' }} {{ user()!.username }}
+            <mat-icon>
+              {{ isFollowing() ? 'person_remove' : 'person_add' }}
+            </mat-icon>
+            {{ isFollowing() ? 'Unfollow' : 'Follow' }} {{ u.username }}
           </button>
-          
-          <!-- FIXED: Now works with MatTooltipModule -->
-          <button 
-            mat-icon-button 
+
+          <button
+            mat-icon-button
             matTooltip="{{ hasAlreadyReported() ? 'Already reported' : 'Report user' }}"
-            (click)="openReportDialog()" 
-            class="report-btn"
-            [disabled]="hasAlreadyReported()">
-            <mat-icon>{{ hasAlreadyReported() ? 'flag' : 'outlined_flag' }}</mat-icon>
+            (click)="openReportDialog()"
+            [disabled]="hasAlreadyReported()"
+            class="report-btn">
+            <mat-icon>
+              {{ hasAlreadyReported() ? 'flag' : 'outlined_flag' }}
+            </mat-icon>
           </button>
         }
       </div>
     </mat-card>
 
     <!-- Blogs Section -->
-    <div class="blogs-section">
+    <section class="blogs-section">
       <h2>Blogs ({{ blogsCount() }})</h2>
-      
+
       @if (hasNoBlogs()) {
         <div class="no-blogs">
           <mat-icon>article</mat-icon>
@@ -82,32 +81,36 @@
         <div class="blogs-grid">
           @for (blog of blogs(); track blog.id) {
             <mat-card class="blog-card" (click)="viewBlog(blog.id)">
+
               @if (blog.mediaUrl) {
                 <div class="media-container">
                   @if (blog.mediaType === 'image') {
-                    <img [src]="blog.mediaUrl" [alt]="blog.content" class="blog-media">
-                  } @else if (blog.mediaType === 'video') {
-                    <video [src]="blog.mediaUrl" class="blog-media" poster="assets/video-poster.png">
-                    </video>
+                    <img [src]="blog.mediaUrl" class="blog-media">
+                  } @else {
+                    <video [src]="blog.mediaUrl" class="blog-media"></video>
                     <div class="video-overlay">
                       <mat-icon>play_circle</mat-icon>
                     </div>
                   }
                 </div>
               }
-              
+
               <mat-card-content>
                 <p class="blog-description">{{ blog.content }}</p>
-                
+
                 <div class="blog-stats">
                   <span class="stat">
-                    <mat-icon [class.liked]="blog.isLikedByCurrentUser">favorite</mat-icon>
+                    <mat-icon [class.liked]="blog.isLikedByCurrentUser">
+                      favorite
+                    </mat-icon>
                     {{ blog.likesCount }}
                   </span>
+
                   <span class="stat">
                     <mat-icon>comment</mat-icon>
                     {{ blog.commentsCount }}
                   </span>
+
                   <span class="timestamp">
                     {{ blog.createdAt | date: 'MMM d, y' }}
                   </span>
@@ -117,39 +120,42 @@
           }
         </div>
       }
-    </div>
+    </section>
 
     <!-- Report Dialog -->
     @if (showReportDialog()) {
       <div class="report-dialog-overlay" (click)="closeReportDialog()">
         <mat-card class="report-dialog" (click)="$event.stopPropagation()">
-          <mat-card-header>
-            <mat-card-title>Report {{ user()!.username }}</mat-card-title>
-          </mat-card-header>
-          
+
+          <mat-card-title>
+            Report {{ u.username }}
+          </mat-card-title>
+
           <mat-card-content>
-            <p>Please provide a reason for reporting this user:</p>
-            <textarea 
-              [value]="reportReason()"
-              placeholder="Describe the issue..."
+            <textarea
               rows="4"
-              class="report-textarea">
+              class="report-textarea"
+              placeholder="Describe the issue..."
+              [value]="reportReason()"
+              (input)="reportReason.set($any($event.target).value)">
             </textarea>
           </mat-card-content>
-          
+
           <mat-card-actions align="end">
             <button mat-button (click)="closeReportDialog()">Cancel</button>
-            <button 
-              mat-raised-button 
+            <button
+              mat-raised-button
               color="warn"
               [disabled]="!reportReason().trim()"
               (click)="submitReport()">
               Submit Report
             </button>
           </mat-card-actions>
+
         </mat-card>
       </div>
     }
+
   } @else {
     <div class="error-state">
       <mat-icon>error_outline</mat-icon>

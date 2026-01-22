@@ -8,66 +8,61 @@
     <!-- Navigation Links -->
     <div class="d-none d-md-flex align-items-center">
       @if (isAdmin()) {
-        <a routerLink="/admin/dashboard" class="nav-link me-3" routerLinkActive="active">Dashboard</a>
-      }
+      <a routerLink="/admin/dashboard" class="nav-link me-3" routerLinkActive="active">Dashboard</a>
       <a routerLink="/users/search" class="nav-link me-3" routerLinkActive="active">Users</a>
+
+      }
     </div>
 
     <!-- User Actions -->
-   @if (isLoggedIn()) {
-  <div class="d-flex align-items-center">
-    <!-- Profile -->
-   @if (showSearch) {
-  <div class="search-container">
-    <mat-form-field appearance="outline">
-      <input 
-        #searchInput
-        matInput 
-        [value]="searchQuery"
-        (input)="searchQuery = $event.target.value"
-        (keyup.enter)="searchUsers()"
-        placeholder="Search users...">
-      <button 
-        mat-icon-button 
-        matSuffix 
-        (click)="searchUsers()"
-        [disabled]="searchQuery.length < 2">
+    @if (isLoggedIn()) {
+    <div class="d-flex align-items-center">
+      <!-- Profile -->
+      <!-- @if (showSearch) {
+      <div class="search-container">
+        <mat-form-field appearance="outline">
+          <input #searchInput matInput [value]="searchQuery" (input)="searchQuery = $event.target.value"
+            (keyup.enter)="searchUsers()" placeholder="Search users...">
+          <button mat-icon-button matSuffix (click)="searchUsers()" [disabled]="searchQuery.length < 2">
+            <mat-icon>search</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+      } -->
+
+      <!-- Search Toggle -->
+      <!-- <button mat-button class="me-2" (click)="showSearch = !showSearch">
         <mat-icon>search</mat-icon>
-      </button>
-    </mat-form-field>
-  </div>
-}
+      </button> -->
 
-    <!-- Search Toggle -->
-    <button mat-button class="me-2" (click)="showSearch = !showSearch">
-      <mat-icon>search</mat-icon>
-    </button>
+      <!-- Search Input -->
 
-    <!-- Search Input -->
-   
 
-    <!-- Results -->
-    @if (searchResults().length > 0) {
+      <!-- Results -->
+      <!-- @if (searchResults().length > 0) {
       <div class="search-results">
         @for (user of searchResults(); track user.id) {
-          <div class="user-result" (click)="goToUserProfile(user.id)">
-            <mat-icon>person</mat-icon>
-            <span>{{ user.username }}</span>
-            <small>{{ user.email }}</small>
-          </div>
+        <div class="user-result" (click)="goToUserProfile(user.id)">
+          <mat-icon>person</mat-icon>
+          <span>{{ user.username }}</span>
+          <small>{{ user.email }}</small>
+        </div>
         }
         <button mat-button (click)="clearSearch()">Clear</button>
       </div>
+      } -->
+        <button mat-button class="me-2" (click)="createBlog()">
+        <mat-icon>add icon</mat-icon>
+      </button>
+      <button mat-button class="me-2" (click)="goToProfile()">
+        <mat-icon>person</mat-icon>
+      </button>
+      <!-- Logout -->
+      <button mat-button (click)="logout()">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
     }
-  <button mat-button class="me-2" (click)="goToProfile()">
-      <mat-icon>person</mat-icon>
-    </button>
-    <!-- Logout -->
-    <button mat-button (click)="logout()">
-      <mat-icon>logout</mat-icon>
-    </button>
-  </div>
-}
 
   </div>
 </mat-toolbar>
