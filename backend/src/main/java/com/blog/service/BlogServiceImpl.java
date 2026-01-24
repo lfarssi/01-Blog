@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.blog.dto.BlogResponse;
-import com.blog.dto.BlogUpdateRequest;
 import com.blog.mapper.BlogMapper;
 import com.blog.entity.BlogEntity;
 import com.blog.entity.UserEntity;
@@ -18,6 +17,8 @@ import com.blog.exception.AccessDeniedException;
 import com.blog.exception.ResourceNotFoundException;
 import com.blog.helper.MediaValidator;
 import com.blog.repository.BlogRepository;
+import com.blog.repository.CommentRepository;
+import com.blog.repository.LikeRepository;
 import com.blog.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -29,16 +30,26 @@ public class BlogServiceImpl implements BlogService {
     @Autowired
     private  BlogRepository blogRepository;
     @Autowired
+    private  LikeRepository likeRepository;
+    @Autowired
+    private  CommentRepository commentRepository;
+    @Autowired
     private  UserRepository userRepository;
     @Autowired
     private  MediaStorageService mediaStorageService;
 
-    @Override
-    public BlogResponse getBlogDetails(Long id) {
-        BlogEntity blog = blogRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
-        return BlogMapper.toResponse(blog);
-    }
+@Override
+public BlogResponse getBlogDetails(Long id) {
+    BlogEntity blog = blogRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
+    
+    // ✅ Update entity counts (your fields)
+    blog.setLike_count(likeRepository.countByBlog_Id(id));
+    blog.setComment_count(commentRepository.countByBlog_Id(id));
+    
+    return BlogMapper.toResponse(blog);  // ✅ Your mapper!
+}
+
 
     @Override
     public List<BlogResponse> getAllBlogs() {
@@ -83,36 +94,43 @@ public class BlogServiceImpl implements BlogService {
         return BlogMapper.toResponse(blogRepository.save(blog));
     }
 
-    @Override
-    @Transactional
-    public BlogResponse updateBlog(Long id, BlogUpdateRequest request, String username) {
-        UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+  @Override
+@Transactional
+public BlogResponse updateBlog(Long id, String title, String content, List<MultipartFile> mediaFiles, String username) {
+    // Auth check
+    UserEntity user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    BlogEntity blog = blogRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
 
-        BlogEntity blog = blogRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
-
-        if (!Objects.equals(blog.getUserId().getId(), user.getId())) {
-            System.out.printf(
-                    "updateBlog: blogId=%s, blogUserId=%s, authUserId=%s, username=%s%n",
-                    id, blog.getUserId(), user.getId(), username);
-            throw new AccessDeniedException("Unauthorized to update this blog");
-        }
-
-        if (request.title() != null) {
-            blog.setTitle(request.title());
-        }
-        if (request.content() != null) {
-            blog.setContent(request.content());
-        }
-        if (request.media() != null) {
-            blog.setMedia(request.media());
-        }
-        blog.setUpdatedAt(Instant.now());
-
-        blog = blogRepository.save(blog);
-        return BlogMapper.toResponse(blog);
+    if (!Objects.equals(blog.getUserId().getId(), user.getId())) {
+        throw new AccessDeniedException("Unauthorized to update this blog");
     }
+
+    // Update text (optional)
+    if (title != null && !title.trim().isEmpty()) blog.setTitle(title);
+    if (content != null && !content.trim().isEmpty()) blog.setContent(content);
+
+    // Update media (optional - replaces existing)
+    if (mediaFiles != null && !mediaFiles.isEmpty()) {
+        MediaValidator.validate(mediaFiles);
+        List<String> mediaPaths = mediaStorageService.store(mediaFiles);
+        
+        // ✅ Simple JSON array (your exact create format)
+        String mediaJson;
+        try {
+            mediaJson = new ObjectMapper().writeValueAsString(mediaPaths);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize media", e);
+        }
+        blog.setMedia(mediaJson);
+    }
+
+    blog.setUpdatedAt(Instant.now());
+    BlogEntity saved = blogRepository.save(blog);
+    return BlogMapper.toResponse(saved);
+}
+
 
     @Transactional
     public void deleteBlog(Long id, String username) {

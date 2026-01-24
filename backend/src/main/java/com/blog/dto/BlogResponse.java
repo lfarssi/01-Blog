@@ -11,11 +11,7 @@ public record BlogResponse(
         Long commentCount,
         Instant createdAt,
         Instant updatedAt,
-        UserInfo author
+        UserResponse author
 ) {
-    public record UserInfo(
-            Long id,
-            String username,
-            String email
-    ) {}
+
 }

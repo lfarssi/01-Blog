@@ -1,0 +1,154 @@
+<div class="edit-blog-container">
+  @if (loading()) {
+    <div class="loading-center">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Loading blog...</p>
+    </div>
+  } @else if (blog()) {
+    
+    <mat-card class="edit-form-card">
+      <mat-card-header>
+        <mat-card-title>Edit Blog Post</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        @if (errorMsg()) {
+          <div class="error-message mb-3 p-3 bg-danger text-white rounded">{{ errorMsg() }}</div>
+        }
+        
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <!-- Title -->
+          <mat-form-field class="full-width mb-4" appearance="outline">
+            <mat-label>Title</mat-label>
+            <input matInput formControlName="title">
+            @if (f.title.touched && f.title.errors?.['required']) {
+              <mat-error>Title is required</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Content -->
+          <mat-form-field class="full-width mb-4" appearance="outline">
+            <mat-label>Content</mat-label>
+            <textarea matInput formControlName="content" rows="8"></textarea>
+            @if (f.content.touched && f.content.errors?.['required']) {
+              <mat-error>Content is required (min 20 chars)</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- ✅ CURRENT MEDIA GRID with X DELETE -->
+          @if (currentMediaUrls().length > 0) {
+            <div class="current-media-section mb-4">
+              <div class="media-header">
+                <h4>Current Media ({{ currentMediaUrls().length - mediaToDelete().length }} kept)</h4>
+                <span class="total-count">Total: {{ totalMediaCount() }}/4</span>
+              </div>
+              <div class="media-grid">
+                @for (mediaUrl of currentMediaUrls(); track $index; let i = $index) {
+                  <div class="media-item-wrapper">
+                    @if (!mediaToDelete().includes(i)) {
+                      <div class="media-item" [class.deleted]="mediaToDelete().includes(i)">
+                        @if (isVideo(mediaUrl)) {
+                          <video [src]="mediaUrl" class="media-preview" preload="metadata" muted>
+                            <mat-icon>play_circle</mat-icon>
+                          </video>
+                        } @else {
+                          <img [src]="mediaUrl" [alt]="'Media ' + (i + 1)" class="media-preview">
+                        }
+                        
+                        <!-- ✅ X DELETE BUTTON -->
+                        <button 
+                          mat-icon-button 
+                          class="delete-btn top-right"
+                          (click)="deleteCurrentMedia(i)"
+                          matTooltip="Remove media">
+                          <mat-icon>close</mat-icon>
+                        </button>
+                        
+                        <!-- ✅ UNDO BUTTON (when deleted) -->
+                        @if (mediaToDelete().includes(i)) {
+                          <button 
+                            mat-icon-button 
+                            class="undo-btn bottom-right"
+                            (click)="undoDelete(i)"
+                            matTooltip="Keep media">
+                            <mat-icon>undo</mat-icon>
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- ✅ NEW MEDIA UPLOAD -->
+          <div class="new-media-section mb-4">
+            <div class="upload-header">
+              <h4>Add New Media</h4>
+              <span class="total-count">{{ totalMediaCount() }}/4</span>
+            </div>
+            <input 
+              #fileInput 
+              type="file" 
+              (change)="onFileSelected($event)" 
+              accept="image/*,video/*"
+              multiple
+              class="hidden">
+            <button 
+              mat-stroked-button 
+              type="button" 
+              (click)="fileInput.click()"
+              [disabled]="isSaving() || totalMediaCount() >= 4">
+              <mat-icon>cloud_upload</mat-icon>
+              {{ totalMediaCount() >= 4 ? 'Max Reached' : 'Add Media' }}
+            </button>
+
+            <!-- ✅ NEW MEDIA PREVIEWS -->
+            @if (newMediaPreviews().length > 0) {
+              <div class="new-media-grid mt-3">
+                @for (preview of newMediaPreviews(); track $index; let i = $index) {
+                  <div class="media-item">
+                    <img [src]="preview" class="media-preview">
+                    <button 
+                      mat-icon-button 
+                      class="delete-btn top-right"
+                      (click)="removeNewMedia(i)"
+                      matTooltip="Remove new media">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </form>
+      </mat-card-content>
+
+      <mat-card-actions align="end">
+        <button mat-button (click)="cancel()" [disabled]="isSaving()">
+          <mat-icon>close</mat-icon> Cancel
+        </button>
+        <button mat-button color="warn" (click)="deleteBlog()" [disabled]="isSaving()">
+          <mat-icon>delete</mat-icon> Delete Blog
+        </button>
+        <button 
+          mat-raised-button 
+          color="primary" 
+          type="submit"
+          [disabled]="disabled() || totalMediaCount() > 4">
+          <mat-icon>save</mat-icon>
+          {{ isSaving() ? 'Saving...' : 'Update Blog' }}
+        </button>
+      </mat-card-actions>
+
+      @if (successMsg()) {
+        <mat-card class="success-card mt-3">
+          <mat-card-content class="text-center">
+            ✅ {{ successMsg() }}
+          </mat-card-content>
+        </mat-card>
+      }
+    </mat-card>
+  }
+</div>

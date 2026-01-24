@@ -4,13 +4,11 @@
       <mat-icon class="spin">refresh</mat-icon>
       <p>Loading profile...</p>
     </div>
-
   } @else if (user(); as u) {
-
+    
     <!-- Profile Header -->
     <mat-card class="profile-header">
       <div class="profile-info">
-
         <div class="avatar-section">
           @if (u.avatarUrl) {
             <img [src]="u.avatarUrl" [alt]="u.username" class="avatar">
@@ -29,9 +27,9 @@
           }
 
           <mat-chip-set class="stats">
-            <mat-chip><strong>{{ blogsCount() }}</strong> Blogs</mat-chip>
-            <mat-chip><strong>{{ followersCount() }}</strong> Followers</mat-chip>
-            <mat-chip><strong>{{ followingCount() }}</strong> Following</mat-chip>
+            <mat-chip class="stat"><strong>{{ blogsCount() }}</strong> Blogs</mat-chip>
+            <mat-chip class="stat"><strong>{{ followersCount() }}</strong> Followers</mat-chip>
+            <mat-chip class="stat"><strong>{{ followingCount() }}</strong> Following</mat-chip>
           </mat-chip-set>
         </div>
       </div>
@@ -39,18 +37,14 @@
       <div class="profile-actions">
         @if (isOwnProfile()) {
           <button mat-raised-button color="primary" (click)="editProfile()">
-            <mat-icon>edit</mat-icon>
-            Edit Profile
+            <mat-icon>edit</mat-icon> Edit Profile
           </button>
         } @else {
-
           <button
             mat-raised-button
             [color]="isFollowing() ? 'accent' : 'primary'"
             (click)="toggleFollow()">
-            <mat-icon>
-              {{ isFollowing() ? 'person_remove' : 'person_add' }}
-            </mat-icon>
+            <mat-icon>{{ isFollowing() ? 'person_remove' : 'person_add' }}</mat-icon>
             {{ isFollowing() ? 'Unfollow' : 'Follow' }} {{ u.username }}
           </button>
 
@@ -60,9 +54,7 @@
             (click)="openReportDialog()"
             [disabled]="hasAlreadyReported()"
             class="report-btn">
-            <mat-icon>
-              {{ hasAlreadyReported() ? 'flag' : 'outlined_flag' }}
-            </mat-icon>
+            <mat-icon>{{ hasAlreadyReported() ? 'flag' : 'outlined_flag' }}</mat-icon>
           </button>
         }
       </div>
@@ -70,7 +62,7 @@
 
     <!-- Blogs Section -->
     <section class="blogs-section">
-      <h2>Blogs ({{ blogsCount() }})</h2>
+      <h2>Blogs ({{ blogsCount() || 0}})</h2>
 
       @if (hasNoBlogs()) {
         <div class="no-blogs">
@@ -78,47 +70,51 @@
           <p>No blogs yet</p>
         </div>
       } @else {
-        <div class="blogs-grid">
-          @for (blog of blogs(); track blog.id) {
-            <mat-card class="blog-card" (click)="viewBlog(blog.id)">
+        <!-- ✅ FIXED: Safe iterable check -->
+        @if (blogs() && blogs().length > 0) {
+          <div class="blogs-grid">
+            @for (blog of blogs(); track $index; let i = $index) {
+              <mat-card class="blog-card" (click)="viewBlog(blog.id)">
+                <!-- ✅ Media with BlogDetail logic -->
+                @if (hasMedia(blog)) {
+                  <div class="media-container">
+                    @if (isBlogVideo(blog)) {
+                      <video [src]="getBlogMedia(blog)[0]" class="blog-media" preload="metadata"></video>
+                      <div class="video-overlay">
+                        <mat-icon>play_circle</mat-icon>
+                      </div>
+                    } @else {
+                      <img [src]="getBlogMedia(blog)[0]" class="blog-media" [alt]="blog.title">
+                    }
+                  </div>
+                }
 
-              @if (blog.mediaUrl) {
-                <div class="media-container">
-                  @if (blog.mediaType === 'image') {
-                    <img [src]="blog.mediaUrl" class="blog-media">
-                  } @else {
-                    <video [src]="blog.mediaUrl" class="blog-media"></video>
-                    <div class="video-overlay">
-                      <mat-icon>play_circle</mat-icon>
-                    </div>
-                  }
-                </div>
-              }
+                <mat-card-content>
+                  <h3 class="blog-title">{{ blog.title || 'Untitled' }}</h3>
+                  <p class="blog-description">{{ (blog.content || '').substring(0, 100) }}...</p>
 
-              <mat-card-content>
-                <p class="blog-description">{{ blog.content }}</p>
+                  <div class="blog-stats">
+                    <span class="stat">
+                      <mat-icon [class.liked]="blog.isLikedByCurrentUser">
+                        {{ blog.isLikedByCurrentUser ? 'favorite' : 'favorite_border' }}
+                      </mat-icon>
+                      {{ blog.likeCount || 0 }}
+                    </span>
 
-                <div class="blog-stats">
-                  <span class="stat">
-                    <mat-icon [class.liked]="blog.isLikedByCurrentUser">
-                      favorite
-                    </mat-icon>
-                    {{ blog.likesCount }}
-                  </span>
+                    <span class="stat">
+                      <mat-icon>comment</mat-icon>
+                      {{ blog.commentCount || 0 }}
+                    </span>
 
-                  <span class="stat">
-                    <mat-icon>comment</mat-icon>
-                    {{ blog.commentsCount }}
-                  </span>
-
-                  <span class="timestamp">
-                    {{ blog.createdAt | date: 'MMM d, y' }}
-                  </span>
-                </div>
-              </mat-card-content>
-            </mat-card>
-          }
-        </div>
+                    <span class="timestamp">
+                      {{ blog.createdAt | date: 'MMM d, y' }}
+                    </span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            }
+          </div>
+        }
       }
     </section>
 
@@ -126,11 +122,7 @@
     @if (showReportDialog()) {
       <div class="report-dialog-overlay" (click)="closeReportDialog()">
         <mat-card class="report-dialog" (click)="$event.stopPropagation()">
-
-          <mat-card-title>
-            Report {{ u.username }}
-          </mat-card-title>
-
+          <mat-card-title>Report {{ u.username }}</mat-card-title>
           <mat-card-content>
             <textarea
               rows="4"
@@ -140,7 +132,6 @@
               (input)="reportReason.set($any($event.target).value)">
             </textarea>
           </mat-card-content>
-
           <mat-card-actions align="end">
             <button mat-button (click)="closeReportDialog()">Cancel</button>
             <button
@@ -151,11 +142,9 @@
               Submit Report
             </button>
           </mat-card-actions>
-
         </mat-card>
       </div>
     }
-
   } @else {
     <div class="error-state">
       <mat-icon>error_outline</mat-icon>

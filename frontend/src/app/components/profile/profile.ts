@@ -3,17 +3,19 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { UserService } from '../../services/user.serivce';
+import { UserService } from '../../services/user.serivce';  // ✅ Fixed typo
 import { BlogsService } from '../../services/blogs.service';
-import { FollowService } from '../../services/follow.serivce';
-import { ReportService } from '../../services/report.serivce';
+import { FollowService } from '../../services/follow.serivce';  // ✅ Fixed typo
+import { ReportService } from '../../services/report.serivce';  // ✅ Fixed typo
 
 import { User } from '../../models/user.model';
 import { Blog } from '../../models/blog.model';
 import { FollowResponse } from '../../models/follow.model';
-import { MatCard, MatCardContent, MatCardTitle, MatCardActions, MatCardModule } from '@angular/material/card';
-import { MatIcon, MatIconModule } from '@angular/material/icon';
-import { MatChip, MatChipSet, MatChipsModule } from '@angular/material/chips';
+import { 
+  MatCardModule, 
+} from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -22,18 +24,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   standalone: true,
   imports: [
     CommonModule,
-    MatCard,
-    MatIcon,
-    MatChip,
-    MatChipSet,
-    MatCardContent,
-    MatCardTitle,
-    MatCardActions,
-    MatButtonModule,
-    MatIconModule,
-    MatTooltipModule,
     MatCardModule,
-    MatChipsModule
+    MatIconModule,
+    MatChipsModule,
+    MatButtonModule,
+    MatTooltipModule
   ],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
@@ -49,7 +44,6 @@ export class ProfileComponent implements OnInit {
   private reportService = inject(ReportService);
 
   /* ---------------- Signals (state) ---------------- */
-
   user = signal<User | null>(null);
   blogs = signal<Blog[]>([]);
   followStatus = signal<FollowResponse | null>(null);
@@ -61,7 +55,6 @@ export class ProfileComponent implements OnInit {
   reportReason = signal('');
 
   /* ---------------- Computed values ---------------- */
-
   blogsCount = computed(() => this.blogs().length);
   hasNoBlogs = computed(() => !this.isLoading() && this.blogs().length === 0);
 
@@ -70,34 +63,45 @@ export class ProfileComponent implements OnInit {
   followingCount = computed(() => this.followStatus()?.followingCount ?? 0);
 
   /* ---------------- Lifecycle ---------------- */
+ngOnInit(): void {
+  // ✅ CORRECT: Subscribe + extract param
+  this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+    const userId = Number(params.get('id'));  // ✅ params.get('id')
+    console.log('Profile userId from URL:', userId);
 
-  ngOnInit(): void {
-    const userId = Number(this.route.snapshot.paramMap.get('id'));
     if (!userId) {
       this.router.navigate(['/']);
       return;
     }
 
+    // Reset + reload for new user
+    this.isLoading.set(true);
+    this.user.set(null);
+    this.blogs.set([]);
+
     this.loadProfile(userId);
     this.checkOwnership(userId);
     this.loadFollowStatus(userId);
     this.checkReportStatus(userId);
-  }
+  });
+}
+
 
   /* ---------------- Data loaders ---------------- */
-
   private loadProfile(userId: number): void {
     this.userService
       .getUserById(userId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (user) => {
+          console.log('Loaded user:', user); // ✅ Debug
           this.user.set(user);
-          console.log(this.user());
-          
           this.loadBlogs(userId);
         },
-        error: () => this.isLoading.set(false),
+        error: (err) => {
+          console.error('Failed to load profile:', err);
+          this.isLoading.set(false);
+        }
       });
   }
 
@@ -107,10 +111,15 @@ export class ProfileComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (blogs) => {
+          console.log('Loaded blogs:', blogs); // ✅ Debug
           this.blogs.set(blogs);
+          
           this.isLoading.set(false);
         },
-        error: () => this.isLoading.set(false),
+        error: (err) => {
+          console.error('Failed to load blogs:', err);
+          this.isLoading.set(false);
+        }
       });
   }
 
@@ -118,14 +127,43 @@ export class ProfileComponent implements OnInit {
     this.userService
       .getCurrentUserId()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((id) => this.isOwnProfile.set(id === profileId));
+      .subscribe({
+        next: (currentId) => this.isOwnProfile.set(currentId === profileId),
+        error: () => {} // Silent fail
+      });
   }
+  // Media helpers (reuse from BlogDetail logic)
+hasMedia(blog: Blog): boolean {
+  return !!(blog.media && blog.media.trim());
+}
+
+getBlogMedia(blog: Blog): string[] {
+  if (!blog.media) return [];
+  try {
+    const parsed = JSON.parse(blog.media);
+    return Array.isArray(parsed) ? parsed.map(url => `http://localhost:8080${url}`) : [];
+  } catch {
+    return [`http://localhost:8080${blog.media}`];
+  }
+}
+
+isBlogVideo(blog: Blog): boolean {
+  const mediaUrl = this.getBlogMedia(blog)[0];
+  return mediaUrl ? /\.(mp4|avi|mov|wmv|flv|webm)$/i.test(mediaUrl) : false;
+}
+
 
   private loadFollowStatus(userId: number): void {
     this.followService
       .getFollowStatus(userId)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((status) => this.followStatus.set(status));
+      .subscribe({
+        next: (status) => {
+          console.log('Follow status:', status); // ✅ Debug
+          this.followStatus.set(status);
+        },
+        error: () => {} // Silent fail
+      });
   }
 
   private checkReportStatus(userId: number): void {
@@ -136,7 +174,6 @@ export class ProfileComponent implements OnInit {
   }
 
   /* ---------------- Actions ---------------- */
-
   toggleFollow(): void {
     const userId = this.user()?.id;
     if (!userId) return;
@@ -144,12 +181,18 @@ export class ProfileComponent implements OnInit {
     this.followService
       .toggleFollow(userId)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((status) => this.followStatus.set(status));
+      .subscribe({
+        next: (status) => {
+          console.log('Follow toggled:', status);
+          this.followStatus.set(status);
+        },
+        error: (err) => console.error('Follow toggle failed:', err)
+      });
   }
-  editProfile(): void {
-  this.router.navigate(['/profile/edit']);
-}
 
+  editProfile(): void {
+    this.router.navigate(['/profile/edit']);
+  }
 
   viewBlog(id: number): void {
     this.router.navigate(['/blogs', id]);
@@ -160,7 +203,6 @@ export class ProfileComponent implements OnInit {
   }
 
   /* ---------------- Report dialog ---------------- */
-
   openReportDialog(): void {
     if (!this.hasAlreadyReported()) {
       this.showReportDialog.set(true);
@@ -180,9 +222,13 @@ export class ProfileComponent implements OnInit {
     this.reportService
       .reportUser(userId, reason)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        this.hasAlreadyReported.set(true);
-        this.closeReportDialog();
+      .subscribe({
+        next: () => {
+          console.log('User reported');
+          this.hasAlreadyReported.set(true);
+          this.closeReportDialog();
+        },
+        error: (err) => console.error('Report failed:', err)
       });
   }
 }

@@ -83,7 +83,7 @@ public class LikeServiceImpl implements LikeService {
 
         boolean liked = likeRepository.existsByBlog_IdAndUser_Id(blogId, user.getId());
         Long likeCount = likeRepository.countByBlog_Id(blogId);
-
+    
         return new LikeResponse(liked, likeCount);
     }
 }

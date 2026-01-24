@@ -1,12 +1,17 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { Blog, Comment, CreateBlogRequest, CreateCommentRequest, LikeResponse, UpdateBlogRequest } from '../models/blog.model';
+import {
+  Blog,
+  Comment,
+  CreateCommentRequest,
+  LikeResponse,
+} from '../models/blog.model';
 import { BASE_URL } from './env';
 import { ApiResponse } from '../models/user.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class BlogsService {
   private http = inject(HttpClient);
@@ -15,8 +20,8 @@ export class BlogsService {
   likedBlogIds = signal<Set<number>>(new Set());
 
   getAllBlogs(): Observable<Blog[]> {
-    console.log("ssssssssss");
-    
+    console.log('ssssssssss');
+
     return this.http.get<Blog[]>(this.apiUrl);
   }
 
@@ -32,15 +37,13 @@ export class BlogsService {
     return this.http.get<Blog>(`${this.apiUrl}/${blogId}`);
   }
 
-createBlog(formData: FormData): Observable<ApiResponse<Blog>> {
-  return this.http.post<ApiResponse<Blog>>(this.apiUrl, formData);
-}
-
-
-  updateBlog(blogId: number, request: UpdateBlogRequest): Observable<Blog> {
-    return this.http.put<Blog>(`${this.apiUrl}/${blogId}`, request);
+  createBlog(formData: FormData): Observable<ApiResponse<Blog>> {
+    return this.http.post<ApiResponse<Blog>>(this.apiUrl, formData);
   }
 
+  updateBlog(id: number, formData: FormData): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, formData);
+  }
   deleteBlog(blogId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${blogId}`);
   }
@@ -54,7 +57,7 @@ createBlog(formData: FormData): Observable<ApiResponse<Blog>> {
           updated.add(blogId);
           this.likedBlogIds.set(updated);
         }
-      })
+      }),
     );
   }
 
@@ -67,7 +70,7 @@ createBlog(formData: FormData): Observable<ApiResponse<Blog>> {
           updated.delete(blogId);
           this.likedBlogIds.set(updated);
         }
-      })
+      }),
     );
   }
 
@@ -87,7 +90,11 @@ createBlog(formData: FormData): Observable<ApiResponse<Blog>> {
     return this.http.post<Comment>(`${this.apiUrl}/${blogId}/comments`, request);
   }
 
-  updateComment(blogId: number, commentId: number, request: CreateCommentRequest): Observable<Comment> {
+  updateComment(
+    blogId: number,
+    commentId: number,
+    request: CreateCommentRequest,
+  ): Observable<Comment> {
     return this.http.put<Comment>(`${this.apiUrl}/${blogId}/comments/${commentId}`, request);
   }
 
@@ -97,7 +104,7 @@ createBlog(formData: FormData): Observable<ApiResponse<Blog>> {
 
   searchBlogs(query: string): Observable<Blog[]> {
     return this.http.get<Blog[]>(`${this.apiUrl}/search`, {
-      params: { q: query }
+      params: { q: query },
     });
   }
 
@@ -113,7 +120,7 @@ createBlog(formData: FormData): Observable<ApiResponse<Blog>> {
     this.http.get<number[]>(`${this.apiUrl}/liked`).subscribe({
       next: (likedIds) => {
         this.likedBlogIds.set(new Set(likedIds));
-      }
+      },
     });
   }
 
@@ -122,11 +129,11 @@ createBlog(formData: FormData): Observable<ApiResponse<Blog>> {
   }
 
   updateBlogLikeStatus(blogs: Blog[], blogId: number, likeResponse: LikeResponse): Blog[] {
-    return blogs.map(blog => {
+    return blogs.map((blog) => {
       if (blog.id === blogId) {
         return {
           ...blog,
-          likesCount: likeResponse.likesCount
+          likeCount: likeResponse.likeCount,
         };
       }
       return blog;
@@ -134,11 +141,11 @@ createBlog(formData: FormData): Observable<ApiResponse<Blog>> {
   }
 
   updateBlogCommentCount(blogs: Blog[], blogId: number, increment: boolean): Blog[] {
-    return blogs.map(blog => {
+    return blogs.map((blog) => {
       if (blog.id === blogId) {
         return {
           ...blog,
-          commentsCount: increment ? blog.commentsCount + 1 : blog.commentsCount - 1
+          commentCount: increment ? blog.commentCount + 1 : blog.commentCount - 1,
         };
       }
       return blog;

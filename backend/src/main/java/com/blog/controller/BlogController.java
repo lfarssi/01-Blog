@@ -9,13 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.MediaType;
 
-
 import com.blog.dto.ApiResponse;
 
 import com.blog.dto.BlogResponse;
-import com.blog.dto.BlogUpdateRequest;
 import com.blog.service.BlogService;
-
 
 @RestController
 @RequestMapping("/blogs")
@@ -44,9 +41,9 @@ public class BlogController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Object> createBlog(
-            @RequestParam String title,
-            @RequestParam String content,
-            @RequestParam(value = "media",required = false) List<MultipartFile> media,
+            @RequestPart("title") String title,
+            @RequestPart("content") String content,
+            @RequestPart(value = "media", required = false) List<MultipartFile> media,
             Authentication authentication) {
 
         String username = authentication.getName();
@@ -60,14 +57,15 @@ public class BlogController {
         return ApiResponse.from(200, "Blog Created successfully", blog);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Object> updateBlog(
             @PathVariable Long id,
-            @RequestBody BlogUpdateRequest request,
+            @RequestPart(value = "title", required = false) String title,
+            @RequestPart(value = "content", required = false) String content,
+            @RequestPart(value = "media", required = false) List<MultipartFile> media,
             Authentication authentication) {
-
         String username = authentication.getName();
-        BlogResponse blog = blogService.updateBlog(id, request, username);
+        BlogResponse blog = blogService.updateBlog(id, title, content, media, username);
         return ApiResponse.from(200, "Blog Updated successfully", blog);
     }
 

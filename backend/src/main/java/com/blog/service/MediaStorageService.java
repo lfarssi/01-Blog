@@ -40,7 +40,7 @@ public class MediaStorageService {
                 throw new RuntimeException("Failed to store file " + filename, e);
             }
 
-            paths.add("/uploads/" + filename);
+            paths.add("/api/uploads/" + filename);
         }
 
         return paths;

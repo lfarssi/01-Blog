@@ -1,167 +1,183 @@
 <div class="container py-5">
-    <!-- Loading State -->
-    @if (loading()) {
-    <div class="text-center py-5">
+  <!-- Loading State -->
+  @if (loading()) {
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+  }
+
+  <!-- Error State -->
+  @if (error()) {
+  <div class="alert alert-danger" role="alert">
+    {{ error() }}
+  </div>
+  }
+
+  <!-- Blog Content -->
+  @if (blog() && !loading()) {
+  <article class="blog-detail">
+    <!-- Header Section -->
+    <header class="blog-header mb-4">
+      <h1 class="blog-title display-4 fw-bold mb-3">{{ blog()?.title }}</h1>
+
+      <!-- Author + Stats (compact) -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+          <div class="avatar-circle me-3">
+            <span>
+                <mat-icon>person</mat-icon>
+                <!-- {{ blog()?.author?.username?.charAt(0)?.toUpperCase() }} -->
+            
+            </span>
+          </div>
+          <div>
+            <p class="mb-0 fw-semibold">{{ blog()?.author?.username }}</p>
+            <small class="text-muted">{{ blog()?.createdAt | date: 'MMM dd, yyyy' }}</small>
+          </div>
+        </div>
+        
+        <!-- Compact stats with icon actions -->
+        <div class="d-flex align-items-center gap-2">
+          <span class="text-muted small">{{ blog()?.likeCount }}</span>
+          <button 
+            mat-icon-button 
+            [color]="isLiked() ? 'accent' : 'primary'" 
+            (click)="likeBlog()"
+            matTooltip="{{ isLiked() ? 'Unlike' : 'Like' }}"
+          >
+            <mat-icon>{{ isLiked() ? 'favorite' : 'favorite_border' }}</mat-icon>
+          </button>
+          <span class="text-muted small">{{ blog()?.commentCount }}</span>
+          <mat-icon class="text-muted" matTooltip="Comments">comment</mat-icon>
+        </div>
+      </div>
+    </header>
+
+    <mat-divider class="mb-4"></mat-divider>
+
+    <!-- ✅ FIXED: Media Section (JSON array support) -->
+    @if (hasMedia()) {
+    <section class="media-section mb-4">
+      <mat-card class="media-card">
+        <mat-card-content class="p-0">
+          @if (isVideo()) {
+          <video [src]="showFirstMedia()" class="img-fluid rounded shadow w-100" controls preload="metadata">
+            Your browser does not support the video tag.
+          </video>
+          } @else {
+          <img [src]="showFirstMedia()" [alt]="blog()?.title" class="img-fluid rounded shadow w-100" />
+          }
+          
+          <!-- ✅ Multi-media badge -->
+          @if (getMediaCount() > 1) {
+          <div class="media-badge position-absolute top-0 end-0 m-2">
+            <span class="badge bg-primary fs-6">
+              {{ getMediaCount() }} media
+            </span>
+          </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    </section>
+    }
+
+    <!-- Blog Content -->
+    <mat-card class="blog-content-card mb-4">
+      <mat-card-content>
+        <div class="blog-content" [innerHTML]="blog()?.content"></div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Owner Actions (compact) -->
+    @if (canEditBlog() || canDeleteBlog()) {
+    <div class="d-flex gap-2 mb-4">
+      @if (canEditBlog()) {
+      <button mat-stroked-button (click)="editBlog()" matTooltip="Edit post">
+        <mat-icon>edit</mat-icon>
+      </button>
+      }
+      @if (canDeleteBlog()) {
+      <button mat-stroked-button color="warn" (click)="deleteBlog()" matTooltip="Delete post">
+        <mat-icon>delete</mat-icon>
+      </button>
+      }
+    </div>
+    }
+
+    <mat-divider class="mb-4"></mat-divider>
+
+    <!-- Comments Section -->
+    <!-- Comment Input -->
+    <mat-card class="mb-4">
+      <mat-card-content class="p-3">
+        <textarea 
+          class="form-control" 
+          rows="2" 
+          placeholder="Write a comment..."
+          [(ngModel)]="commentText"
+          [disabled]="postingComment()"
+        ></textarea>
+        <button 
+          mat-stroked-button 
+          color="primary" 
+          class="mt-2" 
+          (click)="postComment()"
+          [disabled]="!commentText().trim() || postingComment()"
+        >
+          {{ postingComment() ? 'Posting...' : 'Post Comment' }}
+        </button>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Loading Comments -->
+    @if (loadingComments()) {
+    <div class="text-center py-3">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
     </div>
-  }
+    }
 
-    <!-- Error State -->
-    @if (error()) {
-    <div class="alert alert-danger" role="alert">
-        {{ error() }}
+    <!-- No Comments -->
+    @if (!loadingComments() && comments().length === 0) {
+    <div class="text-center py-4 text-muted">
+      <mat-icon style="font-size: 48px; width: 48px; height: 48px;">chat_bubble_outline</mat-icon>
+      <p class="mt-2">No comments yet. Be the first!</p>
     </div>
     }
 
-    <!-- Blog Content -->
-    @if (blog() && !loading()) {
-    <article class="blog-detail">
-        <!-- Header Section -->
-        <header class="blog-header mb-4">
-            <h1 class="blog-title display-4 fw-bold mb-3">{{ blog()?.title }}</h1>
-
-            <!-- Author Info -->
-            <div class="d-flex align-items-center mb-3">
-                <div class="avatar-circle me-3">
-                    <span>{{ blog()?.author?.username?.charAt(0)?.toUpperCase() }}</span>
-                </div>
-                <div>
-                    <p class="mb-0 fw-semibold">{{ blog()?.author?.username }}</p>
-                    <p class="text-muted small mb-0">
-                        Published on {{ blog()?.createdAt | date: 'MMM dd, yyyy' }}
-                    </p>
-                </div>
+    <!-- Comments List -->
+    <div class="comments-list">
+      @for (comment of comments(); track comment.id) {
+      <div class="comment-item mb-3 p-3 border rounded">
+        <div class="d-flex align-items-start">
+          <div class="avatar-circle-small me-3 text-primary">
+            <!-- {{ comment.author.username.charAt(0).toUpperCase() }} -->
+              <mat-icon>person</mat-icon>
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <small class="fw-semibold">{{ comment.author.username }}</small>
+              @if (canDeleteComment(comment)) {
+              <button 
+                mat-icon-button 
+                size="small" 
+                color="warn" 
+                (click)="deleteComment(comment.id)"
+              >
+                <mat-icon fontSize="14px">delete</mat-icon>
+              </button>
+              }
             </div>
-
-            <!-- Engagement Stats -->
-            <div class="d-flex align-items-center gap-3 mb-4">
-                <mat-chip-set>
-                    <mat-chip>
-                        <mat-icon class="me-1">favorite</mat-icon>
-                        {{ blog()?.likesCount }} Likes
-                    </mat-chip>
-                    <mat-chip>
-                        <mat-icon class="me-1">comment</mat-icon>
-                        {{ blog()?.commentsCount }} Comments
-                    </mat-chip>
-                </mat-chip-set>
-            </div>
-        </header>
-
-        <mat-divider class="mb-4"></mat-divider>
-
-        <!-- Featured Image -->
-        @if (blog()?.mediaUrl) {
-        <div class="blog-image mb-4">
-            <img [src]="blog()?.mediaUrl" [alt]="blog()?.title" class="img-fluid rounded shadow" />
+            <p class="mb-2">{{ comment.content }}</p>
+            <small class="text-muted">{{ comment.createdAt | date: 'MMM dd, HH:mm' }}</small>
+          </div>
         </div>
-        }
-
-        <!-- Blog Content -->
-        <mat-card class="blog-content-card mb-4">
-            <mat-card-content>
-                <div class="blog-content" [innerHTML]="blog()?.content"></div>
-            </mat-card-content>
-        </mat-card>
-
-        <!-- Action Buttons -->
-        <div class="blog-actions d-flex gap-3 mb-5">
-            <button mat-raised-button [color]="isLiked() ? 'accent' : 'primary'" (click)="likeBlog()">
-                <mat-icon>{{ isLiked() ? 'favorite' : 'favorite_border' }}</mat-icon>
-                {{ isLiked() ? 'Unlike' : 'Like' }}
-            </button>
-        </div>
-
-        <mat-divider class="mb-4"></mat-divider>
-
-        <!-- Comments Section -->
-        <section class="comments-section">
-            <h3 class="mb-4">
-                <mat-icon class="align-middle me-2">comment</mat-icon>
-                Comments ({{ blog()?.commentsCount }})
-            </h3>
-
-            <!-- Comment Input -->
-            <mat-card class="mb-4">
-                <mat-card-content>
-                    <textarea 
-                        class="form-control" 
-                        rows="3" 
-                        placeholder="Write a comment..."
-                        [(ngModel)]="commentText"
-                        [disabled]="postingComment()"
-                    ></textarea>    
-                    <div class="mt-3">
-                        <button 
-                            mat-raised-button 
-                            color="primary" 
-                            (click)="postComment()"
-                            [disabled]="!commentText().trim() || postingComment()"
-                        >
-                            {{ postingComment() ? 'Posting...' : 'Post Comment' }}
-                        </button>
-                    </div>
-                </mat-card-content>
-            </mat-card>
-
-            <!-- Loading Comments -->
-            @if (loadingComments()) {
-            <div class="text-center py-3">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading comments...</span>
-                </div>
-            </div>
-            }
-
-            <!-- No Comments -->
-            @if (!loadingComments() && comments().length === 0) {
-            <div class="text-center py-4">
-                <mat-icon class="text-muted" style="font-size: 48px; width: 48px; height: 48px;">
-                    chat_bubble_outline
-                </mat-icon>
-                <p class="text-muted mt-2">No comments yet. Be the first to comment!</p>
-            </div>
-            }
-
-            <!-- Comments List -->
-            <div class="comments-list">
-                @for (comment of comments(); track comment.id) {
-                <mat-card class="comment-card mb-3">
-                    <mat-card-content>
-                        <div class="d-flex align-items-start">
-                            <div class="avatar-circle-small me-3">
-                                <span>{{ comment.author.username.charAt(0).toUpperCase() }}</span>
-                            </div>
-                            <div class="flex-grow-1">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <p class="mb-1 fw-semibold">{{ comment.author.username }}</p>
-                                        <p class="text-muted small mb-2">
-                                            {{ comment.createdAt | date: 'MMM dd, yyyy - HH:mm' }}
-                                        </p>
-                                    </div>
-                                    @if (comment.author.username === getCurrentUsername()) {
-                                    <button 
-                                        mat-icon-button 
-                                        color="warn" 
-                                        (click)="deleteComment(comment.id)"
-                                        title="Delete comment"
-                                    >
-                                        <mat-icon>delete</mat-icon>
-                                    </button>
-                                    }
-                                </div>
-                                <p class="mb-0 comment-text">{{ comment.content }}</p>
-                            </div>
-                        </div>
-                    </mat-card-content>
-                </mat-card>
-                }
-            </div>
-        </section>
-    </article>
-    }
+      </div>
+      }
+    </div>
+  </article>
+  }
 </div>
- 

@@ -1,35 +1,41 @@
 // src/app/models/blog.model.ts
 export interface Blog {
   id: number;
-  title?: string;           // Optional for quick posts
-  content: string;          // Main description/text
-  mediaUrl?: string;        // URL for image/video (renamed from 'media')
-  mediaType?: 'image' | 'video' | 'none';  // NEW: For media preview
-  likesCount: number;       // Renamed from likeCount
-  commentsCount: number;    // Renamed from commentCount
-  createdAt: string;        // ISO string for date pipe
+  title?: string;           
+  content: string;          
+  media?: string;           // ✅ Backend field name (was mediaUrl)
+  mediaType?: 'image' | 'video' | 'none';
+  likeCount: number;        // ✅ Backend field (was likeCount)
+  commentCount: number;     // ✅ Backend field (was commentCount)
+  createdAt: string;
   updatedAt: string;
-  isLikedByCurrentUser: boolean;  // NEW: For heart icon state
-  author: Author;
+    isLikedByCurrentUser: boolean;  // ✅ Add back!
+
+  author: UserResponse;     // ✅ Full backend UserResponse
 }
 
-export interface Author {
+export interface UserResponse {  // ✅ Backend UserResponse
   id: number;
   username: string;
   email: string;
-  avatarUrl?: string;       // NEW: For profile pics
+  role: string;
+  banned: boolean;
+  createdAt: string;
 }
+
+// Backwards compatible Author (if needed elsewhere)
+export type Author = Pick<UserResponse, 'id' | 'username' | 'email'>;
 
 export interface LikeResponse {
   liked: boolean;
-  likesCount: number;
+  likeCount: number;        // ✅ Backend field
 }
 
 export interface Comment {
   id: number;
   content: string;
   createdAt: string;
-  author: Author;
+  author: UserResponse;     // ✅ Backend UserResponse
 }
 
 export interface CreateBlogRequest {
@@ -47,7 +53,9 @@ export interface CreateCommentRequest {
   content: string;
 }
 
-// Remove or update if still needed elsewhere
+// Remove isLikedByCurrentUser - use component signal instead
+// isLikedByCurrentUser handled by isLiked signal in component
+
 export interface BlogPage {
   blogs: Blog[];
 }

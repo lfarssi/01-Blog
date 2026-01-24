@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.blog.dto.BlogResponse;
-import com.blog.dto.BlogUpdateRequest;
 
 @Service
 public interface BlogService {
@@ -20,7 +19,7 @@ public interface BlogService {
             List<MultipartFile> mediaFiles,
             String username);
 
-    BlogResponse updateBlog(Long id, BlogUpdateRequest request, String username);
+public BlogResponse updateBlog(Long id, String title, String content, List<MultipartFile> mediaFiles, String username);
 
     void deleteBlog(Long id, String username);
 

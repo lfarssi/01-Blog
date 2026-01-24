@@ -51,7 +51,6 @@ loadUsers(searchTerm = '') {
   this.isLoading.set(true);
   this.userService.getAllUsers(0, 10, searchTerm).subscribe({
     next: ({ users }) => {  // ✅ Destructure!
-      console.log('✅', users);  // Array(3)!
       this.users.set(users);
       this.isLoading.set(false);
     },
@@ -72,7 +71,7 @@ loadUsers(searchTerm = '') {
 
 
   goToProfile(userId: number) { 
-    
+
         this.router.navigate(['/profile', userId]);
 
   }
