@@ -28,7 +28,7 @@ interface DecodedToken {
     MatIconModule,
     MatChipsModule,
     MatDividerModule,
-    MatTooltip
+    MatTooltip,
   ],
   templateUrl: './blog-detail.html',
   styleUrl: './blog-detail.scss',
@@ -49,6 +49,28 @@ export class BlogDetail implements OnInit {
   currentUserId = signal<number | null>(null);
   currentUsername = signal<string>('');
   isAdmin = signal(false);
+
+  // ✅ Gallery state (max 4 media)
+  selectedMediaIndex = signal(0);
+
+  // ✅ Media list (parsed + limited to 4)
+  mediaList = computed(() => this.getMediaArray().slice(0, 4));
+
+  // ✅ Currently selected media url
+  selectedMediaUrl = computed(() => this.mediaList()[this.selectedMediaIndex()] ?? null);
+
+  // ✅ Is selected media a video?
+  isSelectedVideo = computed(() => {
+    const url = this.selectedMediaUrl();
+    return !!url && /\.(mp4|avi|mov|wmv|flv|webm)$/i.test(url);
+  });
+
+  // ✅ Click thumbnail
+  selectMedia(index: number): void {
+    const list = this.mediaList();
+    if (index < 0 || index >= list.length) return;
+    this.selectedMediaIndex.set(index);
+  }
 
   // Computed signals for permissions
   canEditBlog = computed(() => {
@@ -72,25 +94,18 @@ export class BlogDetail implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
 
     if (id) {
-      // 1. FIRST: Load user info (immediate)
       this.loadUserInfo();
-
-      // 2. THEN: Load blog (user info will be ready)
       this.loadBlog(id);
-
-      // 3. Parallel: likes + comments
       this.checkLikeStatus(id);
       this.loadComments(id);
     }
   }
 
   loadUserInfo(): void {
-    // 1. Get user info from localStorage current_user (has the ID!)
     const currentUserStr = localStorage.getItem('current_user');
     if (currentUserStr) {
       try {
         const currentUser = JSON.parse(currentUserStr);
-        console.log('Current user:', currentUser);
 
         this.currentUserId.set(currentUser.id);
         this.currentUsername.set(currentUser.username);
@@ -100,7 +115,6 @@ export class BlogDetail implements OnInit {
       }
     }
 
-    // 2. Fallback to JWT if no current_user
     const token = localStorage.getItem('token');
     if (!currentUserStr && token) {
       try {
@@ -127,67 +141,69 @@ export class BlogDetail implements OnInit {
     return isOwner || this.isAdmin();
   }
 
-private parseMediaString(media: string | string[] | undefined | null): string[] {
-  if (!media) return [];
+  private parseMediaString(media: string | string[] | undefined | null): string[] {
+    if (!media) return [];
 
-  const BACKEND_URL = 'http://localhost:8080';  // ✅ Your Spring Boot
+    const BACKEND_URL = 'http://localhost:8080';
 
-  if (Array.isArray(media)) {
-    return media.map(url => url.startsWith('http') ? url : `${BACKEND_URL}${url}`);
+    if (Array.isArray(media)) {
+      return media.map((url) => (url.startsWith('http') ? url : `${BACKEND_URL}${url}`));
+    }
+
+    try {
+      const parsed = JSON.parse(media as string);
+      return Array.isArray(parsed)
+        ? parsed.map((url) => (url.startsWith('http') ? url : `${BACKEND_URL}${url}`))
+        : [];
+    } catch {
+      return media ? [`${BACKEND_URL}${media}`] : [];
+    }
   }
 
-  try {
-    const parsed = JSON.parse(media as string);
-    return Array.isArray(parsed) 
-      ? parsed.map(url => url.startsWith('http') ? url : `${BACKEND_URL}${url}`)
-      : [];
-  } catch {
-    return media ? [`${BACKEND_URL}${media}`] : [];
-  }
-}
-
-
+  // ✅ Now uses selected media (fallback to first)
   showFirstMedia(): string | null {
-    const mediaArray = this.parseMediaString(this.blog()?.media);
-    return mediaArray.length > 0 ? mediaArray[0] : null;
+    return this.selectedMediaUrl() ?? null;
   }
 
+  // ✅ Uses the raw blog media
   getMediaArray(): string[] {
     return this.parseMediaString(this.blog()?.media);
   }
 
   hasMedia(): boolean {
-    return this.getMediaArray().length > 0;
+    return this.mediaList().length > 0;
   }
 
+  // ✅ Keep for compatibility (used elsewhere), now checks selected
   isVideo(): boolean {
-    const mediaUrl = this.showFirstMedia();
-    if (!mediaUrl) return false;
-    return /\.(mp4|avi|mov|wmv|flv|webm)$/i.test(mediaUrl);
+    return this.isSelectedVideo();
   }
 
+  // ✅ Count is limited to 4 for UI
   getMediaCount(): number {
-    return this.getMediaArray().length;
+    return this.mediaList().length;
   }
 
   loadBlog(id: string): void {
     this.blogService.getBlog(id).subscribe({
       next: (res) => {
-        console.log('Blog data:', res.data); // ✅ Your debug log
         this.blog.set(res.data);
         this.loading.set(false);
+
+        // ✅ reset selected index when blog loads
+        this.selectedMediaIndex.set(0);
       },
       error: () => {
         this.error.set('Failed to load blog post');
         this.loading.set(false);
-      }
+      },
     });
   }
 
   checkLikeStatus(id: string): void {
     this.blogService.getLikeStatus(id).subscribe({
       next: (res) => this.isLiked.set(res.data.liked),
-      error: (err) => console.error('Failed to check like status', err)
+      error: (err) => console.error('Failed to check like status', err),
     });
   }
 
@@ -201,10 +217,10 @@ private parseMediaString(media: string | string[] | undefined | null): string[] 
         this.isLiked.set(res.data.liked);
         this.blog.set({
           ...currentBlog,
-          likeCount: res.data.likeCount  // ✅ Backend field name
+          likeCount: res.data.likeCount,
         } as Blog);
       },
-      error: (err) => console.error('Toggle failed:', err)
+      error: (err) => console.error('Toggle failed:', err),
     });
   }
 
@@ -225,7 +241,7 @@ private parseMediaString(media: string | string[] | undefined | null): string[] 
       error: (err) => {
         console.error('Failed to load comments', err);
         this.loadingComments.set(false);
-      }
+      },
     });
   }
 
@@ -237,19 +253,19 @@ private parseMediaString(media: string | string[] | undefined | null): string[] 
     this.postingComment.set(true);
     this.blogService.postComment(Number(currentBlog.id), text).subscribe({
       next: (res) => {
-        this.comments.update(c => [res, ...c]);
+        this.comments.update((c) => [res, ...c]);
         this.commentText.set('');
         this.postingComment.set(false);
 
         this.blog.set({
           ...currentBlog,
-          commentCount: (currentBlog.commentCount || 0) + 1  // ✅ Backend field
+          commentCount: (currentBlog.commentCount || 0) + 1,
         } as Blog);
       },
       error: (err) => {
         console.error('Failed to post comment', err);
         this.postingComment.set(false);
-      }
+      },
     });
   }
 
@@ -260,16 +276,16 @@ private parseMediaString(media: string | string[] | undefined | null): string[] 
 
     this.blogService.deleteComment(commentId).subscribe({
       next: () => {
-        this.comments.update(c => c.filter(comment => comment.id !== commentId));
+        this.comments.update((c) => c.filter((comment) => comment.id !== commentId));
 
         if (currentBlog) {
           this.blog.set({
             ...currentBlog,
-            commentCount: Math.max(0, (currentBlog.commentCount || 0) - 1)
+            commentCount: Math.max(0, (currentBlog.commentCount || 0) - 1),
           } as Blog);
         }
       },
-      error: (err) => console.error('Failed to delete comment', err)
+      error: (err) => console.error('Failed to delete comment', err),
     });
   }
 
@@ -283,7 +299,7 @@ private parseMediaString(media: string | string[] | undefined | null): string[] 
       next: () => {
         this.router.navigate(['/']);
       },
-      error: (err) => console.error('Failed to delete post', err)
+      error: (err) => console.error('Failed to delete post', err),
     });
   }
 

@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth';  // ADD THIS
 import { BASE_URL } from '../../services/env';
 
@@ -34,8 +34,9 @@ interface LoginResponse {
     MatButtonModule,
     MatIconModule,
     MatCardModule,
-    ReactiveFormsModule
-  ]
+    ReactiveFormsModule,
+    RouterLink
+]
 })
 export class Login {
   form: FormGroup;

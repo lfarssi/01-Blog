@@ -23,5 +23,7 @@ public BlogResponse updateBlog(Long id, String title, String content, List<Multi
 
     void deleteBlog(Long id, String username);
 
-    List<BlogResponse> getBlogsByUser(Long id);
+    public List<BlogResponse> getBlogsByUser(Long userId, int page, int size) ;
+    List<BlogResponse> getFollowingBlogs(String username, int page, int size);
+
 }

@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient ,HttpParams} from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import {
   Blog,
@@ -20,18 +20,25 @@ export class BlogsService {
   likedBlogIds = signal<Set<number>>(new Set());
 
   getAllBlogs(): Observable<Blog[]> {
-    console.log('ssssssssss');
 
     return this.http.get<Blog[]>(this.apiUrl);
   }
 
-  getFollowingBlogs(): Observable<Blog[]> {
-    return this.http.get<Blog[]>(`${this.apiUrl}/following`);
+  getFollowingBlogs(page: number, size: number): Observable<any> {
+    const params = new HttpParams()
+      .set('page', page)
+      .set('size', size);
+
+    return this.http.get<any>(`${this.apiUrl}/following`, { params });
   }
 
-  getBlogsByUserId(userId: number): Observable<Blog[]> {
-    return this.http.get<Blog[]>(`${this.apiUrl}/user/${userId}`);
-  }
+// blogs.service.ts
+// blogs.service.ts
+getBlogsByUser(userId: number, page: number = 0, size: number = 10): Observable<any> {
+  return this.http.get(`${this.apiUrl}/user/${userId}?page=${page}&size=${size}`);
+}
+
+
 
   getBlogById(blogId: number): Observable<Blog> {
     return this.http.get<Blog>(`${this.apiUrl}/${blogId}`);

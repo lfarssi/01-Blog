@@ -34,9 +34,22 @@ public class BlogController {
     }
 
     @GetMapping("/user/{id}")
-    public ResponseEntity<Object> getBlogsByUser(@PathVariable Long id) {
-        List<BlogResponse> blogs = blogService.getBlogsByUser(id);
-        return ApiResponse.from(200, "Blogs Received successfully", blogs);
+    public ResponseEntity<Object> getBlogsByUser(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        List<BlogResponse> blogs = blogService.getBlogsByUser(id, page, size);
+        return ApiResponse.from(200, "User blogs", blogs);
+    }
+
+    @GetMapping("/following")
+    public ResponseEntity<Object> getFollowingBlogs(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication) {
+        String username = authentication.getName(); // current user [web:211]
+        List<BlogResponse> blogs = blogService.getFollowingBlogs(username, page, size);
+        return ApiResponse.from(200, "Following blogs", blogs);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

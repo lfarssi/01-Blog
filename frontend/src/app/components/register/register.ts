@@ -12,7 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { RegisterRequest } from '../../models/auth.model';
 import { ToastService } from '../../services/toast.service';
@@ -29,7 +29,8 @@ import { ToastService } from '../../services/toast.service';
     MatIconModule,
     MatCardModule,
     ReactiveFormsModule,
-  ],
+    RouterLink
+],
 })
 export class Register {
   readonly fb = inject(FormBuilder);

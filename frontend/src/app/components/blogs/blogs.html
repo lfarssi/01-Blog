@@ -1,7 +1,7 @@
 <div class="container py-4">
   <h2 class="mb-3">Blogs</h2>
 
-      @if (loading()) {
+  @if (loading()) {
     <div class="text-center py-5">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
@@ -13,10 +13,11 @@
     <div class="mb-3 text-danger">{{ errorMsg() }}</div>
   }
 
-  @if (blogs().length === 0  && !errorMsg) {
+  @if (blogs().length === 0 && !loading() && !errorMsg()) {
     <div class="mb-3">No blogs found.</div>
   }
 
+  <!-- List -->
   @for (blog of blogs(); track blog.id) {
     <div class="row g-3 mb-3">
       <div class="col-12">
@@ -31,7 +32,21 @@
             <p>{{ blog.content }}</p>
           </mat-card-content>
         </mat-card>
-      </div> 
-    </div> 
+      </div>
+    </div>
+  }
+
+  <!-- Sentinel for infinite scroll (must be LAST element in container) -->
+  <div
+    infiniteList
+    (loadMore)="loadMoreBlogs()"
+    style="height: 1px;">
+  </div>
+
+  <!-- Optional: loading more indicator (if you have a signal like loadingMore()) -->
+  @if (loadingMore?.()) {
+    <div class="text-center py-3">
+      <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+    </div>
   }
 </div>

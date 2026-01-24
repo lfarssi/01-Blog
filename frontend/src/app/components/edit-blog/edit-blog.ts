@@ -1,20 +1,33 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  signal,
+  computed,
+  ChangeDetectionStrategy,
+  DestroyRef,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-// Material imports
-import { MatFormField, MatLabel } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
+// Material
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatError } from '@angular/material/form-field';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { BlogsService } from '../../services/blogs.service';
 import { Blog } from '../../models/blog.model';
+
+interface MediaItem {
+  url: string;
+  file?: File;     // present only for new media
+  isNew: boolean;
+}
 
 @Component({
   selector: 'app-edit-blog',
@@ -22,129 +35,150 @@ import { Blog } from '../../models/blog.model';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatFormField,
-    MatLabel,
-    MatInput,
+    MatFormFieldModule,
+    MatInputModule,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
-    MatProgressBarModule,
-    MatError,
-    MatProgressSpinner
+    MatProgressSpinnerModule,
   ],
   templateUrl: './edit-blog.html',
-  styleUrls: ['./edit-blog.scss']
+  styleUrls: ['./edit-blog.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditBlogComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private fb = inject(FormBuilder);
   private blogsService = inject(BlogsService);
+  private destroyRef = inject(DestroyRef);
 
-  // Signals
+  // ─────────────────────────────
+  // Core state
+  // ─────────────────────────────
   blog = signal<Blog | null>(null);
-  loading = signal(false);
+  loading = signal(true);
   isSaving = signal(false);
   successMsg = signal<string | null>(null);
   errorMsg = signal<string | null>(null);
 
-  // ✅ NEW: Media management
-  currentMediaUrls = signal<string[]>([]);           // Current media URLs
-  mediaToDelete = signal<number[]>([]);              // Indices to delete
-  newMediaPreviews = signal<string[]>([]);           // New media previews
-  newMediaFiles: File[] = [];                        // New files
+  // ─────────────────────────────
+  // Unified Media (MAX 4)
+  // ─────────────────────────────
+  readonly MAX_MEDIA = 4;
+  media = signal<MediaItem[]>([]);
 
+  readonly mediaCount = computed(() => this.media().length);
+  readonly canAddMedia = computed(() => this.mediaCount() < this.MAX_MEDIA);
+
+  // ─────────────────────────────
   // Form
+  // ─────────────────────────────
   form = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(5)]],
-    content: ['', [Validators.required, Validators.minLength(20)]]
+    content: ['', [Validators.required, Validators.minLength(20)]],
   });
 
   readonly f = this.form.controls;
-  readonly disabled = computed(() => this.isSaving());
-  readonly totalMediaCount = computed(() => 
-    this.currentMediaUrls().length - this.mediaToDelete().length + this.newMediaFiles.length
-  );
 
   ngOnInit(): void {
     const blogId = Number(this.route.snapshot.paramMap.get('id'));
-    if (blogId) {
-      this.loadBlog(blogId);
+    if (!blogId) {
+      this.router.navigate(['/']);
+      return;
     }
+    this.loadBlog(blogId);
   }
 
+  // ─────────────────────────────
+  // Helpers
+  // ─────────────────────────────
   isVideo(url: string): boolean {
-    if (!url) return false;
-    return /\.(mp4|avi|mov|wmv|flv|webm)$/i.test(url);
+    return /\.(mp4|mov|avi|wmv|webm)$/i.test(url);
   }
 
+  // ─────────────────────────────
+  // Load blog
+  // ─────────────────────────────
   private loadBlog(id: number): void {
-    this.blogsService.getBlogById(id).subscribe({
-      next: (res: any) => {
-        const blogData = res.data;
-        this.blog.set(blogData);
-        this.form.patchValue({ title: blogData.title, content: blogData.content });
+    this.loading.set(true);
 
-        // ✅ Load ALL current media
-        if (blogData.media) {
-          const mediaUrls = this.parseMediaUrls(blogData.media);
-          this.currentMediaUrls.set(mediaUrls);
-        }
-      },
-      error: (err: any) => {
-        this.errorMsg.set('Failed to load blog');
-        console.error(err);
-      }
-    });
+    this.blogsService
+      .getBlogById(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res: any) => {
+          const blog = res.data ?? res;
+          this.blog.set(blog);
+
+          this.form.patchValue({
+            title: blog.title,
+            content: blog.content,
+          });
+
+          const existingMedia = this.parseMediaUrls(blog.media).map(
+            (url): MediaItem => ({
+              url,
+              isNew: false,
+            })
+          );
+
+          this.media.set(existingMedia.slice(0, this.MAX_MEDIA));
+          this.loading.set(false);
+        },
+        error: () => {
+          this.errorMsg.set('Failed to load blog');
+          this.loading.set(false);
+        },
+      });
   }
 
-  onFileSelected(event: Event): void {
+  // ─────────────────────────────
+  // Media actions
+  // ─────────────────────────────
+  onNewFilesSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const newFile = input.files[0];
-      
-      // ✅ Max 4 total media
-      if (this.totalMediaCount() >= 4) {
-        alert('Maximum 4 media files allowed');
-        return;
-      }
+    if (!input.files) return;
 
-      this.newMediaFiles.push(newFile);
-      
-      // Generate preview
+    const files = Array.from(input.files).filter(
+      (f) => f.size <= 10 * 1024 * 1024
+    );
+
+    files.forEach((file) => {
+      if (!this.canAddMedia()) return;
+
       const reader = new FileReader();
       reader.onload = () => {
-        this.newMediaPreviews.update(prev => [...prev, reader.result as string]);
+        this.media.update((list) => [
+          ...list,
+          {
+            url: reader.result as string,
+            file,
+            isNew: true,
+          },
+        ]);
       };
-      reader.readAsDataURL(newFile);
-    }
+      reader.readAsDataURL(file);
+    });
+
+    input.value = '';
   }
 
-  /** ✅ Delete current media (X button) */
-  deleteCurrentMedia(index: number): void {
-    this.mediaToDelete.update(ids => {
-      if (ids.includes(index)) return ids;
-      return [...ids, index];
+  removeMedia(index: number): void {
+    this.media.update((list) => {
+      const copy = [...list];
+      copy.splice(index, 1);
+      return copy;
     });
   }
 
-  /** ✅ Undo delete */
-  undoDelete(index: number): void {
-    this.mediaToDelete.update(ids => ids.filter(id => id !== index));
-  }
-
-  /** ✅ Remove new media */
-  removeNewMedia(index: number): void {
-    this.newMediaFiles.splice(index, 1);
-    this.newMediaPreviews.update(prev => {
-      prev.splice(index, 1);
-      return [...prev];
-    });
-  }
-
+  // ─────────────────────────────
+  // Submit
+  // ─────────────────────────────
   submit(): void {
-    if (this.form.invalid) {
+    if (this.form.invalid || this.mediaCount() > this.MAX_MEDIA) {
       this.form.markAllAsTouched();
+      this.errorMsg.set('Fix form errors or reduce media');
       return;
     }
 
@@ -152,68 +186,76 @@ export class EditBlogComponent implements OnInit {
     if (!blogId) return;
 
     this.isSaving.set(true);
+    this.errorMsg.set(null);
+    this.successMsg.set(null);
 
     const formData = new FormData();
     formData.append('title', this.form.value.title!);
     formData.append('content', this.form.value.content!);
 
-    // ✅ Send new media files
-    this.newMediaFiles.forEach(file => formData.append('media', file));
+    // Existing media (keep)
+    const keptMedia = this.media()
+      .filter((m) => !m.isNew)
+      .map((m) => m.url);
 
-    // ✅ Send delete indices
-    if (this.mediaToDelete().length > 0) {
-      formData.append('deleteMediaIndices', JSON.stringify(this.mediaToDelete()));
-    }
+    formData.append('existingMedia', JSON.stringify(keptMedia));
 
-    this.blogsService.updateBlog(blogId, formData).subscribe({
-      next: (res) => {
-        this.isSaving.set(false);
-        this.successMsg.set('Blog updated successfully!');
-        setTimeout(() => this.router.navigate(['/blogs', blogId]), 1500);
-      },
-      error: (err) => {
-        this.isSaving.set(false);
-        this.errorMsg.set('Failed to update blog');
-        console.error(err);
-      }
-    });
+    // New media
+    this.media()
+      .filter((m) => m.isNew && m.file)
+      .forEach((m) => formData.append('newMedia', m.file!));
+
+    this.blogsService
+      .updateBlog(blogId, formData)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isSaving.set(false);
+          this.successMsg.set('Blog updated successfully');
+          setTimeout(() => this.router.navigate(['/blogs', blogId]), 1200);
+        },
+        error: () => {
+          this.isSaving.set(false);
+          this.errorMsg.set('Update failed');
+        },
+      });
   }
 
   deleteBlog(): void {
-    if (confirm('Are you sure you want to delete this blog?')) {
-      const blogId = this.blog()?.id;
-      if (blogId) {
-        this.blogsService.deleteBlog(blogId).subscribe({
-          next: () => this.router.navigate(['/']),
-          error: (err) => {
-            this.errorMsg.set('Failed to delete blog');
-            console.error(err);
-          }
-        });
-      }
-    }
+    if (!confirm('Delete this blog permanently?')) return;
+
+    const blogId = this.blog()?.id;
+    if (!blogId) return;
+
+    this.blogsService
+      .deleteBlog(blogId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.router.navigate(['/']));
   }
 
   cancel(): void {
     const blogId = this.blog()?.id;
-    this.router.navigate(['/blogs', blogId]);
+    this.router.navigate(['/blogs', blogId ?? '']);
   }
 
+  // ─────────────────────────────
+  // Media parsing
+  // ─────────────────────────────
   private parseMediaUrls(media: string | string[] | undefined): string[] {
     if (!media) return [];
-    const BACKEND_URL = 'http://localhost:8080';
+    const BASE = 'http://localhost:8080';
 
     if (Array.isArray(media)) {
-      return media.map(url => url.startsWith('http') ? url : `${BACKEND_URL}${url}`);
+      return media.map((m) => (m.startsWith('http') ? m : BASE + m));
     }
 
     try {
       const parsed = JSON.parse(media);
       return Array.isArray(parsed)
-        ? parsed.map(url => url.startsWith('http') ? url : `${BACKEND_URL}${url}`)
-        : [`${BACKEND_URL}${media}`];
+        ? parsed.map((m: string) => (m.startsWith('http') ? m : BASE + m))
+        : [];
     } catch {
-      return [`${BACKEND_URL}${media}`];
+      return [media.startsWith('http') ? media : BASE + media];
     }
   }
 }
