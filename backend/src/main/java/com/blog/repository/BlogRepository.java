@@ -10,25 +10,32 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 @Repository
 public interface BlogRepository extends JpaRepository<BlogEntity, Long> {
     Optional<BlogEntity> findById(Integer id);
-    // List<BlogEntity> findByUserIdId(Long userId);
+
+    // ✅ FIXED: use @Query for List<Long>
+    @Query("SELECT b FROM BlogEntity b WHERE b.userId.id IN :userIds")
+    Page<BlogEntity> findByUserIds(@Param("userIds") List<Long> userIds, Pageable pageable);
+
+    @Query("SELECT b FROM BlogEntity b WHERE b.userId.id IN :userIds AND b.visible = true")
+    Page<BlogEntity> findByUserIdsAndVisibleTrue(@Param("userIds") List<Long> userIds, Pageable pageable);
+
+    // ✅ Keep these (they work)
     Page<BlogEntity> findByUserIdId(Long userId, Pageable pageable);
-    Page<BlogEntity> findByUserId_IdIn(List<Long> userIds, Pageable pageable);
 
-    // @Query("""
-    //         SELECT new com.blog.dto.BlogResponse(
-    //           b.id, b.title, b.content, b.media,
-    //           (SELECT COUNT(l) FROM LikeEntity l WHERE l.blog.id = b.id),
-    //           (SELECT COUNT(c) FROM CommentEntity c WHERE c.blog.id = b.id),
-    //           b.createdAt, b.updatedAt,
-    //           new com.blog.dto.UserResponse(b.userId.id, b.userId.username, b.userId.email)
-    //         )
-    //         FROM BlogEntity b
-    //         WHERE b.id = :id
-    //         """)
-    // Optional<BlogResponse> findBlogWithCounts(@Param("id") Long id);
+    Page<BlogEntity> findByUserIdIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
+    Page<BlogEntity> findByUserIdIdAndVisibleTrueOrderByCreatedAtDesc(Long userId, Pageable pageable);
+
+    Optional<BlogEntity> findByIdAndVisibleTrue(Long id);
+
+    // ✅ Delete methods
+    @Modifying
+    @Query("DELETE FROM BlogEntity b WHERE b.userId.id = :userId")
+    void deleteAllByUserId(@Param("userId") Long userId);
 }

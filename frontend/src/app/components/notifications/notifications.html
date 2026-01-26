@@ -29,13 +29,13 @@
         <div class="flex-grow-1">
           <div class="fw-semibold">
             {{ n.title ?? 'Notification' }}
-            @if (n.read === false) {
+            @if (n.isRead === false) {
               <span class="badge bg-primary ms-2">Unread</span>
             }
           </div>
 
-          @if (n.message) {
-            <div class="text-muted">{{ n.message }}</div>
+          @if (n.content) {
+            <div class="text-muted">{{ n.content }}</div>
           }
 
           @if (n.createdAt) {
@@ -49,7 +49,7 @@
           <button
             mat-icon-button
             (click)="markAsRead(n.id); $event.stopPropagation()"
-            [disabled]="n.read === true">
+            [disabled]="n.isRead === true">
             <mat-icon>done</mat-icon>
           </button>
 

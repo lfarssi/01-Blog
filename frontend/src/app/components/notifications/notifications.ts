@@ -9,9 +9,9 @@ import { NotificationsService } from '../../services/notifications.service';
 type NotificationItem = {
   id: number;
   title?: string | null;
-  message?: string | null;
+  content?: string | null;     // ✅ match backend
   createdAt?: string | Date | null;
-  read?: boolean | null;
+  isRead?: boolean | null;     // ✅ match backend
 };
 
 @Component({
@@ -37,6 +37,8 @@ export class NotificationsComponent implements OnInit {
 
     this.notificationsService.getAll().subscribe({
       next: (res: any) => {
+        console.log("notific",res);
+        
         const items: NotificationItem[] = res.data ?? res ?? [];
         this.notifications.set(items);
         this.loading.set(false);

@@ -8,5 +8,5 @@ public interface AdminBlogsService {
       List<BlogResponse> getAllBlogs();
 
   void deleteBlog(Long blogId);
-  void setBlogVisibility(Long blogId, boolean visible);
+  boolean toggleVisible(Long blogId);
 }

@@ -48,13 +48,14 @@ public class AdminBlogsServiceImpl implements AdminBlogsService {
 
     @Override
     @Transactional
-    public void setBlogVisibility(Long blogId, boolean visible) {
+    public boolean toggleVisible(Long blogId) {
         BlogEntity blog = blogRepository.findById(blogId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Blog not found"));
+                .orElseThrow(() -> new RuntimeException("Blog not found"));
 
-        // you must have this field on BlogEntity:
-        blog.setVisible(visible);
-
+        blog.setVisible(!blog.getVisible());
         blogRepository.save(blog);
+
+        return blog.getVisible();
     }
+
 }

@@ -25,12 +25,15 @@ public class BlogController {
         return ApiResponse.from(200, "Blog Received successfully", blogService.getBlogDetails(id));
     }
 
-    @GetMapping("/user/{id}")
+    @GetMapping("/user/{userId}")
     public ResponseEntity<Object> getBlogsByUser(
-            @PathVariable Long id,
+            @PathVariable Long userId, // profile owner ID
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        List<BlogResponse> blogs = blogService.getBlogsByUser(id, page, size);
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication // ✅ Add this
+    ) {
+        String currentUsername = authentication.getName(); // current logged-in user
+        List<BlogResponse> blogs = blogService.getUserBlogs(userId, currentUsername, page, size);
         return ApiResponse.from(200, "User blogs", blogs);
     }
 

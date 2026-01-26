@@ -2,6 +2,11 @@ package com.blog.service.admin;
 
 import com.blog.entity.UserEntity;
 import com.blog.exception.ResourceNotFoundException;
+import com.blog.repository.BlogRepository;
+import com.blog.repository.CommentRepository;
+import com.blog.repository.FollowRepository;
+import com.blog.repository.LikeRepository;
+import com.blog.repository.NotificationRepository;
 import com.blog.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -15,6 +20,11 @@ import org.springframework.web.server.ResponseStatusException;
 public class AdminUsersModerationServiceImpl implements AdminUsersModerationService {
 
     private final UserRepository userRepository;
+    private final BlogRepository blogRepository;
+    private final CommentRepository commentRepository;
+    private final LikeRepository likeRepository;
+    private final NotificationRepository notificationRepository;
+    private final FollowRepository followRepository;
 
     @Override
     @Transactional
@@ -70,8 +80,19 @@ public class AdminUsersModerationServiceImpl implements AdminUsersModerationServ
     @Override
     @Transactional
     public void deleteUserAndAllContent(Long userId) {
-        // TODO: add delete blogs/comments/likes/notifications first
-        // For now just delete user
-        userRepository.deleteById(userId);
+        // ✅ Order matters: children first
+        commentRepository.deleteAllByUserId(userId); // user's comments
+        likeRepository.deleteAllByUserId(userId); // user's likes
+        commentRepository.deleteAllByBlogUserId(userId); // Custom method needed, see below
+            likeRepository.deleteAllByBlogUserId(userId);  // Critical for this error
+
+
+        blogRepository.deleteAllByUserId(userId); // user's blogs
+        followRepository.deleteAllByFollowerId(userId); // user's follows
+        followRepository.deleteAllByFollowingId(userId);
+        notificationRepository.deleteAllByUserId(userId);
+
+        userRepository.deleteById(userId); // ✅ finally user
     }
+
 }

@@ -7,6 +7,7 @@ public record BlogResponse(
         String title,
         String content,
         String media,
+        Boolean visible,
         Long likeCount,
         Long commentCount,
         Instant createdAt,

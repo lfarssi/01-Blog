@@ -23,6 +23,7 @@ public interface UserService extends UserDetailsService {
 
   Page<UserResponse> getAllUsers(int page, int size, String search);
 
+
   // UserResponse updateUserProfile(String username);
   // void banUser(long userId);
 }

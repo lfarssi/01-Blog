@@ -20,6 +20,7 @@ public class BlogMapper {
             blog.getTitle(),
             blog.getContent(),
             blog.getMedia(),
+            blog.getVisible(),
             blog.getLike_count(),    // ✅ Your BlogEntity field
             blog.getComment_count(), // ✅ Your BlogEntity field
             blog.getCreatedAt(),

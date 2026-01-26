@@ -31,8 +31,27 @@ export class AdminBlogs implements OnInit {
   currentPage = signal(0);
   totalElements = signal(0);
 
+
   ngOnInit(): void {
     this.loadBlogs();
+  }
+  toggleVisible(blogId: number): void {
+    this.http.patch<{ visible: boolean }>(`${BASE_URL}/admin/blogs/${blogId}/toggle-visible`, {})
+      .subscribe({
+        next: (res) => {
+          // Update local blog state immediately (optimistic update)
+          this.blogs.update(blogs => 
+            blogs.map(blog => 
+              blog.id === blogId 
+                ? { ...blog, visible: res.visible } 
+                : blog
+            )
+          );
+        },
+        error: (err: HttpErrorResponse) => {
+          this.errorMsg.set(err.error?.message ?? 'Failed to toggle visibility.');
+        }
+      });
   }
 
   loadBlogs(page = 0, size = 20, search?: string) {

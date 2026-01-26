@@ -10,6 +10,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -51,17 +53,36 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public BlogResponse getBlogDetails(Long id) {
-        BlogEntity blog = blogRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = auth.getName();
 
-        // ✅ Update entity counts (your fields)
+        UserEntity currentUser = userRepository.findByUsername(currentUsername).orElse(null);
+
+        BlogEntity blog = blogRepository.findByIdAndVisibleTrue(id).orElse(null);
+
+        // ✅ Fix: check blog null FIRST
+        if (blog == null) {
+            // Try full findById for owners/admins
+            blog = blogRepository.findById(id).orElse(null);
+            if (blog == null) {
+                throw new ResourceNotFoundException("Blog not found");
+            }
+        }
+
+        // ✅ Safe checks
+        boolean isOwner = currentUser != null && currentUser.getId().equals(blog.getUserId().getId());
+        boolean isAdmin = currentUser != null && "ADMIN".equals(currentUser.getRole()); // ✅ String compare
+
+        if (!blog.getVisible() && !isOwner && !isAdmin) {
+            throw new ResourceNotFoundException("Blog not found");
+        }
+
+        // ✅ Update counts (safe)
         blog.setLike_count(likeRepository.countByBlog_Id(id));
         blog.setComment_count(commentRepository.countByBlog_Id(id));
 
-        return BlogMapper.toResponse(blog); // ✅ Your mapper!
+        return BlogMapper.toResponse(blog);
     }
-
-
 
     @Override
     @Transactional
@@ -164,10 +185,27 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public List<BlogResponse> getBlogsByUser(Long userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<BlogEntity> blogPage = blogRepository.findByUserIdId(userId, pageable);
-        return blogPage.getContent().stream()
+    // ✅ Replace your existing getBlogsByUser
+    public List<BlogResponse> getUserBlogs(Long profileUserId, String currentUsername, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Long currentUserId = null;
+        if (currentUsername != null) {
+            currentUserId = userRepository.findByUsername(currentUsername)
+                    .map(UserEntity::getId)
+                    .orElse(null);
+        }
+
+        Page<BlogEntity> blogs;
+        if (currentUserId != null && currentUserId.equals(profileUserId)) {
+            // ✅ Owner: see ALL blogs (including hidden)
+            blogs = blogRepository.findByUserIdIdOrderByCreatedAtDesc(profileUserId, pageable);
+        } else {
+            // ✅ Visitor: only VISIBLE blogs
+            blogs = blogRepository.findByUserIdIdAndVisibleTrueOrderByCreatedAtDesc(profileUserId, pageable);
+        }
+
+        return blogs.getContent().stream()
                 .map(BlogMapper::toResponse)
                 .collect(Collectors.toList());
     }
@@ -186,7 +224,7 @@ public class BlogServiceImpl implements BlogService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")); // [web:204]
 
         // 3) query blogs by authors you follow
-        var pageResult = blogRepository.findByUserId_IdIn(followedIds, pageable);
+        var pageResult = blogRepository.findByUserIdsAndVisibleTrue(followedIds, pageable);
 
         // 4) map to BlogResponse (reuse your existing mapper)
         return pageResult.getContent().stream()

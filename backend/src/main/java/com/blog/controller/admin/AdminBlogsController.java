@@ -32,4 +32,9 @@ public class AdminBlogsController {
   }
 
   // ✅ Hide functionality REMOVED
+@PatchMapping("/{blogId}/toggle-visible")
+public ResponseEntity<Object> toggleVisible(@PathVariable Long blogId) {
+    boolean visible = adminBlogsService.toggleVisible(blogId);
+    return ApiResponse.from(200, visible ? "Blog visible" : "Blog hidden", visible);
+}
 }

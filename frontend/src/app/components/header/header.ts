@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal,effect } from '@angular/core';
+import { Component, inject, computed, signal, effect } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { CommonModule } from '@angular/common';
@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { UserService } from '../../services/user.serivce';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-header',
@@ -32,6 +33,8 @@ export class Header {
   private router = inject(Router);
   private authService = inject(AuthService);
   private userService = inject(UserService);
+  private themeService = inject(ThemeService);
+
   user = this.authService.currentUser;
   isLoggedIn = computed(() => !!this.user());
 
@@ -41,22 +44,11 @@ export class Header {
   showSearch = false;
   searchQuery = '';
   searchResults = signal<any[]>([]);
-     private darkMode = signal(
-    localStorage.getItem('theme') === 'dark'
-  );
 
-  isDarkMode = this.darkMode.asReadonly();
-  // private logRoleEffect = effect(() => {
-  //   const u = this.user();
-  //   console.log('[Header] currentUser role:', u?.role ?? 'NO_USER');
-  // });
+  isDarkMode = computed(() => this.themeService.currentTheme() === 'dark');
+
   toggleTheme() {
-    const isDark = !this.darkMode();
-    this.darkMode.set(isDark);
-
-    const theme = isDark ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
+    this.themeService.toggle();
   }
   goToProfile(): void {
     const currentUserId = this.user()?.id;

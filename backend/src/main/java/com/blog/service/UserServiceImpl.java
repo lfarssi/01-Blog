@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -56,11 +57,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public void register(UserRequest request) {
 
-        if (userRepository.existsByUsername(request.username())) {
+        if (userRepository.existsByUsername(request.username().toLowerCase())) {
             throw new ResourceAlreadyExistsException("Username already exists");
         }
 
-        if (userRepository.existsByEmail(request.email())) {
+        if (userRepository.existsByEmail(request.email().toLowerCase())) {
             throw new ResourceAlreadyExistsException("Email already exists");
         }
 
@@ -89,14 +90,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String usernameOrEmail)
-            throws UsernameNotFoundException {
-
-        // Try to find by username first, then by email
+    public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
         UserEntity user = userRepository.findByUsername(usernameOrEmail)
                 .orElseGet(() -> userRepository.findByEmail(usernameOrEmail)
-                        .orElseThrow(() -> new UsernameNotFoundException(
-                                "User not found with username or email: " + usernameOrEmail)));
+                        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + usernameOrEmail)));
+        if (Boolean.TRUE.equals(user.getBanned())) {
+            throw new DisabledException("User is banned"); // ✅ Change to DisabledException
+        }
 
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getUsername())
@@ -104,4 +104,5 @@ public class UserServiceImpl implements UserService {
                 .roles(user.getRole())
                 .build();
     }
+
 }

@@ -5,12 +5,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../services/auth';  // ADD THIS
+import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth';
 import { BASE_URL } from '../../services/env';
 
-// Updated interface to match backend
 interface LoginResponse {
   status: number;
   message: string;
@@ -29,14 +29,15 @@ interface LoginResponse {
   styleUrls: ['./login.scss'],
   standalone: true,
   imports: [
+    CommonModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
     MatIconModule,
     MatCardModule,
     ReactiveFormsModule,
-    RouterLink
-]
+    RouterLink,
+  ],
 })
 export class Login {
   form: FormGroup;
@@ -45,14 +46,19 @@ export class Login {
   showPassword = false;
 
   constructor(
-    private fb: FormBuilder, 
+    private fb: FormBuilder,
     private http: HttpClient,
     private router: Router,
-    private authService: AuthService  // ADD THIS
+    private authService: AuthService,
   ) {
     this.form = this.fb.group({
       usernameOrEmail: ['', [Validators.required]],
-      password: ['', [Validators.required, Validators.minLength(8)]]
+      password: ['', [Validators.required, Validators.minLength(8)]],
+    });
+
+    // Clear error when user types
+    this.form.valueChanges.subscribe(() => {
+      this.errorMsg = null;
     });
   }
 
@@ -65,41 +71,54 @@ export class Login {
   }
 
   submit(): void {
+    this.errorMsg = null;  // Clear previous errors
+    
     if (this.form.invalid) {
-      this.form.markAllAsTouched();
+      this.form.markAllAsTouched();  // ✅ Shows errors on submit for untouched fields
       return;
     }
 
     this.loading = true;
-    this.errorMsg = null;
 
     const body = {
-      usernameOrEmail: this.form.value.usernameOrEmail,
-      password: this.form.value.password
+      usernameOrEmail: this.form.value.usernameOrEmail?.trim(),
+      password: this.form.value.password,
     };
 
-    this.http.post<LoginResponse>(`${BASE_URL}/auth/login`, body)
-      .subscribe({
-        next: (res) => {
-          this.loading = false;
-          
-          // Use AuthService
-          const userData = res.data;
-          this.authService.setAuthData(userData.token, {
-            id: userData.id,
-            username: userData.username,
-            email: userData.email,
-            role: userData.role as 'ADMIN' | 'USER'
-          });
-          console.log(res);
-          
-          
-          this.router.navigate(['/']);
-        },
-        error: (err) => {
-          this.loading = false;
-          this.errorMsg = err.error?.message || 'Invalid credentials';
+    this.http.post<LoginResponse>(`${BASE_URL}/auth/login`, body).subscribe({
+      next: (res) => {
+        this.loading = false;
+        const userData = res.data;
+        this.authService.setAuthData(userData.token, {
+          id: userData.id,
+          username: userData.username,
+          email: userData.email,
+          role: userData.role as 'ADMIN' | 'USER',
+        });
+        console.log('Login success:', res);
+        this.router.navigate(['/']);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.loading = false;
+        const backendMessage =
+          typeof err.error === 'string'
+            ? err.error
+            : (err.error?.message ?? err.error?.error ?? null);
+
+        if (err.status === 0) {
+          this.errorMsg = 'Cannot reach server. Is backend running?';
+          return;
         }
-      });
+        if (err.status === 403) {
+          this.errorMsg = backendMessage ?? 'Your account is banned.';
+          return;
+        }
+        if (err.status === 401) {
+          this.errorMsg = backendMessage ?? 'Invalid credentials.';
+          return;
+        }
+        this.errorMsg = backendMessage ?? `Login failed (HTTP ${err.status}).`;
+      },
+    });
   }
 }

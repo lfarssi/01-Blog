@@ -18,11 +18,13 @@ public interface BlogService {
             List<MultipartFile> mediaFiles,
             String username);
 
-public BlogResponse updateBlog(Long id, String title, String content, List<MultipartFile> mediaFiles, String username);
+    public BlogResponse updateBlog(Long id, String title, String content, List<MultipartFile> mediaFiles,
+            String username);
 
     void deleteBlog(Long id, String username);
 
-    public List<BlogResponse> getBlogsByUser(Long userId, int page, int size) ;
+    public List<BlogResponse> getUserBlogs(Long profileUserId, String currentUsername, int page, int size);
+
     List<BlogResponse> getFollowingBlogs(String username, int page, int size);
 
 }
