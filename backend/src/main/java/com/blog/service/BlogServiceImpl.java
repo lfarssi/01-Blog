@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.blog.dto.BlogResponse;
 import com.blog.mapper.BlogMapper;
 import com.blog.entity.BlogEntity;
+import com.blog.entity.FollowEntity;
 import com.blog.entity.UserEntity;
 import com.blog.exception.AccessDeniedException;
 import com.blog.exception.ResourceNotFoundException;
@@ -45,6 +46,8 @@ public class BlogServiceImpl implements BlogService {
     private UserRepository userRepository;
     @Autowired
     private MediaStorageService mediaStorageService;
+    @Autowired
+    private NotificationServiceImpl notificationService;
 
     @Override
     public BlogResponse getBlogDetails(Long id) {
@@ -58,12 +61,7 @@ public class BlogServiceImpl implements BlogService {
         return BlogMapper.toResponse(blog); // ✅ Your mapper!
     }
 
-    @Override
-    public List<BlogResponse> getAllBlogs() {
-        return blogRepository.findAll().stream()
-                .map(BlogMapper::toResponse)
-                .collect(Collectors.toList());
-    }
+
 
     @Override
     @Transactional
@@ -97,8 +95,18 @@ public class BlogServiceImpl implements BlogService {
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
+        BlogEntity saved = blogRepository.save(blog);
 
-        return BlogMapper.toResponse(blogRepository.save(blog));
+        List<FollowEntity> followers = followRepository.findByFollowing_Id(user.getId());
+        for (FollowEntity f : followers) {
+            notificationService.createNotification(
+                    f.getFollower().getId(), // receiver (the follower)
+                    "NEW_BLOG",
+                    user.getUsername() + " posted a new blog",
+                    saved.getId() // relatedId = blogId
+            );
+        }
+        return BlogMapper.toResponse(saved);
     }
 
     @Override
@@ -141,15 +149,14 @@ public class BlogServiceImpl implements BlogService {
         return BlogMapper.toResponse(saved);
     }
 
+    @Override
     @Transactional
     public void deleteBlog(Long id, String username) {
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
         BlogEntity blog = blogRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
-
-        if (!blog.getUserId().equals(user.getId())) {
+        if (!blog.getUserId().getId().equals(user.getId())) {
             throw new AccessDeniedException("Unauthorized to delete this blog");
         }
 

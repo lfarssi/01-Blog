@@ -1,41 +1,33 @@
 package com.blog.entity;
+
 import java.time.Instant;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
-@Table(name="notifications")
+@Table(name = "notifications")
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class NotificationEntity {
-      @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) 
-    private Long id;
 
-     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private UserEntity user;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private Boolean status;
-    private String type;
+  @ManyToOne
+  @JoinColumn(name = "user_id")
+  private UserEntity user;
 
-    private String content;
+  private Boolean status;
+  private String type;
+  private String content;
+  private Long relatedId;
+  private Boolean isRead;
 
-    private Long relatedId;
-
-    private Boolean isRead;
-
-
-    private final Instant createdAt;
-    private Instant updatedAt;
+  private Instant createdAt;   // ✅ remove final
+  private Instant updatedAt;
 }

@@ -20,14 +20,6 @@ public class BlogController {
     @Autowired
     private BlogService blogService;
 
-    @GetMapping
-    public ResponseEntity<Object> getAllBlogs() {
-
-        List<BlogResponse> blogs = blogService.getAllBlogs();
-
-        return ApiResponse.from(200, "Blogs Received successfully", blogs);
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<Object> getBlog(@PathVariable Long id) {
         return ApiResponse.from(200, "Blog Received successfully", blogService.getBlogDetails(id));

@@ -1,0 +1,142 @@
+<div class="admin-reports">
+  <div class="header mb-4">
+    <h2>Admin Reports</h2>
+    <div class="filters d-flex gap-2 flex-wrap">
+      <button mat-button 
+              color="primary"
+              [class.active]="currentFilter() === 'all'"
+              (click)="setFilter('all')">
+        All
+      </button>
+      <button mat-button 
+              color="warn"
+              [class.active]="currentFilter() === 'pending'"
+              (click)="setFilter('pending')">
+        Pending
+      </button>
+      <button mat-button 
+              [class.active]="currentFilter() === 'blog'"
+              (click)="setFilter('blog')">
+        Blogs
+      </button>
+      <button mat-button 
+              [class.active]="currentFilter() === 'user'"
+              (click)="setFilter('user')">
+        Users
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  }
+
+  @if (errorMsg()) {
+    <div class="alert alert-danger">{{ errorMsg() }}</div>
+  }
+
+  @if (!loading() && !errorMsg()) {
+    <div class="meta mb-3 text-muted small">
+      Total: {{ totalElements() }} | Page {{ currentPage() + 1 }} / {{ totalPages() }}
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Target ID</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Reported By</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of reports(); track r.id) {
+            <tr>
+              <td><strong>{{ r.id }}</strong></td>
+              <td>
+                @switch (r.type) {
+                  @case ('BLOG') { <span class="badge bg-info">Blog</span> }
+                  @case ('POST') { <span class="badge bg-info">Post</span> }
+                  @case ('USER') { <span class="badge bg-warning text-dark">User</span> }
+                }
+              </td>
+              <td>{{ r.targetId }}</td>
+              <td class="reason-col">
+                <span title="{{ r.reason }}">{{ r.reason.length > 50 ? (r.reason) + '...' : r.reason }}</span>
+              </td>
+              <td>
+                @switch (r.status) {
+                  @case ('PENDING') { <span class="badge bg-warning text-dark">Pending</span> }
+                  @case ('RESOLVED') { <span class="badge bg-success">Resolved</span> }
+                  @case ('IGNORED') { <span class="badge bg-secondary">Ignored</span> }
+                }
+              </td>
+              <td>{{ r.reportedBy }}</td>
+              <td><small class="text-muted">{{ r.createdAt}}</small></td>
+              <td>
+                <div class="btn-group btn-group-sm" role="group">
+                  <button class="btn btn-outline-warning" 
+                          (click)="updateStatus(r.id, 'PENDING')"
+                          [disabled]="r.status === 'PENDING'">
+                    Pending
+                  </button>
+                  <button class="btn btn-outline-success" 
+                          (click)="updateStatus(r.id, 'RESOLVED')"
+                          [disabled]="r.status === 'RESOLVED'">
+                    Resolve
+                  </button>
+                  <button class="btn btn-outline-secondary" 
+                          (click)="updateStatus(r.id, 'IGNORED')"
+                          [disabled]="r.status === 'IGNORED'">
+                    Ignore
+                  </button>
+                </div>
+                <button class="btn btn-sm btn-outline-danger ms-1" 
+                        (click)="deleteReport(r.id)">
+                  <mat-icon fontSize="small">delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          }
+          @empty {
+            <tr>
+              <td colspan="8" class="text-center py-4 text-muted">
+                <mat-icon style="font-size: 48px; width: 48px; height: 48px;">report_off</mat-icon>
+                <p class="mt-2 mb-0">No reports found</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages() > 1) {
+      <nav>
+        <ul class="pagination justify-content-center">
+          <li class="page-item" [class.disabled]="currentPage() === 0">
+            <button class="page-link" (click)="loadReports(currentPage() - 1, 20, currentFilter())">
+              Previous
+            </button>
+          </li>
+          <li class="page-item active">
+            <span class="page-link">{{ currentPage() + 1 }}</span>
+          </li>
+          <li class="page-item" [class.disabled]="currentPage() + 1 >= totalPages()">
+            <button class="page-link" (click)="loadReports(currentPage() + 1, 20, currentFilter())">
+              Next
+            </button>
+          </li>
+        </ul>
+      </nav>
+    }
+  }
+</div>

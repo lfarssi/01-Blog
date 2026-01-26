@@ -109,4 +109,24 @@ public class NotificationServiceImpl implements NotificationService {
 
         return notificationRepository.countByUser_IdAndIsRead(user.getId(), false);
     }
+    @Override
+@Transactional
+public void createNotification(Long receiverUserId, String type, String content, Long relatedId) {
+    UserEntity receiver = userRepository.findById(receiverUserId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+    NotificationEntity n = NotificationEntity.builder()
+            .user(receiver)
+            .type(type)              // e.g. "NEW_BLOG", "NEW_COMMENT", "NEW_FOLLOW"
+            .content(content)        // message shown in UI
+            .relatedId(relatedId)    // blogId or followerId or commentId (your choice)
+            .status(true)            // optional
+            .isRead(false)
+            .createdAt(Instant.now())
+            .updatedAt(Instant.now())
+            .build();
+
+    notificationRepository.save(n);
+}
+
 }

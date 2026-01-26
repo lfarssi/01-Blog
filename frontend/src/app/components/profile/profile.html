@@ -1,141 +1,159 @@
 <div class="profile-container">
   @if (isLoading()) {
-    <div class="loading-spinner">
-      <mat-icon class="spin">refresh</mat-icon>
-      <p>Loading profile...</p>
-    </div>
+  <div class="loading-spinner">
+    <mat-icon class="spin">refresh</mat-icon>
+    <p>Loading profile...</p>
+  </div>
   } @else if (user(); as u) {
-    
-    <!-- Profile Header (UNCHANGED - Perfect!) -->
-    <mat-card class="profile-header">
-      <div class="profile-info">
-        <div class="avatar-section">
-          @if (u.avatarUrl) {
-            <img [src]="u.avatarUrl" [alt]="u.username" class="avatar">
-          } @else {
-            <div class="avatar-placeholder">
-              <mat-icon>person</mat-icon>
-            </div>
-          }
-        </div>
-        <div class="user-details">
-          <h1>{{ u.username }}</h1>
-          @if (u.bio) { <p class="bio">{{ u.bio }}</p> }
-          <mat-chip-set class="stats">
-            <mat-chip class="stat"><strong>{{ blogsCount() }}</strong> Blogs</mat-chip>
-            <mat-chip class="stat"><strong>{{ followersCount() }}</strong> Followers</mat-chip>
-            <mat-chip class="stat"><strong>{{ followingCount() }}</strong> Following</mat-chip>
-          </mat-chip-set>
-        </div>
-      </div>
-      <div class="profile-actions">
-        @if (isOwnProfile()) {
-          <button mat-raised-button color="primary" (click)="editProfile()">
-            <mat-icon>edit</mat-icon> Edit Profile
-          </button>
+
+  <!-- PROFILE HEADER -->
+  <mat-card class="profile-header">
+    <div class="profile-info">
+      <div class="avatar-section">
+        @if (u.avatarUrl) {
+        <img [src]="u.avatarUrl" [alt]="u.username" class="avatar">
         } @else {
-          <button mat-raised-button [color]="isFollowing() ? 'accent' : 'primary'" (click)="toggleFollow()">
-            <mat-icon>{{ isFollowing() ? 'person_remove' : 'person_add' }}</mat-icon>
-            {{ isFollowing() ? 'Unfollow' : 'Follow' }} {{ u.username }}
-          </button>
-          <button mat-icon-button matTooltip="{{ hasAlreadyReported() ? 'Already reported' : 'Report user' }}"
-                  (click)="openReportDialog()" [disabled]="hasAlreadyReported()" class="report-btn">
-            <mat-icon>{{ hasAlreadyReported() ? 'flag' : 'outlined_flag' }}</mat-icon>
-          </button>
+        <div class="avatar-placeholder">
+          <mat-icon>person</mat-icon>
+        </div>
         }
       </div>
-    </mat-card>
 
-    <!-- ✅ INFINITE SCROLL BLOGS -->
-    <section class="blogs-section">
-      <h2>Blogs ({{ blogsCount() }})</h2>
+      <div class="user-details">
+        <h1>{{ u.username }}</h1>
+        <!-- ✅ FOLLOW STATS AS BUTTONS -->
+        <mat-chip-set class="stats">
+          <mat-chip class="stat">
+            <strong>{{ blogsCount() }}</strong> Blogs
+          </mat-chip>
 
-      @if (hasNoBlogs()) {
-        <div class="no-blogs">
-          <mat-icon>article</mat-icon>
-          <p>No blogs yet</p>
-        </div>
-      } @else {
-        <!-- ✅ INFINITE SCROLL CONTAINER -->
-        <div class="blogs-grid" infiniteList (loadMore)="loadMoreBlogs()">
-          @for (blog of blogs(); track blog.id) {
-            <mat-card class="blog-card" (click)="viewBlog(blog.id)">
-              @if (hasMedia(blog)) {
-                <div class="media-container">
-                  @if (isBlogVideo(blog)) {
-                    <video [src]="getBlogMedia(blog)[0]" class="blog-media" preload="metadata">
-                      <div class="video-overlay">
-                        <mat-icon>play_circle</mat-icon>
-                      </div>
-                    </video>
-                  } @else {
-                    <img [src]="getBlogMedia(blog)[0]" class="blog-media" [alt]="blog.title">
-                  }
-                </div>
-              }
+          <button mat-chip class="stat clickable" (click)="openFollowers()">
+            <strong>{{ followersCount() }}</strong> Followers
+          </button>
 
-              <mat-card-content>
-                <h3 class="blog-title">{{ blog.title || 'Untitled' }}</h3>
-                <p class="blog-description">{{ (blog.content || '').substring(0, 100) }}...</p>
-                <div class="blog-stats">
-                  <span class="stat">
-                    <mat-icon [class.liked]="blog.isLikedByCurrentUser">
-                      {{ blog.isLikedByCurrentUser ? 'favorite' : 'favorite_border' }}
-                    </mat-icon>
-                    {{ blog.likeCount || 0 }}
-                  </span>
-                  <span class="stat">
-                    <mat-icon>comment</mat-icon>
-                    {{ blog.commentCount || 0 }}
-                  </span>
-                  <span class="timestamp">{{ blog.createdAt | date: 'MMM d, y' }}</span>
-                </div>
-              </mat-card-content>
-            </mat-card>
-          }
-
-          <!-- ✅ LOADING MORE -->
-          @if (blogsLoadingMore()) {
-            <div class="loading-more text-center py-4">
-              <mat-spinner diameter="30"></mat-spinner>
-              <p>Loading more blogs...</p>
-            </div>
-          }
-
-          <!-- ✅ END OF LIST -->
-          @if (!hasMoreBlogs() && blogs().length > 0) {
-            <div class="end-of-list text-center py-4 text-muted">
-              <mat-icon>done_all</mat-icon>
-              <p>All blogs loaded</p>
-            </div>
-          }
-        </div>
-      }
-    </section>
-
-    <!-- Report Dialog (UNCHANGED - Perfect!) -->
-    @if (showReportDialog()) {
-      <div class="report-dialog-overlay" (click)="closeReportDialog()">
-        <mat-card class="report-dialog" (click)="$event.stopPropagation()">
-          <mat-card-title>Report {{ u.username }}</mat-card-title>
-          <mat-card-content>
-            <textarea rows="4" class="report-textarea" placeholder="Describe the issue..."
-                      [value]="reportReason()" (input)="reportReason.set($any($event.target).value)">
-            </textarea>
-          </mat-card-content>
-          <mat-card-actions align="end">
-            <button mat-button (click)="closeReportDialog()">Cancel</button>
-            <button mat-raised-button color="warn" [disabled]="!reportReason().trim()"
-                    (click)="submitReport()">Submit Report</button>
-          </mat-card-actions>
-        </mat-card>
+          <button mat-chip class="stat clickable" (click)="openFollowing()">
+            <strong>{{ followingCount() }}</strong> Following
+          </button>
+        </mat-chip-set>
       </div>
-    }
-  } @else {
-    <div class="error-state">
-      <mat-icon>error_outline</mat-icon>
-      <h2>User not found</h2>
-      <p>The profile you are looking for does not exist.</p>
     </div>
+
+    <!-- ✅ TOP RIGHT ACTIONS -->
+    <div class="profile-actions">
+      @if (isOwnProfile()) {
+      <button mat-raised-button color="primary" (click)="editProfile()">
+        <mat-icon>edit</mat-icon>
+        Edit Profile
+      </button>
+      } @else {
+      <button mat-raised-button [color]="isFollowing() ? 'accent' : 'primary'" (click)="toggleFollow()">
+        <mat-icon>
+          {{ isFollowing() ? 'person_remove' : 'person_add' }}
+        </mat-icon>
+        {{ isFollowing() ? 'Unfollow' : 'Follow' }}
+      </button>
+
+      <!-- ✅ REPORT BUTTON TOP RIGHT -->
+      <button mat-icon-button class="report-btn"
+        [matTooltip]="hasAlreadyReported() ? 'Already reported' : 'Report user'" [disabled]="hasAlreadyReported()"
+        (click)="openReportDialog()">
+        <mat-icon>{{ hasAlreadyReported() ? 'task_alt' : 'outlined_flag' }}</mat-icon>
+      </button>
+
+      }
+    </div>
+  </mat-card>
+
+  <!-- BLOGS SECTION -->
+  <section class="blogs-section">
+    <h2>Blogs ({{ blogsCount() }})</h2>
+
+    @if (hasNoBlogs()) {
+    <div class="no-blogs">
+      <mat-icon>article</mat-icon>
+      <p>No blogs yet</p>
+    </div>
+    } @else {
+    <div class="blogs-grid" infiniteList (loadMore)="loadMoreBlogs()">
+      @for (blog of blogs(); track blog.id) {
+      <mat-card class="blog-card" (click)="viewBlog(blog.id)">
+        @if (hasMedia(blog)) {
+        <div class="media-container">
+          @if (isBlogVideo(blog)) {
+          <video [src]="getBlogMedia(blog)[0]" class="blog-media"></video>
+          } @else {
+          <img [src]="getBlogMedia(blog)[0]" class="blog-media">
+          }
+        </div>
+        }
+
+        <mat-card-content>
+          <h3>{{ blog.title || 'Untitled' }}</h3>
+          <p>{{ (blog.content || '').substring(0, 100) }}...</p>
+        </mat-card-content>
+      </mat-card>
+      }
+    </div>
+    }
+  </section>
+
+  <!-- ✅ FOLLOWERS LIST DIALOG -->
+  @if (showFollowersDialog()) {
+  <div class="dialog-overlay" (click)="closeFollowers()">
+    <mat-card class="list-dialog" (click)="$event.stopPropagation()">
+      <mat-card-title>
+        Followers ({{ followersCount() }})
+        <span class="close-btn" mat-icon-button (click)="closeFollowers()">
+          <mat-icon>close</mat-icon>
+        </span>
+      </mat-card-title>
+      <mat-card-content>
+        @if (followers().length === 0) {
+        <p class="text-muted">No followers yet</p>
+        } @else {
+        @for (follower of followers(); track follower.id) {
+        <mat-chip class="user-chip" (click)="viewUserProfile(follower.id); closeFollowers()">
+          @if (follower.avatarUrl) {
+          <img [src]="follower.avatarUrl" class="chip-avatar" matChipAvatar>
+          }
+          {{ follower.username }}
+          <mat-icon matChipTrailingIcon>chevron_right</mat-icon>
+        </mat-chip>
+        }
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+  }
+
+  <!-- ✅ FOLLOWING LIST DIALOG -->
+  @if (showFollowingDialog()) {
+  <div class="dialog-overlay" (click)="closeFollowing()">
+    <mat-card class="list-dialog" (click)="$event.stopPropagation()">
+      <mat-card-title>
+        Following ({{ followingCount() }})
+        <span class="close-btn" mat-icon-button (click)="closeFollowing()">
+          <mat-icon>close</mat-icon>
+        </span>
+      </mat-card-title>
+      <mat-card-content>
+        @if (following().length === 0) {
+        <p class="text-muted">Not following anyone</p>
+        } @else {
+        @for (user of following(); track user.id) {
+        <mat-chip class="user-chip" (click)="viewUserProfile(user.id); closeFollowing()">
+          @if (user.avatarUrl) {
+          <img [src]="user.avatarUrl" class="chip-avatar" matChipAvatar>
+          }
+          {{ user.username }}
+          <mat-icon matChipTrailingIcon>chevron_right</mat-icon>
+        </mat-chip>
+        }
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+  }
+
   }
 </div>

@@ -9,7 +9,6 @@ import com.blog.dto.BlogResponse;
 
 @Service
 public interface BlogService {
-    List<BlogResponse> getAllBlogs();
 
     BlogResponse getBlogDetails(Long id);
 

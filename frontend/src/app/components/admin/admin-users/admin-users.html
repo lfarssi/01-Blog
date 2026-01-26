@@ -1,0 +1,60 @@
+<div class="admin-users">
+  <div class="header">
+    <h2>Admin — Users</h2>
+  </div>
+
+  @if (loading()) {
+    <p>Loading...</p>
+  }
+
+  @if (errorMsg()) {
+    <div class="error">{{ errorMsg() }}</div>
+  }
+
+  @if (!loading() && !errorMsg()) {
+    <div class="meta">
+      <span>Total: {{ totalElements() }}</span>
+      <span>Page: {{ currentPage() + 1 }} / {{ totalPages() }}</span>
+    </div>
+
+    @if (users().length === 0) {
+      <p>No users found.</p>
+    } @else {
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Banned</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (u of users(); track u.id) {
+            <tr>
+              <td>{{ u.id }}</td>
+              <td>{{ u.username }}</td>
+              <td>{{ u.email }}</td>
+              <td>{{ u.role }}</td>
+              <td>
+                @if (u.banned) { Yes } @else { No }
+              </td>
+              <td>
+                <button type="button" (click)="toggleBan(u)">
+                  @if (u.banned) { Unban } @else { Ban }
+                </button>
+
+                <button type="button" (click)="deleteUser(u)">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  }
+</div>

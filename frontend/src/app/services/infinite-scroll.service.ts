@@ -2,29 +2,16 @@ import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class InfiniteScrollService {
-  private observers: IntersectionObserver[] = [];
-
-  observeLastElement(container: HTMLElement, callback: () => void): void | (() => void) {
+  observeElement(target: HTMLElement, callback: () => void): () => void {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          callback();
-        }
+        if (entry.isIntersecting) callback();
       },
       { threshold: 0.1 }
     );
 
-    const observerTarget = container.lastElementChild;
-    if (observerTarget) {
-      observer.observe(observerTarget);
-    }
+    observer.observe(target);
 
-    this.observers.push(observer);
-
-    // ✅ Return cleanup function
-    return () => {
-      observer.disconnect();
-      this.observers = this.observers.filter(obs => obs !== observer);
-    };
+    return () => observer.disconnect();
   }
 }

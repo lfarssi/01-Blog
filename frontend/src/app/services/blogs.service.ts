@@ -1,12 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient ,HttpParams} from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import {
-  Blog,
-  Comment,
-  CreateCommentRequest,
-  LikeResponse,
-} from '../models/blog.model';
+import { Blog, Comment, CreateCommentRequest, LikeResponse } from '../models/blog.model';
 import { BASE_URL } from './env';
 import { ApiResponse } from '../models/user.model';
 
@@ -20,25 +15,20 @@ export class BlogsService {
   likedBlogIds = signal<Set<number>>(new Set());
 
   getAllBlogs(): Observable<Blog[]> {
-
     return this.http.get<Blog[]>(this.apiUrl);
   }
 
   getFollowingBlogs(page: number, size: number): Observable<any> {
-    const params = new HttpParams()
-      .set('page', page)
-      .set('size', size);
+    const params = new HttpParams().set('page', page).set('size', size);
 
     return this.http.get<any>(`${this.apiUrl}/following`, { params });
   }
 
-// blogs.service.ts
-// blogs.service.ts
-getBlogsByUser(userId: number, page: number = 0, size: number = 10): Observable<any> {
-  return this.http.get(`${this.apiUrl}/user/${userId}?page=${page}&size=${size}`);
-}
-
-
+  // blogs.service.ts
+  // blogs.service.ts
+  getBlogsByUser(userId: number, page: number = 0, size: number = 10): Observable<any> {
+    return this.http.get(`${this.apiUrl}/user/${userId}?page=${page}&size=${size}`);
+  }
 
   getBlogById(blogId: number): Observable<Blog> {
     return this.http.get<Blog>(`${this.apiUrl}/${blogId}`);
@@ -156,6 +146,13 @@ getBlogsByUser(userId: number, page: number = 0, size: number = 10): Observable<
         };
       }
       return blog;
+    });
+  }
+  reportBlog(blogId: number, reason: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${BASE_URL}/reports`, {
+      targetId: blogId,
+      reason: reason,
+      type: 'BLOG', // or 'POST'
     });
   }
 }

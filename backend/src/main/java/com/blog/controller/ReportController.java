@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,24 +44,30 @@ public class ReportController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+
     public ResponseEntity<Object> getAllReports() {
         List<ReportResponse> reports = reportService.getAllReports();
         return ApiResponse.from(200, "All Reports Received successfully", reports);
     }
 
     @GetMapping("/status/{status}")
+    @PreAuthorize("hasRole('ADMIN')")
+
     public ResponseEntity<Object> getReportsByStatus(@PathVariable String status) {
         List<ReportResponse> reports = reportService.getReportsByStatus(status);
         return ApiResponse.from(200, "Report By Status Received successfully", reports);
     }
 
     @GetMapping("/type/{type}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> getReportsByType(@PathVariable String type) {
         List<ReportResponse> reports = reportService.getReportsByType(type);
         return ApiResponse.from(200, "Report By Type Received successfully", reports);
     }
 
     @PutMapping("/{reportId}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> updateReportStatus(
             @PathVariable Long reportId,
             @RequestParam String status) {
@@ -70,6 +77,7 @@ public class ReportController {
     }
 
     @DeleteMapping("/{reportId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> deleteReport(@PathVariable Long reportId) {
         reportService.deleteReport(reportId);
         return ApiResponse.from(200, "Report deleted successfully", null);

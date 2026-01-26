@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService {
         if (search != null && !search.trim().isEmpty()) {
             usersPage = userRepository.findPublicUsers(search, pageable);
         } else {
-            usersPage = userRepository.findNonBannedUsers(pageable); // ✅ NEW
+            usersPage = userRepository.findAllUsers(pageable); // ✅ NEW
         }
 
         return usersPage.map(UserMapper::toResponse); // ✅ YOUR MAPPER

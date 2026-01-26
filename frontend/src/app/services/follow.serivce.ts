@@ -4,6 +4,7 @@ import { Observable, tap, map } from 'rxjs';  // ← ADD map
 import { Follower, FollowStats } from '../models/follow.model';
 import { FollowResponse } from '../models/follow.model';
 import { BASE_URL } from './env';
+import { User } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root',
@@ -38,13 +39,13 @@ export class FollowService {
     );
   }
 
-  getFollowers(userId: number): Observable<Follower[]> {
+  getFollowers(userId: number): Observable<User[]> {
     return this.http.get<any>(`${this.apiUrl}/${userId}/followers`).pipe(
       map((apiResponse: any) => apiResponse.data || [])  // ✅ Safe array!
     );
   }
 
-  getFollowing(userId: number): Observable<Follower[]> {
+  getFollowing(userId: number): Observable<User[]> {
     return this.http.get<any>(`${this.apiUrl}/${userId}/following`).pipe(
       map((apiResponse: any) => {
         console.log('Raw following response:', apiResponse);  // ← DEBUG
@@ -60,9 +61,9 @@ export class FollowService {
     }
 
     this.getFollowing(currentUserId).subscribe({
-      next: (following: Follower[]) => {
+      next: (following: User[]) => {
         console.log('Following loaded:', following);
-        const ids = new Set(following.map((f) => f.userId).filter((id): id is number => id > 0));
+        const ids = new Set(following.map((f) => f.id).filter((id): id is number => id > 0));
         this.followingIds.set(ids);
       },
       error: (error) => {

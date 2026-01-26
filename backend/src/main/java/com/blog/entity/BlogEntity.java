@@ -2,6 +2,9 @@ package com.blog.entity;
 
 import java.time.Instant;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -38,8 +41,13 @@ public class BlogEntity {
     @JoinColumn(name = "user_id")
     private UserEntity userId;
 
-    @Column(columnDefinition = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "media", columnDefinition = "json")
     private String media; // JSON array string
+
+    @Builder.Default
+    private Boolean visible = true;
+
     private Long like_count;
 
     private Long comment_count;

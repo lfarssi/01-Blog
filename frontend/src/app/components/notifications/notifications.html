@@ -1,0 +1,66 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="m-0">Notifications</h2>
+
+    <button mat-stroked-button (click)="markAllAsRead()" [disabled]="loading()">
+      Mark all as read
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  }
+
+  @if (errorMsg()) {
+    <div class="mb-3 text-danger">{{ errorMsg() }}</div>
+  }
+
+  @if (!loading() && !errorMsg() && notifications().length === 0) {
+    <div class="mb-3">No notifications.</div>
+  }
+
+  @for (n of notifications(); track n.id) {
+    <mat-card class="mb-2">
+      <mat-card-content class="d-flex justify-content-between align-items-start gap-3">
+        <div class="flex-grow-1">
+          <div class="fw-semibold">
+            {{ n.title ?? 'Notification' }}
+            @if (n.read === false) {
+              <span class="badge bg-primary ms-2">Unread</span>
+            }
+          </div>
+
+          @if (n.message) {
+            <div class="text-muted">{{ n.message }}</div>
+          }
+
+          @if (n.createdAt) {
+            <div class="small text-muted mt-1">
+              {{ n.createdAt | date:'medium' }}
+            </div>
+          }
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <button
+            mat-icon-button
+            (click)="markAsRead(n.id); $event.stopPropagation()"
+            [disabled]="n.read === true">
+            <mat-icon>done</mat-icon>
+          </button>
+
+          <button
+            mat-icon-button
+            color="warn"
+            (click)="deleteNotification(n.id); $event.stopPropagation()">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

@@ -7,9 +7,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { BlogDetailService } from '../../services/blog-detail.service';
+import { BlogsService } from '../../services/blogs.service';
+import { ReportDialog } from '../report-dialog/report-dialog';
 import { Blog, Comment } from '../../models/blog.model';
-import { MatTooltip } from '@angular/material/tooltip';
 
 interface DecodedToken {
   sub: string;
@@ -28,7 +32,7 @@ interface DecodedToken {
     MatIconModule,
     MatChipsModule,
     MatDividerModule,
-    MatTooltip,
+    MatTooltipModule,
   ],
   templateUrl: './blog-detail.html',
   styleUrl: './blog-detail.scss',
@@ -50,49 +54,31 @@ export class BlogDetail implements OnInit {
   currentUsername = signal<string>('');
   isAdmin = signal(false);
 
-  // ✅ Gallery state (max 4 media)
+  // Gallery state (max 4 media)
   selectedMediaIndex = signal(0);
 
-  // ✅ Media list (parsed + limited to 4)
+  // Media list (parsed + limited to 4)
   mediaList = computed(() => this.getMediaArray().slice(0, 4));
 
-  // ✅ Currently selected media url
+  // Currently selected media url
   selectedMediaUrl = computed(() => this.mediaList()[this.selectedMediaIndex()] ?? null);
 
-  // ✅ Is selected media a video?
+  // Is selected media a video?
   isSelectedVideo = computed(() => {
     const url = this.selectedMediaUrl();
     return !!url && /\.(mp4|avi|mov|wmv|flv|webm)$/i.test(url);
-  });
-
-  // ✅ Click thumbnail
-  selectMedia(index: number): void {
-    const list = this.mediaList();
-    if (index < 0 || index >= list.length) return;
-    this.selectedMediaIndex.set(index);
-  }
-
-  // Computed signals for permissions
-  canEditBlog = computed(() => {
-    const blog = this.blog();
-    if (!blog) return false;
-    return this.isPostOwner(blog) || this.isAdmin();
-  });
-
-  canDeleteBlog = computed(() => {
-    const blog = this.blog();
-    if (!blog) return false;
-    return this.isPostOwner(blog) || this.isAdmin();
   });
 
   // Inject dependencies
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private blogService = inject(BlogDetailService);
+  private blogsService = inject(BlogsService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
-
     if (id) {
       this.loadUserInfo();
       this.loadBlog(id);
@@ -106,7 +92,6 @@ export class BlogDetail implements OnInit {
     if (currentUserStr) {
       try {
         const currentUser = JSON.parse(currentUserStr);
-
         this.currentUserId.set(currentUser.id);
         this.currentUsername.set(currentUser.username);
         this.isAdmin.set(currentUser.role === 'admin');
@@ -130,9 +115,20 @@ export class BlogDetail implements OnInit {
   isPostOwner(blog: Blog): boolean {
     const userId = this.currentUserId();
     const username = this.currentUsername();
-
     return blog.author?.id === userId || blog.author?.username === username;
   }
+
+  canEditBlog = computed(() => {
+    const blog = this.blog();
+    if (!blog) return false;
+    return this.isPostOwner(blog) || this.isAdmin();
+  });
+
+  canDeleteBlog = computed(() => {
+    const blog = this.blog();
+    if (!blog) return false;
+    return this.isPostOwner(blog) || this.isAdmin();
+  });
 
   canDeleteComment(comment: Comment): boolean {
     const username = this.currentUsername();
@@ -143,7 +139,6 @@ export class BlogDetail implements OnInit {
 
   private parseMediaString(media: string | string[] | undefined | null): string[] {
     if (!media) return [];
-
     const BACKEND_URL = 'http://localhost:8080';
 
     if (Array.isArray(media)) {
@@ -160,12 +155,10 @@ export class BlogDetail implements OnInit {
     }
   }
 
-  // ✅ Now uses selected media (fallback to first)
   showFirstMedia(): string | null {
     return this.selectedMediaUrl() ?? null;
   }
 
-  // ✅ Uses the raw blog media
   getMediaArray(): string[] {
     return this.parseMediaString(this.blog()?.media);
   }
@@ -174,14 +167,18 @@ export class BlogDetail implements OnInit {
     return this.mediaList().length > 0;
   }
 
-  // ✅ Keep for compatibility (used elsewhere), now checks selected
   isVideo(): boolean {
     return this.isSelectedVideo();
   }
 
-  // ✅ Count is limited to 4 for UI
   getMediaCount(): number {
     return this.mediaList().length;
+  }
+
+  selectMedia(index: number): void {
+    const list = this.mediaList();
+    if (index < 0 || index >= list.length) return;
+    this.selectedMediaIndex.set(index);
   }
 
   loadBlog(id: string): void {
@@ -189,8 +186,6 @@ export class BlogDetail implements OnInit {
       next: (res) => {
         this.blog.set(res.data);
         this.loading.set(false);
-
-        // ✅ reset selected index when blog loads
         this.selectedMediaIndex.set(0);
       },
       error: () => {
@@ -305,5 +300,31 @@ export class BlogDetail implements OnInit {
 
   getCurrentUsername(): string {
     return this.currentUsername();
+  }
+
+  // NEW: Report functionality (complete)
+  openReportDialog(): void {
+    const dialogRef = this.dialog.open(ReportDialog, {
+      width: '480px',
+      data: this.blog()?.id!
+    });
+
+    dialogRef.afterClosed().subscribe((reason: string | null) => {
+      if (reason) {
+        this.reportBlog(reason);
+      }
+    });
+  }
+
+  reportBlog(reason: string): void {
+    const blogId = this.blog()?.id!;
+    this.blogsService.reportBlog(blogId, reason).subscribe({
+      next: () => {
+        this.snackBar.open('Post reported successfully', 'OK', { duration: 3000 });
+      },
+      error: (err) => {
+        this.snackBar.open('Failed to report post', 'OK', { duration: 3000 });
+      }
+    });
   }
 }

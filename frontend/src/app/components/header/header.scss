@@ -1,54 +1,49 @@
 .header-toolbar {
   height: 64px;
-  background: white;
+  background: var(--mat-sys-surface);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  
-  // Blue logo
+
   .logo {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #1976d2 !important;  // Material blue
+    color: var(--mat-sys-primary) !important;
   }
-  
-  // Blue nav links
+
   .nav-link {
     text-decoration: none;
     font-weight: 500;
-    color: #1976d2 !important;
+    color: var(--mat-sys-primary) !important;
     transition: all 0.2s ease;
-    
+
     &:hover {
-      color: #1565c0;
+      color: var(--mat-sys-primary-container);
     }
-    
+
     &.active {
       font-weight: bold;
-      border-bottom: 2px solid #1976d2;
+      border-bottom: 2px solid var(--mat-sys-primary);
       padding-bottom: 4px;
     }
   }
-  
-  // Buttons (blue outline on white)
+
   button.mat-mdc-button {
     line-height: 1.5;
     min-height: 36px;
-    color: #1976d2;
-    border: 1px solid #1976d2;
-    
+    color: var(--mat-sys-primary);
+    border: 1px solid var(--mat-sys-primary);
+
     &:hover {
-      background-color: #1976d2;
-      color: white;
+      background-color: var(--mat-sys-primary);
+      color: var(--mat-sys-on-primary);
     }
   }
-  
-  // Username dark text
+
   span {
-    color: #333;
+    color: var(--mat-sys-on-surface);
     font-weight: 500;
   }
 }
 
-// Mobile
 @media (max-width: 767.98px) {
   .header-toolbar .d-none {
     display: none !important;

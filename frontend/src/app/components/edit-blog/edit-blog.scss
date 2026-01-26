@@ -1,18 +1,6 @@
-// Variables
-$primary-color: #667eea;
-$primary-dark: #5568d3;
-$success-color: #48bb78;
-$error-color: #f56565;
-$bg-light: #f7fafc;
-$bg-darker: #edf2f7;
-$border-color: #e2e8f0;
-$text-dark: #2d3748;
-$text-muted: #718096;
-$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-$shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
-$radius-md: 12px;
-$radius-lg: 16px;
+/* ===============================
+   EDIT BLOG – MATERIAL THEME
+================================ */
 
 .edit-blog-container {
   max-width: 900px;
@@ -20,7 +8,7 @@ $radius-lg: 16px;
   padding: 1rem;
 }
 
-// Loading State
+/* Loading */
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -28,7 +16,7 @@ $radius-lg: 16px;
   justify-content: center;
   min-height: 300px;
   gap: 1.5rem;
-  color: $text-muted;
+  color: var(--mat-sys-on-surface-variant);
 
   p {
     font-size: 1rem;
@@ -36,20 +24,23 @@ $radius-lg: 16px;
   }
 }
 
-// Card Styles
+/* Card */
 .editor-card {
   border: none;
-  border-radius: $radius-lg;
-  box-shadow: $shadow-lg;
+  border-radius: 16px;
+  box-shadow: var(--mat-sys-level3);
   overflow: hidden;
-  background: white;
+  background: var(--mat-sys-surface);
 
   .card-header {
-    background: linear-gradient(135deg, $primary-color 0%, $primary-dark 100%);
-    color: white;
+    background: linear-gradient(
+      135deg,
+      var(--mat-sys-primary),
+      var(--mat-sys-tertiary)
+    );
+    color: var(--mat-sys-on-primary);
     padding: 3rem 2rem;
     position: relative;
-    overflow: hidden;
 
     &::before {
       content: '';
@@ -58,86 +49,53 @@ $radius-lg: 16px;
       right: -10%;
       width: 300px;
       height: 300px;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.12);
       border-radius: 50%;
     }
 
-    .header-content {
-      position: relative;
-      z-index: 1;
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: 2rem;
+      font-weight: 700;
+    }
 
-      h1 {
-        margin: 0 0 0.5rem 0;
-        font-size: 2rem;
-        font-weight: 700;
-        letter-spacing: -0.5px;
-      }
-
-      .subtitle {
-        margin: 0;
-        font-size: 0.95rem;
-        opacity: 0.9;
-      }
+    .subtitle {
+      font-size: 0.95rem;
+      opacity: 0.9;
     }
   }
 
   mat-card-content {
     padding: 2.5rem;
-    background: white;
+    background: var(--mat-sys-surface);
   }
 }
 
-// Alerts
+/* Alerts */
 .alert {
   padding: 1rem 1.5rem;
-  border-radius: $radius-md;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   gap: 1rem;
   margin-bottom: 1.5rem;
-  animation: slideDown 0.3s ease-out;
-
-  mat-icon {
-    flex-shrink: 0;
-    font-size: 1.25rem;
-    width: 1.25rem;
-    height: 1.25rem;
-  }
-
-  button {
-    margin-left: auto;
-    flex-shrink: 0;
-  }
 
   &.alert-success {
-    background: #f0fdf4;
-    color: $success-color;
-    border-left: 4px solid $success-color;
+    background: var(--mat-sys-success-container, #e6f4ea);
+    color: var(--mat-sys-on-success-container, #1b5e20);
+    border-left: 4px solid var(--mat-sys-success, #2e7d32);
   }
 
   &.alert-error {
-    background: #fef2f2;
-    color: $error-color;
-    border-left: 4px solid $error-color;
+    background: var(--mat-sys-error-container);
+    color: var(--mat-sys-on-error-container);
+    border-left: 4px solid var(--mat-sys-error);
   }
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-// Form Styles
+/* Form */
 .form-group {
   margin-bottom: 2rem;
-  display: flex;
-  flex-direction: column;
 
   mat-form-field {
     width: 100%;
@@ -147,381 +105,129 @@ $radius-lg: 16px;
     .mdc-notched-outline__leading,
     .mdc-notched-outline__notch,
     .mdc-notched-outline__trailing {
-      border-color: $border-color;
-    }
-
-    .mat-mdc-text-field-wrapper {
-      padding-bottom: 0.5rem;
+      border-color: var(--mat-sys-outline);
     }
 
     .mdc-floating-label {
-      color: $text-dark;
+      color: var(--mat-sys-on-surface);
       font-weight: 500;
     }
 
     &:hover .mdc-notched-outline__leading,
     &:hover .mdc-notched-outline__notch,
-    &:hover .mdc-notched-outline__trailing {
-      border-color: $primary-color !important;
-    }
-
-    &.mat-focused {
-      .mdc-notched-outline__leading,
-      .mdc-notched-outline__notch,
-      .mdc-notched-outline__trailing {
-        border-color: $primary-color !important;
-      }
+    &:hover .mdc-notched-outline__trailing,
+    &.mat-focused .mdc-notched-outline__leading,
+    &.mat-focused .mdc-notched-outline__notch,
+    &.mat-focused .mdc-notched-outline__trailing {
+      border-color: var(--mat-sys-primary) !important;
     }
   }
 }
 
-.full-width {
-  width: 100%;
-}
-
-// Media Section
+/* Media Section */
 .media-section {
   margin-top: 2.5rem;
   padding: 2rem;
-  background: $bg-light;
-  border-radius: $radius-lg;
-  border: 1px solid $border-color;
+  background: var(--mat-sys-surface-container);
+  border-radius: 16px;
+  border: 1px solid var(--mat-sys-outline);
 
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
+  h3 {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--mat-sys-on-surface);
+  }
 
-    h3 {
-      margin: 0;
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: $text-dark;
-    }
-
-    .badge {
-      background: $primary-color;
-      color: white;
-      padding: 0.25rem 0.75rem;
-      border-radius: 20px;
-      font-size: 0.875rem;
-      font-weight: 500;
-    }
-
-    .text-muted {
-      color: $text-muted;
-      font-size: 0.875rem;
-    }
+  .badge {
+    background: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
+    border-radius: 20px;
+    padding: 0.25rem 0.75rem;
   }
 }
 
-// Media Grid
+/* Media Grid */
 .media-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 1rem;
-
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  }
 }
 
-// Media Item
+/* Media Item */
 .media-item {
   position: relative;
-  border-radius: $radius-md;
+  border-radius: 12px;
   overflow: hidden;
-  aspect-ratio: 1;
-  background: white;
-  border: 2px solid $border-color;
-  transition: all 0.3s ease;
-  cursor: pointer;
+  background: var(--mat-sys-surface);
+  border: 2px solid var(--mat-sys-outline);
+  transition: 0.3s ease;
 
   &:hover {
-    border-color: $primary-color;
-    box-shadow: $shadow-md;
-    transform: translateY(-2px);
-
-    .media-actions {
-      opacity: 1;
-    }
+    border-color: var(--mat-sys-primary);
+    box-shadow: var(--mat-sys-level2);
   }
 
   &.deleted {
     opacity: 0.5;
-    border-color: $error-color;
-  }
-
-  .media-content {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .deleted-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: rgba($error-color, 0.1);
-    color: $error-color;
-    gap: 0.5rem;
-
-    mat-icon {
-      font-size: 2rem;
-      width: 2rem;
-      height: 2rem;
-    }
-
-    span {
-      font-size: 0.75rem;
-      font-weight: 500;
-    }
-  }
-
-  .video-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.6);
-    border-radius: 50%;
-    padding: 0.75rem;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    mat-icon {
-      font-size: 1.5rem;
-      width: 1.5rem;
-      height: 1.5rem;
-    }
-  }
-
-  .media-actions {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    display: flex;
-    gap: 0.25rem;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-
-    button {
-      backdrop-filter: blur(4px);
-
-      &.btn-delete {
-        background: rgba($error-color, 0.9);
-        color: white;
-
-        &:hover {
-          background: $error-color;
-        }
-      }
-
-      &.btn-undo {
-        background: rgba($success-color, 0.9);
-        color: white;
-
-        &:hover {
-          background: $success-color;
-        }
-      }
-    }
+    border-color: var(--mat-sys-error);
   }
 }
 
-// Drop Zone
+/* Drop Zone */
 .drop-zone {
-  border: 2px dashed $border-color;
-  border-radius: $radius-lg;
+  border: 2px dashed var(--mat-sys-outline);
+  border-radius: 16px;
   padding: 3rem 2rem;
   text-align: center;
-  transition: all 0.3s ease;
-  background: white;
+  background: var(--mat-sys-surface);
 
   mat-icon {
     font-size: 3rem;
-    width: 3rem;
-    height: 3rem;
-    margin: 0 auto 1rem;
-    color: $text-muted;
-    transition: color 0.3s ease;
-  }
-
-  h4 {
-    margin: 0 0 0.5rem 0;
-    color: $text-dark;
-    font-weight: 600;
-    font-size: 1.125rem;
-  }
-
-  p {
-    margin: 0 0 1.5rem 0;
-    color: $text-muted;
-    font-size: 0.875rem;
+    color: var(--mat-sys-on-surface-variant);
   }
 
   &.drag-over {
-    border-color: $primary-color;
-    background: rgba($primary-color, 0.05);
+    border-color: var(--mat-sys-primary);
+    background: color-mix(
+      in srgb,
+      var(--mat-sys-primary) 8%,
+      transparent
+    );
 
     mat-icon {
-      color: $primary-color;
-      transform: scale(1.1);
-    }
-
-    h4 {
-      color: $primary-color;
+      color: var(--mat-sys-primary);
     }
   }
 }
 
-.upload-btn {
-  margin-top: 0.5rem;
-
-  mat-icon {
-    margin-right: 0.5rem;
-  }
-}
-
-.hidden-input {
-  display: none;
-}
-
-// Card Footer
+/* Footer */
 .card-footer {
   padding: 2rem;
-  background: $bg-light;
-  border-top: 1px solid $border-color;
+  background: var(--mat-sys-surface-container);
+  border-top: 1px solid var(--mat-sys-outline);
   display: flex;
   justify-content: space-between;
-  align-items: center;
   gap: 1rem;
-
-  button {
-    text-transform: none;
-    font-weight: 500;
-    border-radius: $radius-md;
-
-    mat-icon {
-      margin-right: 0.5rem;
-    }
-  }
-
-  .footer-actions {
-    display: flex;
-    gap: 1rem;
-  }
 }
 
-// Responsive
-@media (max-width: 768px) {
-  .edit-blog-container {
-    padding: 0;
-  }
-
-  .editor-card {
-    border-radius: 0;
-
-    .card-header {
-      padding: 2rem 1.5rem;
-
-      h1 {
-        font-size: 1.5rem;
-      }
-    }
-
-    mat-card-content {
-      padding: 1.5rem;
-    }
-  }
-
-  .media-section {
-    padding: 1.5rem;
-  }
-
-  .card-footer {
-    flex-direction: column;
-
-    .footer-actions {
-      width: 100%;
-      flex-direction: column;
-
-      button {
-        width: 100%;
-      }
-    }
-  }
-
-  .drop-zone {
-    padding: 2rem 1rem;
-
-    mat-icon {
-      font-size: 2rem;
-      width: 2rem;
-      height: 2rem;
-    }
-  }
-}
-
-/* =========================================================
-   FIX: Hover X button for your current template (.media-tile)
-   AND also works if you switch to .media-item
-   ========================================================= */
-/* ================================
-   FIX: show remove X on hover
-   ================================ */
-
-/* Make the tile a stacking context */
+/* Remove Button Fix */
 .media-tile,
 .media-item {
   position: relative;
 }
 
-/* IMPORTANT: put the preview behind overlays */
-.media-tile video,
-.media-tile img,
-.media-item video,
-.media-item img {
-  position: relative;
-  z-index: 1;
-}
-
-/* The X button on top */
 .media-tile .media-remove-btn,
 .media-item .media-remove-btn {
   position: absolute;
-  top: 0px;
-  right: 0px;
-
-  z-index: 9999; /* above video/img */
+  top: 0;
+  right: 0;
   opacity: 0;
-  pointer-events: none;
-
-  /* force visible */
-  color: #f56565 !important;
-
-  transform: scale(0.9);
-  transition: opacity 120ms ease, transform 120ms ease;
+  color: var(--mat-sys-error) !important;
+  transition: 120ms ease;
 }
 
-/* Force the mat-icon inside to be white too */
-.media-tile .media-remove-btn mat-icon,
-.media-item .media-remove-btn mat-icon {
-  color: #f56565 !important;
-  background: transparent !important;
-
-}
-
-/* Show on hover */
 .media-tile:hover .media-remove-btn,
 .media-item:hover .media-remove-btn {
   opacity: 1;
-  pointer-events: auto;
-  transform: scale(1);
 }

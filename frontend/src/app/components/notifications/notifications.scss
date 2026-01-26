@@ -1,0 +1,203 @@
+.notifications-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+  min-height: 100vh;
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}
+
+// ================= HEADER =================
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  gap: 16px;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.notifications-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.mark-all-btn {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1.5px solid var(--mat-sys-primary);
+  color: var(--mat-sys-primary);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover:not(:disabled) {
+    background-color: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// ================= STATES =================
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+
+  .spinner-border {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+    border-color: var(--mat-sys-primary) transparent transparent transparent;
+  }
+}
+
+.error-state {
+  padding: 16px 20px;
+  background-color: rgba(var(--mat-sys-error-rgb), 0.1);
+  color: var(--mat-sys-error);
+  border-radius: 8px;
+  border-left: 4px solid var(--mat-sys-error);
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--mat-sys-surface-variant);
+  border-radius: 12px;
+  border: 2px dashed var(--mat-sys-outline);
+
+  .empty-icon {
+    font-size: 64px;
+    color: var(--mat-sys-on-surface-variant);
+    margin-bottom: 16px;
+    opacity: 0.6;
+  }
+
+  p {
+    font-size: 16px;
+    color: var(--mat-sys-on-surface-variant);
+    margin: 0;
+  }
+}
+
+// ================= LIST & CARDS =================
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notification-card {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.unread {
+    mat-card {
+      background: linear-gradient(135deg, rgba(var(--mat-sys-primary-rgb),0.08) 0%, var(--mat-sys-surface) 100%);
+      border-left: 4px solid var(--mat-sys-primary);
+    }
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+
+    mat-card {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+  }
+}
+
+// ================= UNREAD INDICATOR =================
+.unread-indicator {
+  position: absolute;
+  top: -8px;
+  right: 16px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--mat-sys-error);
+  border-radius: 50%;
+  border: 2px solid var(--mat-sys-surface);
+  animation: pulse 2s ease-in-out infinite;
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.2); }
+  }
+}
+
+// ================= CARD CONTENT =================
+mat-card.notification-content {
+  border-radius: 10px;
+  background: var(--mat-sys-surface);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  }
+}
+
+.card-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.notification-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
+.notification-message {
+  font-size: 14px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.notification-timestamp {
+  font-size: 12px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// ================= ACTIONS =================
+.notification-actions .mark-read-btn {
+  color: var(--mat-sys-success);
+  background-color: rgba(var(--mat-sys-success-rgb),0.1);
+
+  &:hover:not(:disabled) {
+    background-color: rgba(var(--mat-sys-success-rgb),0.2);
+  }
+}
+
+.notification-actions .delete-btn {
+  color: var(--mat-sys-error);
+  background-color: rgba(var(--mat-sys-error-rgb),0.1);
+
+  &:hover:not(:disabled) {
+    background-color: rgba(var(--mat-sys-error-rgb),0.2);
+  }
+}

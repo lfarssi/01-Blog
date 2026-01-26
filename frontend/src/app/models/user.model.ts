@@ -2,7 +2,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  bio?: string;
+  banned?: boolean;
   avatarUrl?: string;
   role: UserRole;
   createdAt?: Date;

@@ -1,85 +1,62 @@
-
-// Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 
-html {
-  height: 100%;
+/* ---------------------------------------
+   1️⃣ MATERIAL PALETTES
+--------------------------------------- */
+
+$light-primary: mat.$azure-palette;
+$light-tertiary: mat.$blue-palette;
+
+$dark-primary: mat.$blue-palette;
+$dark-tertiary: mat.$azure-palette;
+
+/* ---------------------------------------
+   2️⃣ LIGHT THEME (DEFAULT)
+--------------------------------------- */
+
+:root {
   @include mat.theme((
     color: (
-      primary: mat.$azure-palette,
-      tertiary: mat.$blue-palette,
+      primary: $light-primary,
+      tertiary: $light-tertiary,
+      theme-type: light,
     ),
     typography: Roboto,
     density: 0,
   ));
+
+  color-scheme: light;
+}
+
+/* ---------------------------------------
+   3️⃣ DARK THEME
+--------------------------------------- */
+
+[data-theme="dark"] {
+  @include mat.theme((
+    color: (
+      primary: $dark-primary,
+      tertiary: $dark-tertiary,
+      theme-type: dark,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+
+  color-scheme: dark;
+}
+
+/* ---------------------------------------
+   4️⃣ GLOBAL BASE STYLES
+--------------------------------------- */
+
+html, body {
+  height: 100%;
 }
 
 body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
-  color-scheme: light;
-
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
+  margin: 0;
   background-color: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
-  margin: 0;
-  height: 100%;
 }
-/* 🎯 100% WORKING TOAST STYLES FOR ANGULAR 21+ */
-
-.mat-mdc-snack-bar-container.toast-success,
-.toast-success {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-  border-radius: 16px !important;
-  border-left: 5px solid #047857 !important;
-  box-shadow: 0 20px 60px rgba(16, 185, 129, 0.4) !important;
-  color: white !important;
-}
-
-.mat-mdc-snack-bar-container.toast-error,
-.toast-error {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
-  border-radius: 16px !important;
-  border-left: 5px solid #b91c1c !important;
-  box-shadow: 0 20px 60px rgba(239, 68, 68, 0.4) !important;
-  color: white !important;
-}
-
-.mat-mdc-snack-bar-container.toast-info,
-.toast-info {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-  border-radius: 16px !important;
-  border-left: 5px solid #1d4ed8 !important;
-  box-shadow: 0 20px 60px rgba(59, 130, 246, 0.4) !important;
-  color: white !important;
-}
-
-.mat-mdc-snack-bar-container.toast-warning,
-.toast-warning {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
-  border-radius: 16px !important;
-  border-left: 5px solid #b45309 !important;
-  box-shadow: 0 20px 60px rgba(245, 158, 11, 0.4) !important;
-  color: #1f2937 !important;
-}
-
-/* Button styling */
-.mat-mdc-snack-bar-container .mat-mdc-button {
-  background: rgba(255,255,255,0.2) !important;
-  border-radius: 8px !important;
-  padding: 6px 16px !important;
-  font-weight: 600 !important;
-  color: white !important;
-}
-
-

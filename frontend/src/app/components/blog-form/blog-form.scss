@@ -1,0 +1,250 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  font-family: 'Roboto', sans-serif;
+  color: var(--mat-sys-on-surface);
+
+  .card {
+    background: var(--mat-sys-surface);
+    border: none;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+    .card-header {
+      position: relative;
+      padding: 2rem 2rem 2rem 6rem;
+      background: linear-gradient(
+        135deg,
+        var(--mat-sys-primary) 0%,
+        var(--mat-sys-primary-container) 100%
+      );
+      color: var(--mat-sys-on-primary);
+      overflow: hidden;
+
+      .bi {
+        font-size: 2rem;
+      }
+
+      h3.card-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+      }
+
+      p.card-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.9;
+      }
+
+      .bg-white.bg-opacity-10 {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        padding: 0.8rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    .card-body {
+      padding: 2.5rem 2rem;
+
+      .alert {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 1rem 1.5rem;
+        border-radius: 0.75rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+
+        i.bi {
+          font-size: 1.5rem;
+        }
+      }
+
+      form {
+        .form-floating {
+          position: relative;
+
+          input,
+          textarea {
+            background: var(--mat-sys-surface-container-low);
+            color: var(--mat-sys-on-surface);
+            border: 1px solid var(--mat-sys-outline-variant);
+            border-radius: 0.75rem;
+            padding: 1.25rem 1rem 0.5rem 1rem; // leave top space for label
+            width: 100%;
+            font-size: 1rem;
+
+            &:focus {
+              border-color: var(--mat-sys-primary);
+            }
+          }
+
+          label {
+            position: absolute;
+            top: 0.75rem;
+            left: 1rem;
+            font-size: 0.95rem;
+            color: var(--mat-sys-on-surface-variant);
+            
+            pointer-events: none;
+            transition: all 0.2s ease;
+          }
+
+          input:focus + label,
+          input:not(:placeholder-shown) + label,
+          textarea:focus + label,
+          textarea:not(:placeholder-shown) + label {
+            top: -0.5rem;
+            left: 0.75rem;
+            height: fit-content;
+            font-size: 0.75rem;
+            background: var(--mat-sys-surface-container-low);
+            padding: 0 0.25rem;
+            color: var(--mat-sys-primary);
+          }
+        }
+
+        .invalid-feedback {
+          display: block;
+          font-size: 0.85rem;
+          color: var(--mat-sys-error);
+        }
+
+        /* ================== DROP ZONE ================== */
+        .drop-zone {
+          border: 2px dashed var(--mat-sys-outline-variant);
+          border-radius: 0.75rem;
+          padding: 3rem 1.5rem;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.3s ease;
+
+          &.drag-over {
+            border-color: var(--mat-sys-primary);
+            background: var(--mat-sys-surface-container-low);
+          }
+
+          .bi {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+          }
+
+          h6 {
+            font-weight: 600;
+            font-size: 1rem;
+          }
+
+          p {
+            font-size: 0.85rem;
+            color: var(--mat-sys-on-surface-variant);
+          }
+        }
+
+        /* ================= MEDIA PREVIEW ================= */
+        .media-preview {
+          position: relative;
+          border-radius: 0.75rem;
+          overflow: hidden;
+          background: var(--mat-sys-surface-container-low);
+          transition: all 0.3s ease;
+
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+          }
+
+          .position-absolute.btn-close {
+            top: 0.5rem;
+            right: 0.5rem;
+            opacity: 0.85;
+            width: 2rem;
+            height: 2rem;
+          }
+
+          .bg-dark {
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            i.bi-play-fill {
+              font-size: 1.5rem;
+              color: #fff;
+            }
+          }
+
+          .p-2.bg-white {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            background: var(--mat-sys-surface);
+            border-top: 1px solid var(--mat-sys-outline-variant);
+          }
+
+          .badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+          }
+        }
+
+        /* ================= SUBMIT BUTTON ================= */
+        button[type='submit'] {
+          font-weight: 700;
+          font-size: 1.05rem;
+          border-radius: 1rem;
+          padding: 1rem 1.5rem;
+          background: var(--mat-sys-primary);
+          color: var(--mat-sys-on-primary);
+          box-shadow: 0 8px 24px rgba(var(--mat-sys-primary-rgb), 0.25);
+          transition: all 0.2s ease;
+
+          &:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(var(--mat-sys-primary-rgb), 0.35);
+          }
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+
+          .spinner-border {
+            width: 1.2rem;
+            height: 1.2rem;
+          }
+        }
+
+        .text-center small {
+          color: var(--mat-sys-on-surface-variant);
+        }
+      }
+    }
+  }
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .container .card {
+    .card-header {
+      padding-left: 4rem;
+    }
+
+    .card-body {
+      padding: 2rem 1.5rem;
+    }
+
+    .media-preview {
+      height: 120px;
+    }
+  }
+}

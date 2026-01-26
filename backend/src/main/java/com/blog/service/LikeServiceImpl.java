@@ -6,12 +6,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.blog.dto.LikeResponse;
 import com.blog.entity.BlogEntity;
 import com.blog.entity.LikeEntity;
-import com.blog.entity.NotificationEntity;
 import com.blog.entity.UserEntity;
 import com.blog.exception.ResourceNotFoundException;
 import com.blog.repository.BlogRepository;
 import com.blog.repository.LikeRepository;
-import com.blog.repository.NotificationRepository;
 import com.blog.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -26,7 +24,7 @@ public class LikeServiceImpl implements LikeService {
     private final LikeRepository likeRepository;
     private final UserRepository userRepository;
     private final BlogRepository blogRepository;
-    private final NotificationRepository notificationRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -53,17 +51,14 @@ public class LikeServiceImpl implements LikeService {
             likeRepository.save(like);
             liked = true;
             if (!blog.getUserId().getId().equals(user.getId())) {
-                NotificationEntity notification = NotificationEntity.builder()
-                        .user(blog.getUserId())
-                        .type("LIKE")
-                        .content(user.getUsername() + " liked your blog")
-                        .relatedId(blogId)
-                        .isRead(false)
-                        .createdAt(Instant.now())
-                        .updatedAt(Instant.now())
-                        .build();
-                notificationRepository.save(notification);
+                notificationService.createNotification(
+                        blog.getUserId().getId(), // receiver = blog owner
+                        "NEW_LIKE",
+                        user.getUsername() + " liked your blog",
+                        blogId // relatedId = blogId
+                );
             }
+
         }
 
         Long likeCount = likeRepository.countByBlog_Id(blogId);
@@ -83,7 +78,7 @@ public class LikeServiceImpl implements LikeService {
 
         boolean liked = likeRepository.existsByBlog_IdAndUser_Id(blogId, user.getId());
         Long likeCount = likeRepository.countByBlog_Id(blogId);
-    
+
         return new LikeResponse(liked, likeCount);
     }
 }

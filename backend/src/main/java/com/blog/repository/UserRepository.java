@@ -14,28 +14,31 @@ import org.springframework.data.repository.query.Param;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
-    Optional<UserEntity> findByUsername(String username);
+        Optional<UserEntity> findByUsername(String username);
 
-    Optional<UserEntity> findById(Long id);
+        Optional<UserEntity> findById(Long id);
 
-    Optional<UserEntity> findByEmail(String email); // Add this
+        Optional<UserEntity> findByEmail(String email); // Add this
 
-    boolean existsByUsername(String username);
+        boolean existsByUsername(String username);
 
-    boolean existsByEmail(String email);
+        boolean existsByEmail(String email);
 
-    List<UserEntity> findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-            String username, String email);
+        @Query("SELECT u FROM UserEntity u")
+        Page<UserEntity> findAllUsers(Pageable pageable);
 
-    // Page<UserEntity> findByUsernameContainingIgnoreCase(String username, Pageable
-    // pageable);
-    @Query("SELECT u FROM UserEntity u WHERE u.banned = false " +
-            "AND (:search IS NULL OR LOWER(u.username) LIKE LOWER(CONCAT('%', :search, '%')) " +
-            "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')))")
-    Page<UserEntity> findPublicUsers(@Param("search") String search, Pageable pageable);
+        List<UserEntity> findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                        String username, String email);
 
-    // Add to UserRepository
-    @Query("SELECT u FROM UserEntity u WHERE u.banned = false")
-    Page<UserEntity> findNonBannedUsers(Pageable pageable);
+        // Page<UserEntity> findByUsernameContainingIgnoreCase(String username, Pageable
+        // pageable);
+        @Query("SELECT u FROM UserEntity u WHERE u.banned = false " +
+                        "AND (:search IS NULL OR LOWER(u.username) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                        "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')))")
+        Page<UserEntity> findPublicUsers(@Param("search") String search, Pageable pageable);
+
+        // Add to UserRepository
+        @Query("SELECT u FROM UserEntity u WHERE u.banned = false")
+        Page<UserEntity> findNonBannedUsers(Pageable pageable);
 
 }
