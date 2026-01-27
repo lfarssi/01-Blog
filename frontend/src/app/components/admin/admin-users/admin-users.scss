@@ -37,7 +37,6 @@
       &:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(var(--mat-sys-primary-rgb), 0.5);
-        /* swap colors if you want gradient effect manually or use alpha */
       }
 
       &:active:not(:disabled) {
@@ -61,8 +60,13 @@
   }
 
   @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.6;
+    }
   }
 
   // Error Message
@@ -131,11 +135,14 @@
 
         &:hover {
           background: rgba(var(--mat-sys-primary-rgb), 0.05);
-
-          td { color: var(--mat-sys-on-surface); }
+          td {
+            color: var(--mat-sys-on-surface);
+          }
         }
 
-        &:last-child { border-bottom: none; }
+        &:last-child {
+          border-bottom: none;
+        }
 
         td {
           padding: 16px 20px;
@@ -143,16 +150,66 @@
           font-size: 14px;
           transition: color 0.3s ease;
 
-          &:first-child { color: var(--mat-sys-primary); font-weight: 500; }
-
-          &:last-child button:nth-of-type(1) {
-            background: var(--mat-sys-warning);
-            color: var(--mat-sys-on-warning);
+          &:first-child {
+            color: var(--mat-sys-primary);
+            font-weight: 500;
           }
 
-          &:last-child button:nth-of-type(2) {
-            background: var(--mat-sys-error);
-            color: var(--mat-sys-on-error);
+          &:last-child {
+            padding: 16px 12px !important; // Space for buttons
+
+            button {
+              margin-right: 8px;
+              margin-bottom: 4px;
+              min-width: 80px;
+              height: 36px;
+              font-size: 13px;
+              font-weight: 500;
+              border-radius: 6px;
+              transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+              &:hover:not(:disabled) {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+              }
+
+              &:active:not(:disabled) {
+                transform: translateY(0);
+              }
+
+              &:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+              }
+
+              &:last-child {
+                margin-right: 0;
+              }
+            }
+
+            // Ban toggle: warning theme
+            button.ban-btn {
+              background: rgba(var(--mat-sys-warning-rgb), 0.12);
+              color: var(--mat-sys-warning);
+              border: 1px solid rgba(var(--mat-sys-warning-rgb), 0.3);
+
+              &:hover:not(:disabled) {
+                background: rgba(var(--mat-sys-warning-rgb), 0.2);
+              }
+            }
+
+            // Delete: error theme
+            button.delete-btn {
+              background: rgba(var(--mat-sys-error-rgb), 0.12);
+              color: var(--mat-sys-error);
+              border: 1px solid rgba(var(--mat-sys-error-rgb), 0.3);
+
+              &:hover:not(:disabled) {
+                background: rgba(var(--mat-sys-error-rgb), 0.2);
+                box-shadow: 0 4px 12px rgba(var(--mat-sys-error-rgb), 0.2);
+              }
+            }
           }
         }
       }
@@ -162,8 +219,39 @@
   // Responsive
   @media (max-width: 768px) {
     padding: 20px 16px;
-    .header { flex-direction: column; gap: 16px; align-items: flex-start; h2 { font-size: 24px; } button { width: 100%; } }
-    .meta { flex-direction: column; gap: 12px; }
-    .users-table { font-size: 12px; thead th, tbody td { padding: 12px 12px; } td:last-child button { width: 100%; margin: 4px 0; min-width: unset; } }
+
+    .header {
+      flex-direction: column;
+      gap: 16px;
+      align-items: flex-start;
+
+      h2 {
+        font-size: 24px;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+
+    .meta {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .users-table {
+      font-size: 12px;
+
+      thead th,
+      tbody td {
+        padding: 12px 12px;
+      }
+
+      td:last-child button {
+        width: 100%;
+        margin: 4px 0;
+        margin-right: 0;
+      }
+    }
   }
 }

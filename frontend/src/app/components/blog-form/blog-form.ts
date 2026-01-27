@@ -6,8 +6,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { BlogsService } from '../../services/blogs.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-blog-form',
@@ -23,29 +25,39 @@ import { BlogsService } from '../../services/blogs.service';
     MatIconModule,
     MatProgressBarModule,
     ReactiveFormsModule,
+    MatSnackBarModule,
   ],
 })
 export class BlogFormComponent {
   private fb = inject(FormBuilder);
   private blogsService = inject(BlogsService);
+  private router = inject(Router);
+  private snackBar = inject(MatSnackBar);
+
+  /* ================= FORM ================= */
 
   form = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(5)]],
     content: ['', [Validators.required, Validators.minLength(20)]],
   });
 
-  // ✅ Multi-file signals - IMMEDIATE PREVIEWS
+  /* ================= STATE ================= */
+
   loading = signal(false);
   successMsg = signal<string | null>(null);
   errorMsg = signal<string | null>(null);
+
   selectedFiles = signal<File[]>([]);
   dragOver = signal(false);
   mediaPreviews = signal<Map<string, string>>(new Map());
 
   readonly f = this.form.controls;
-  readonly disabled = computed(() => this.loading() || this.selectedFiles().length === 4);
+  readonly disabled = computed(
+    () => this.loading() || this.selectedFiles().length > 4,
+  );
 
-  // ✅ Drag & Drop - IMMEDIATE feedback
+  /* ================= DRAG & DROP ================= */
+
   onDragOver(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
@@ -62,54 +74,78 @@ export class BlogFormComponent {
     event.preventDefault();
     event.stopPropagation();
     this.dragOver.set(false);
-    const files = Array.from(event.dataTransfer!.files);
+    const files = Array.from(event.dataTransfer?.files || []);
     this.processFiles(files);
   }
 
   onFilesSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files) {
-      const files = Array.from(input.files);
-      this.processFiles(files);
+      this.processFiles(Array.from(input.files));
       input.value = '';
     }
   }
 
-  // ✅ Process files IMMEDIATELY
+  /* ================= FILE HANDLING ================= */
+
   private processFiles(files: File[]): void {
-    const currentFiles = this.selectedFiles();
-    const validFiles = files.filter(file => file.size <= 10 * 1024 * 1024); // 10MB
-    const newFiles = [...currentFiles, ...validFiles].slice(0, 4);
-    
-    this.selectedFiles.set(newFiles);
-    this.generateImmediatePreviews(newFiles);
+    const allowedTypes = ['image/', 'video/'];
+    const maxSize = 10 * 1024 * 1024;
+
+    const validFiles: File[] = [];
+
+    for (const file of files) {
+      const validType = allowedTypes.some(t =>
+        file.type.startsWith(t),
+      );
+      const validSize = file.size <= maxSize;
+
+      if (!validType) {
+        this.showError(`Unsupported file type: ${file.name}`);
+        continue;
+      }
+
+      if (!validSize) {
+        this.showError(`File too large (max 10MB): ${file.name}`);
+        continue;
+      }
+
+      validFiles.push(file);
+    }
+
+    const merged = [...this.selectedFiles(), ...validFiles].slice(0, 4);
+    this.selectedFiles.set(merged);
+    this.generateImmediatePreviews(merged);
   }
 
-  // 🚀 IMMEDIATE PREVIEWS - No delay!
   private generateImmediatePreviews(files: File[]): void {
-    const previews = new Map<string, string>(this.mediaPreviews());
-    
+    const previews = new Map(this.mediaPreviews());
+
     files.forEach(file => {
       const key = file.name + file.size;
-      
-      // ✅ IMMEDIATE placeholder
+
+      if (previews.has(key)) return;
+
       previews.set(key, '');
       this.mediaPreviews.set(new Map(previews));
-      
-      // ✅ Async load
+
       const reader = new FileReader();
       reader.onload = () => {
-        const updatedPreviews = new Map(this.mediaPreviews());
-        updatedPreviews.set(key, reader.result as string);
-        this.mediaPreviews.set(new Map(updatedPreviews));
+        const updated = new Map(this.mediaPreviews());
+        updated.set(key, reader.result as string);
+        this.mediaPreviews.set(updated);
       };
       reader.readAsDataURL(file);
     });
   }
 
   getPreviewUrl(file: File): string {
-    return this.mediaPreviews().get(file.name + file.size) || 
-           (this.isVideoFile(file) ? '' : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmOWZhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk1YTVhNiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkxvYWRpbmcgLi4uPC90ZXh0Pjwvc3ZnPg==');
+    return (
+      this.mediaPreviews().get(file.name + file.size) ||
+      (this.isVideoFile(file)
+        ? ''
+        : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmOWZhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk1YTVhNiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkxvYWRpbmcgLi4uPC90ZXh0Pjwvc3ZnPg==')
+    );
   }
 
   isVideoFile(file: File): boolean {
@@ -118,19 +154,19 @@ export class BlogFormComponent {
 
   removeFile(file: File): void {
     this.selectedFiles.update(files => files.filter(f => f !== file));
-    // ✅ Clean preview
     const previews = new Map(this.mediaPreviews());
     previews.delete(file.name + file.size);
-    this.mediaPreviews.set(new Map(previews));
+    this.mediaPreviews.set(previews);
   }
 
   formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
+
+  /* ================= SUBMIT ================= */
 
   submit(): void {
     if (this.form.invalid) {
@@ -153,16 +189,45 @@ export class BlogFormComponent {
     this.blogsService.createBlog(formData).subscribe({
       next: () => {
         this.loading.set(false);
-        this.successMsg.set(`Blog created with ${this.selectedFiles().length} media files! 🎉`);
+        this.successMsg.set(
+          `Blog created with ${this.selectedFiles().length} media files 🎉`,
+        );
         this.form.reset();
         this.selectedFiles.set([]);
         this.mediaPreviews.set(new Map());
+        this.router.navigate(['/']);
       },
-      error: (err) => {
+      error: err => {
         this.loading.set(false);
-        this.errorMsg.set('Failed to create blog: ' + (err.error?.message || 'Try again'));
-        console.error('Blog error:', err);
+
+        let message = 'Failed to create blog. Please try again.';
+
+        if (err.status === 400 && err.error?.message) {
+          message = err.error.message;
+        } else if (err.status === 413) {
+          message = 'One of the uploaded files is too large.';
+        } else if (err.status === 415) {
+          message = 'Invalid media type detected.';
+        } else if (err.error?.errors?.length) {
+          message = err.error.errors.join(', ');
+        }
+
+        this.errorMsg.set(message);
+        this.showError(message);
+
+        console.error('Create blog error:', err);
       },
+    });
+  }
+
+  /* ================= UI HELPERS ================= */
+
+  private showError(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 5000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar'],
     });
   }
 }

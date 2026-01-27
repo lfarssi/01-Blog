@@ -64,7 +64,7 @@ loadUsers(searchTerm = '') {
   }
   onSearch(event: Event) {
   const term = (event.target as HTMLInputElement).value?.trim();
-  if (term?.length! > 2 || term === '') {  // Debounce + min length
+  if (term?.length! > 0 || term === '') {  // Debounce + min length
     this.loadUsers(term);
   }
 }

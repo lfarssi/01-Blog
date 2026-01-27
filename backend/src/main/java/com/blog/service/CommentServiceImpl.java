@@ -40,6 +40,11 @@ public class CommentServiceImpl implements CommentService {
                 BlogEntity blog = blogRepository.findById(blogId)
                                 .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
 
+                // Prevent commenting on hidden or deleted posts
+                if (blog.getVisible() != null && !blog.getVisible()) {
+                        throw new AccessDeniedException("Cannot comment on a hidden blog");
+                }
+
                 CommentEntity comment = CommentEntity.builder()
                                 .blog(blog)
                                 .user(user)

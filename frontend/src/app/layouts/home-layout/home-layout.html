@@ -5,7 +5,16 @@
     <router-outlet></router-outlet>
   </main>
 
-  <aside class="users-sidebar">
+  <aside class="users-sidebar" [class.open]="showUsers">
     <app-users></app-users>
   </aside>
 </div>
+
+<button
+  mat-fab
+  class="users-toggle-btn"
+  (click)="showUsers = !showUsers"
+  aria-label="Toggle users"
+>
+  <mat-icon>group</mat-icon>
+</button>

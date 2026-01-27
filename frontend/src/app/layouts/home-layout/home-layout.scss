@@ -1,18 +1,20 @@
 .home-content {
   display: flex;
   gap: 1rem;
-  min-height: calc(100vh - 64px); // Adjust for header height
+  min-height: calc(100vh - 64px);
   background: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
 }
 
+/* Main feed */
 .main-feed {
   flex: 4;
   overflow-y: auto;
-  background: var(--mat-sys-surface); // Ensure feed background adapts to theme
+  background: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
 }
 
+/* Users sidebar */
 .users-sidebar {
   flex: 1;
   border-left: 1px solid var(--mat-sys-outline);
@@ -20,15 +22,53 @@
   background: var(--mat-sys-surface-variant);
   color: var(--mat-sys-on-surface);
   overflow-y: auto;
+  transition: transform 0.3s ease;
 }
 
+/* Toggle button (hidden on desktop) */
+.users-toggle-btn {
+  display: none;
+}
+
+/* ================= MOBILE ================= */
 @media (max-width: 768px) {
   .home-content {
     flex-direction: column;
   }
+
+  /* Sidebar hidden by default */
   .users-sidebar {
-    order: -1; // Users above blogs on mobile
+    position: fixed;
+    top: 64px;
+    right: 0;
+    width: 80%;
+    max-width: 320px;
+    height: calc(100vh - 64px);
+    transform: translateX(100%);
+    z-index: 1000;
     border-left: none;
-    border-top: 1px solid var(--mat-sys-outline);
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Sidebar visible */
+  .users-sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Floating toggle button */
+  .users-toggle-btn {
+    display: flex;
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 1100;
+    background: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 }

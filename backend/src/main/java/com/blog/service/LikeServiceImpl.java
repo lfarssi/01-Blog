@@ -35,6 +35,11 @@ public class LikeServiceImpl implements LikeService {
         BlogEntity blog = blogRepository.findById(blogId)
                 .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
 
+        // Prevent liking hidden or deleted blogs
+        if (blog.getVisible() != null && !blog.getVisible()){
+            throw new RuntimeException("Cannot like a hidden or deleted blog");
+        }
+
         Optional<LikeEntity> existingLike = likeRepository.findByBlog_IdAndUser_Id(blogId, user.getId());
 
         boolean liked;
@@ -50,15 +55,15 @@ public class LikeServiceImpl implements LikeService {
                     .build();
             likeRepository.save(like);
             liked = true;
+
+            // Send notification if not self-like
             if (!blog.getUserId().getId().equals(user.getId())) {
                 notificationService.createNotification(
-                        blog.getUserId().getId(), // receiver = blog owner
+                        blog.getUserId().getId(),
                         "NEW_LIKE",
                         user.getUsername() + " liked your blog",
-                        blogId // relatedId = blogId
-                );
+                        blogId);
             }
-
         }
 
         Long likeCount = likeRepository.countByBlog_Id(blogId);
@@ -73,12 +78,19 @@ public class LikeServiceImpl implements LikeService {
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        blogRepository.findById(blogId)
+        BlogEntity blog = blogRepository.findById(blogId)
                 .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
+
+        // Prevent fetching like status for hidden/deleted blogs
+        if (blog.getVisible() != null && !blog.getVisible()) {
+            throw new RuntimeException("Cannot get like status for a hidden or deleted blog");
+        }
 
         boolean liked = likeRepository.existsByBlog_IdAndUser_Id(blogId, user.getId());
         Long likeCount = likeRepository.countByBlog_Id(blogId);
 
         return new LikeResponse(liked, likeCount);
     }
+
+ 
 }

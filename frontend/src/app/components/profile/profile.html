@@ -41,10 +41,7 @@
     <!-- ✅ TOP RIGHT ACTIONS -->
     <div class="profile-actions">
       @if (isOwnProfile()) {
-      <button mat-raised-button color="primary" (click)="editProfile()">
-        <mat-icon>edit</mat-icon>
-        Edit Profile
-      </button>
+      <!--     -->
       } @else {
       <button mat-raised-button [color]="isFollowing() ? 'accent' : 'primary'" (click)="toggleFollow()">
         <mat-icon>

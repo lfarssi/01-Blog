@@ -10,16 +10,11 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+
 import { BlogDetailService } from '../../services/blog-detail.service';
 import { BlogsService } from '../../services/blogs.service';
 import { ReportDialog } from '../report-dialog/report-dialog';
 import { Blog, Comment } from '../../models/blog.model';
-
-interface DecodedToken {
-  sub: string;
-  role: string;
-  userId: number;
-}
 
 @Component({
   selector: 'app-blog-detail',
@@ -38,38 +33,56 @@ interface DecodedToken {
   styleUrl: './blog-detail.scss',
 })
 export class BlogDetail implements OnInit {
-  // Signals for reactive state
+  /* =======================
+     CORE STATE
+  ======================== */
   blog = signal<Blog | null>(null);
-  loading = signal(true);
-  error = signal<string | null>(null);
-  isLiked = signal(false);
+  loadingBlog = signal(true);
+  blogError = signal<string | null>(null);
 
-  commentText = signal('');
-  comments = signal<Comment[]>([]);
-  loadingComments = signal(false);
-  postingComment = signal(false);
+  /** 🔒 POST AVAILABILITY */
+  isPostUnavailable = signal(false);
 
-  // User info signals
+  /* =======================
+     USER STATE
+  ======================== */
   currentUserId = signal<number | null>(null);
-  currentUsername = signal<string>('');
+  currentUsername = signal('');
   isAdmin = signal(false);
 
-  // Gallery state (max 4 media)
+  /* =======================
+     LIKE STATE
+  ======================== */
+  isLiked = signal(false);
+
+  /* =======================
+     COMMENTS STATE
+  ======================== */
+  comments = signal<Comment[]>([]);
+  commentText = signal('');
+  loadingComments = signal(false);
+  postingComment = signal(false);
+  commentsError = signal<string | null>(null);
+
+  /* =======================
+     MEDIA STATE
+  ======================== */
   selectedMediaIndex = signal(0);
 
-  // Media list (parsed + limited to 4)
   mediaList = computed(() => this.getMediaArray().slice(0, 4));
 
-  // Currently selected media url
-  selectedMediaUrl = computed(() => this.mediaList()[this.selectedMediaIndex()] ?? null);
+  selectedMediaUrl = computed(
+    () => this.mediaList()[this.selectedMediaIndex()] ?? null
+  );
 
-  // Is selected media a video?
   isSelectedVideo = computed(() => {
     const url = this.selectedMediaUrl();
     return !!url && /\.(mp4|avi|mov|wmv|flv|webm)$/i.test(url);
   });
 
-  // Inject dependencies
+  /* =======================
+     DEPENDENCIES
+  ======================== */
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private blogService = inject(BlogDetailService);
@@ -77,254 +90,336 @@ export class BlogDetail implements OnInit {
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
+  /* =======================
+     INIT
+  ======================== */
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.loadUserInfo();
-      this.loadBlog(id);
-      this.checkLikeStatus(id);
-      this.loadComments(id);
-    }
+    if (!id) return;
+
+    this.loadUserInfo();
+    this.loadBlog(id);
+    this.checkLikeStatus(id);
+    this.loadComments(id);
   }
 
+  /* =======================
+     ERROR HELPER
+  ======================== */
+  private extractErrorMessage(err: any, fallback: string): string {
+    if (!err) return fallback;
+
+    if (err.error) {
+      if (typeof err.error.message === 'string') return err.error.message;
+      if (typeof err.error.error === 'string') return err.error.error;
+      if (Array.isArray(err.error.errors)) return err.error.errors.join(', ');
+    }
+
+    if (err.status === 0) return 'Cannot reach server';
+    return fallback;
+  }
+
+  /* =======================
+     USER INFO
+  ======================== */
   loadUserInfo(): void {
-    const currentUserStr = localStorage.getItem('current_user');
-    if (currentUserStr) {
+    const userStr = localStorage.getItem('current_user');
+    if (userStr) {
       try {
-        const currentUser = JSON.parse(currentUserStr);
-        this.currentUserId.set(currentUser.id);
-        this.currentUsername.set(currentUser.username);
-        this.isAdmin.set(currentUser.role === 'admin');
-      } catch {
-        console.error('Failed to parse current_user');
-      }
+        const user = JSON.parse(userStr);
+        this.currentUserId.set(user.id);
+        this.currentUsername.set(user.username);
+        this.isAdmin.set(user.role === 'admin');
+        return;
+      } catch {}
     }
 
     const token = localStorage.getItem('token');
-    if (!currentUserStr && token) {
-      try {
-        const payload: any = JSON.parse(atob(token.split('.')[1]));
-        this.currentUsername.set(payload.sub || '');
-        this.isAdmin.set((payload.role || '').toLowerCase().includes('admin'));
-      } catch {
-        console.error('Failed to decode token');
-      }
-    }
+    if (!token) return;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      this.currentUsername.set(payload.sub ?? '');
+      this.isAdmin.set(
+        (payload.role ?? '').toLowerCase().includes('admin')
+      );
+    } catch {}
   }
 
-  isPostOwner(blog: Blog): boolean {
-    const userId = this.currentUserId();
-    const username = this.currentUsername();
-    return blog.author?.id === userId || blog.author?.username === username;
-  }
-
+  /* =======================
+     PERMISSIONS
+  ======================== */
   canEditBlog = computed(() => {
     const blog = this.blog();
-    if (!blog) return false;
-    return this.isPostOwner(blog) || this.isAdmin();
+    return (
+      !!blog &&
+      !this.isPostUnavailable() &&
+      (blog.author?.id === this.currentUserId() ||
+        blog.author?.username === this.currentUsername() ||
+        this.isAdmin())
+    );
   });
 
-  canDeleteBlog = computed(() => {
-    const blog = this.blog();
-    if (!blog) return false;
-    return this.isPostOwner(blog) || this.isAdmin();
-  });
+  canDeleteBlog = this.canEditBlog;
 
   canDeleteComment(comment: Comment): boolean {
-    const username = this.currentUsername();
-    const userId = this.currentUserId();
-    const isOwner = comment.author.username === username || comment.author.id === userId;
-    return isOwner || this.isAdmin();
+    return (
+      !this.isPostUnavailable() &&
+      (comment.author.id === this.currentUserId() ||
+        comment.author.username === this.currentUsername() ||
+        this.isAdmin())
+    );
   }
 
-  private parseMediaString(media: string | string[] | undefined | null): string[] {
+  /* =======================
+     MEDIA HELPERS
+  ======================== */
+  private parseMediaString(media?: string | string[] | null): string[] {
     if (!media) return [];
-    const BACKEND_URL = 'http://localhost:8080';
+    const BASE = 'http://localhost:8080';
 
     if (Array.isArray(media)) {
-      return media.map((url) => (url.startsWith('http') ? url : `${BACKEND_URL}${url}`));
+      return media.map((u) => (u.startsWith('http') ? u : BASE + u));
     }
 
     try {
-      const parsed = JSON.parse(media as string);
+      const parsed = JSON.parse(media);
       return Array.isArray(parsed)
-        ? parsed.map((url) => (url.startsWith('http') ? url : `${BACKEND_URL}${url}`))
+        ? parsed.map((u) => (u.startsWith('http') ? u : BASE + u))
         : [];
     } catch {
-      return media ? [`${BACKEND_URL}${media}`] : [];
+      return [BASE + media];
     }
-  }
-
-  showFirstMedia(): string | null {
-    return this.selectedMediaUrl() ?? null;
   }
 
   getMediaArray(): string[] {
     return this.parseMediaString(this.blog()?.media);
   }
 
-  hasMedia(): boolean {
-    return this.mediaList().length > 0;
-  }
-
-  isVideo(): boolean {
-    return this.isSelectedVideo();
-  }
-
-  getMediaCount(): number {
-    return this.mediaList().length;
-  }
-
   selectMedia(index: number): void {
-    const list = this.mediaList();
-    if (index < 0 || index >= list.length) return;
-    this.selectedMediaIndex.set(index);
+    if (this.isPostUnavailable()) return;
+    if (index >= 0 && index < this.mediaList().length) {
+      this.selectedMediaIndex.set(index);
+    }
   }
 
+  /* =======================
+     BLOG
+  ======================== */
   loadBlog(id: string): void {
+    this.loadingBlog.set(true);
+    this.blogError.set(null);
+    this.isPostUnavailable.set(false);
+
     this.blogService.getBlog(id).subscribe({
       next: (res) => {
+        // optional hidden flag support
+        if ((res.data as any)?.hidden === true) {
+          this.isPostUnavailable.set(true);
+          this.blogError.set('This post is hidden');
+          this.loadingBlog.set(false);
+          return;
+        }
+
         this.blog.set(res.data);
-        this.loading.set(false);
         this.selectedMediaIndex.set(0);
+        this.loadingBlog.set(false);
       },
-      error: () => {
-        this.error.set('Failed to load blog post');
-        this.loading.set(false);
+      error: (err) => {
+        this.isPostUnavailable.set(true);
+
+        this.blogError.set(
+          err.status === 404
+            ? 'This post has been deleted'
+            : err.status === 403
+            ? 'You do not have access to this post'
+            : this.extractErrorMessage(err, 'Failed to load blog post')
+        );
+
+        this.loadingBlog.set(false);
       },
-    });
-  }
-
-  checkLikeStatus(id: string): void {
-    this.blogService.getLikeStatus(id).subscribe({
-      next: (res) => this.isLiked.set(res.data.liked),
-      error: (err) => console.error('Failed to check like status', err),
-    });
-  }
-
-  likeBlog(): void {
-    const currentBlog = this.blog();
-    if (!currentBlog) return;
-
-    const blogId = Number(currentBlog.id);
-    this.blogService.toggleLike(blogId).subscribe({
-      next: (res) => {
-        this.isLiked.set(res.data.liked);
-        this.blog.set({
-          ...currentBlog,
-          likeCount: res.data.likeCount,
-        } as Blog);
-      },
-      error: (err) => console.error('Toggle failed:', err),
     });
   }
 
   editBlog(): void {
-    const currentBlog = this.blog();
-    if (currentBlog) {
-      this.router.navigate(['/blogs', currentBlog.id, 'edit']);
-    }
+    if (this.isPostUnavailable()) return;
+    const blog = this.blog();
+    if (blog) this.router.navigate(['/blogs', blog.id, 'edit']);
   }
 
+  deleteBlog(): void {
+    if (this.isPostUnavailable()) return;
+
+    const blog = this.blog();
+    if (!blog) return;
+    if (!confirm('Are you sure you want to delete this post?')) return;
+
+    this.blogService.deleteBlog(Number(blog.id)).subscribe({
+      next: () => this.router.navigate(['/']),
+      error: (err) =>
+        this.snackBar.open(
+          this.extractErrorMessage(err, 'Failed to delete post'),
+          'OK',
+          { duration: 3000 }
+        ),
+    });
+  }
+
+  /* =======================
+     LIKE
+  ======================== */
+  checkLikeStatus(id: string): void {
+    if (this.isPostUnavailable()) return;
+
+    this.blogService.getLikeStatus(id).subscribe({
+      next: (res) => this.isLiked.set(res.data.liked),
+      error: () => this.isLiked.set(false),
+    });
+  }
+
+  likeBlog(): void {
+    if (this.isPostUnavailable()) return;
+
+    const blog = this.blog();
+    if (!blog) return;
+
+    this.blogService.toggleLike(Number(blog.id)).subscribe({
+      next: (res) => {
+        this.isLiked.set(res.data.liked);
+        this.blog.set({ ...blog, likeCount: res.data.likeCount });
+      },
+      error: (err) =>
+        this.snackBar.open(
+          this.extractErrorMessage(err, 'Failed to like post'),
+          'OK',
+          { duration: 3000 }
+        ),
+    });
+  }
+
+  /* =======================
+     COMMENTS
+  ======================== */
   loadComments(id: string): void {
+    if (this.isPostUnavailable()) return;
+
     this.loadingComments.set(true);
+    this.commentsError.set(null);
+
     this.blogService.getComments(id).subscribe({
       next: (res) => {
         this.comments.set(res);
         this.loadingComments.set(false);
       },
       error: (err) => {
-        console.error('Failed to load comments', err);
+        this.commentsError.set(
+          this.extractErrorMessage(err, 'Failed to load comments')
+        );
         this.loadingComments.set(false);
       },
     });
   }
 
-  postComment(): void {
-    const currentBlog = this.blog();
-    const text = this.commentText().trim();
-    if (!currentBlog || !text) return;
+postComment(): void {
+  if (this.isPostUnavailable()) return;
 
-    this.postingComment.set(true);
-    this.blogService.postComment(Number(currentBlog.id), text).subscribe({
-      next: (res) => {
-        this.comments.update((c) => [res, ...c]);
-        this.commentText.set('');
-        this.postingComment.set(false);
+  const blog = this.blog();
+  const text = this.commentText().trim();
+  if (!blog || !text) return;
 
-        this.blog.set({
-          ...currentBlog,
-          commentCount: (currentBlog.commentCount || 0) + 1,
-        } as Blog);
-      },
-      error: (err) => {
-        console.error('Failed to post comment', err);
-        this.postingComment.set(false);
-      },
-    });
-  }
+  this.postingComment.set(true);
+
+  this.blogService.postComment(Number(blog.id), text).subscribe({
+    next: () => {
+      // Clear the input
+      this.commentText.set('');
+      // Refresh all comments from backend
+      this.blogService.getComments(blog.id.toString()).subscribe({
+        next: (comments) => {
+          this.comments.set(comments);
+          // Update comment count in blog
+          this.blog.set({
+            ...blog,
+            commentCount: comments.length,
+          });
+          this.postingComment.set(false);
+        },
+        error: (err) => {
+          this.postingComment.set(false);
+          this.snackBar.open(
+            this.extractErrorMessage(err, 'Failed to refresh comments'),
+            'OK',
+            { duration: 3000 }
+          );
+        },
+      });
+    },
+    error: (err) => {
+      this.postingComment.set(false);
+      this.snackBar.open(
+        this.extractErrorMessage(err, 'Failed to post comment'),
+        'OK',
+        { duration: 3000 }
+      );
+    },
+  });
+}
+
 
   deleteComment(commentId: number): void {
-    if (!confirm('Are you sure you want to delete this comment?')) return;
-
-    const currentBlog = this.blog();
+    if (this.isPostUnavailable()) return;
+    if (!confirm('Delete this comment?')) return;
 
     this.blogService.deleteComment(commentId).subscribe({
-      next: () => {
-        this.comments.update((c) => c.filter((comment) => comment.id !== commentId));
-
-        if (currentBlog) {
-          this.blog.set({
-            ...currentBlog,
-            commentCount: Math.max(0, (currentBlog.commentCount || 0) - 1),
-          } as Blog);
-        }
-      },
-      error: (err) => console.error('Failed to delete comment', err),
+      next: () =>
+        this.comments.update((c) =>
+          c.filter((comment) => comment.id !== commentId)
+        ),
+      error: (err) =>
+        this.snackBar.open(
+          this.extractErrorMessage(err, 'Failed to delete comment'),
+          'OK',
+          { duration: 3000 }
+        ),
     });
   }
 
-  deleteBlog(): void {
-    const currentBlog = this.blog();
-    if (!currentBlog) return;
-
-    if (!confirm('Are you sure you want to delete this post?')) return;
-
-    this.blogService.deleteBlog(Number(currentBlog.id)).subscribe({
-      next: () => {
-        this.router.navigate(['/']);
-      },
-      error: (err) => console.error('Failed to delete post', err),
-    });
-  }
-
-  getCurrentUsername(): string {
-    return this.currentUsername();
-  }
-
-  // NEW: Report functionality (complete)
+  /* =======================
+     REPORT
+  ======================== */
   openReportDialog(): void {
-    const dialogRef = this.dialog.open(ReportDialog, {
+    if (this.isPostUnavailable()) return;
+
+    const blog = this.blog();
+    if (!blog) return;
+
+    const ref = this.dialog.open(ReportDialog, {
       width: '480px',
-      data: this.blog()?.id!
+      data: blog.id,
     });
 
-    dialogRef.afterClosed().subscribe((reason: string | null) => {
-      if (reason) {
-        this.reportBlog(reason);
-      }
+    ref.afterClosed().subscribe((reason: string | null) => {
+      if (reason) this.reportBlog(reason);
     });
   }
 
   reportBlog(reason: string): void {
-    const blogId = this.blog()?.id!;
-    this.blogsService.reportBlog(blogId, reason).subscribe({
-      next: () => {
-        this.snackBar.open('Post reported successfully', 'OK', { duration: 3000 });
-      },
-      error: (err) => {
-        this.snackBar.open('Failed to report post', 'OK', { duration: 3000 });
-      }
+    if (this.isPostUnavailable()) return;
+
+    const blog = this.blog();
+    if (!blog) return;
+
+    this.blogsService.reportBlog(blog.id, reason).subscribe({
+      next: () =>
+        this.snackBar.open('Post reported successfully', 'OK', {
+          duration: 3000,
+        }),
+      error: (err) =>
+        this.snackBar.open(
+          this.extractErrorMessage(err, 'Failed to report post'),
+          'OK',
+          { duration: 3000 }
+        ),
     });
   }
 }

@@ -187,7 +187,10 @@ public class BlogServiceImpl implements BlogService {
     @Override
     // ✅ Replace your existing getBlogsByUser
     public List<BlogResponse> getUserBlogs(Long profileUserId, String currentUsername, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
 
         Long currentUserId = null;
         if (currentUsername != null) {
@@ -221,7 +224,10 @@ public class BlogServiceImpl implements BlogService {
             return List.of();
 
         // 2) page request (newest first)
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")); // [web:204]
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
 
         // 3) query blogs by authors you follow
         var pageResult = blogRepository.findByUserIdsAndVisibleTrue(followedIds, pageable);
