@@ -1,9 +1,129 @@
+/* ============================================================================
+   BLOGS LIST — PREMIUM FEED UI (NO HTML CHANGES)
+   Uses Material tokens | Light/Dark | Modern cards | Nice typography
+============================================================================ */
+
+.container.py-4 {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 22px 16px 34px !important;
+
+  color: var(--mat-sys-on-surface);
+}
+
+/* Title */
+.container.py-4 > h2 {
+  margin: 0 0 14px !important;
+  font: var(--mat-sys-headline-small);
+  letter-spacing: -0.5px;
+}
+
+/* Loading + simple states */
+.text-danger {
+  margin: 12px 0 16px !important;
+  padding: 12px 14px;
+  border-radius: 14px;
+
+  background: color-mix(in srgb, var(--mat-sys-error) 10%, var(--mat-sys-surface));
+  border: 1px solid color-mix(in srgb, var(--mat-sys-error) 35%, transparent);
+  color: var(--mat-sys-error) !important;
+}
+
+.mb-3:has(.spinner-border),
+.text-center.py-5 {
+  padding: 52px 0 !important;
+}
+
+/* Reduce bootstrap spacing and make feed compact */
+.row.g-3.mb-3 {
+  margin-bottom: 14px !important;
+}
+
+/* ============================================================================
+   CARD
+============================================================================ */
+
 .blog-card {
   cursor: pointer;
-  transition: all 0.3s ease;
+  border-radius: 20px !important;
+  overflow: hidden;
+
+  background: var(--mat-sys-surface);
+
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 60%, transparent);
+
+  box-shadow:
+    0 1px 0 rgba(0,0,0,0.03),
+    0 12px 30px rgba(0,0,0,0.08);
+
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--mat-sys-primary) 55%, transparent);
+    box-shadow:
+      0 1px 0 rgba(0,0,0,0.03),
+      0 20px 48px rgba(0,0,0,0.12);
   }
+
+  &:active {
+    transform: translateY(-1px);
+  }
+}
+
+/* Header spacing */
+:host ::ng-deep .blog-card .mat-mdc-card-header {
+  padding: 16px 16px 8px !important;
+}
+
+/* Title */
+:host ::ng-deep .blog-card .mat-mdc-card-title {
+  font: var(--mat-sys-title-large);
+  letter-spacing: -0.3px;
+  color: var(--mat-sys-on-surface);
+}
+
+/* Subtitle (author + date) */
+:host ::ng-deep .blog-card .mat-mdc-card-subtitle {
+  margin-top: 6px;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+
+  /* subtle pill background feel */
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mat-sys-surface) 84%, var(--mat-sys-primary) 16%);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
+}
+
+/* Content */
+:host ::ng-deep .blog-card .mat-mdc-card-content {
+  padding: 0 16px 16px !important;
+}
+
+/* Make the content look like modern feed text */
+:host ::ng-deep .blog-card .mat-mdc-card-content p {
+  margin: 8px 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.55;
+
+  /* clamp to avoid huge cards in feed */
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Empty state text */
+.container.py-4 .mb-3 {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+/* Small spinner look */
+.spinner-border {
+  border-color: var(--mat-sys-primary) transparent transparent transparent !important;
 }

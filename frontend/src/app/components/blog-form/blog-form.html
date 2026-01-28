@@ -1,193 +1,222 @@
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-8 col-md-10">
-      <div class="card shadow-lg border-0 rounded-4 overflow-hidden" style="max-width: 700px; margin: 0 auto;">
+<div class="create-blog">
+  <div class="shell">
 
-        <!-- Header -->
-        <div class="card-header bg-gradient text-white p-4 position-relative overflow-hidden">
-          <div class="bg-white bg-opacity-10 rounded-circle p-3 d-inline-block position-absolute" style="top: 20px; left: 20px;">
-            <i class="bi bi-images fs-3"></i>
-          </div>
-          <h3 class="card-title text-primary fw-bold mb-2 mt-2">Create New Blog</h3>
-          <p class="card-subtitle text-primary mb-0 opacity-90">Share up to 4 images/videos</p>
-        </div>
+    <!-- Header -->
+    <header class="hero">
+      <div class="hero__icon" aria-hidden="true">
+        <mat-icon>edit_square</mat-icon>
+      </div>
 
-        <div class="card-body p-4 p-md-5">
+      <div class="hero__text">
+        <h1>Create new blog</h1>
+        <p>Write your post and optionally attach up to 4 images/videos.</p>
+      </div>
 
-          <!-- Success/Error Alerts -->
-          @if (successMsg()) {
-            <div class="alert alert-success d-flex align-items-center gap-3 rounded-3 border-0 mb-4 shadow-sm animate__animated animate__fadeIn">
-              <i class="bi bi-check-circle-fill fs-4 text-success"></i>
-              <span>{{ successMsg() }}</span>
-            </div>
-          }
-          @if (errorMsg()) {
-            <div class="alert alert-danger d-flex align-items-center gap-3 rounded-3 border-0 mb-4 shadow-sm animate__animated animate__shakeX">
-              <i class="bi bi-exclamation-triangle-fill fs-4 text-danger"></i>
-              <span>{{ errorMsg() }}</span>
-            </div>
-          }
-
-          <!-- Form -->
-          <form [formGroup]="form" (ngSubmit)="submit()">
-
-            <!-- Title -->
-            <div class="mb-4">
-              <div class="form-floating mb-3">
-                <input matInput formControlName="title" 
-                       class="form-control form-control-lg rounded-3 shadow-sm" 
-                       id="titleInput" 
-                       placeholder="Enter a catchy title..." />
-                <label for="titleInput">
-                  <i class="bi bi-type me-2"></i>Blog Title *
-                </label>
-              </div>
-              @if (f.title.touched && f.title.invalid) {
-                <div class="invalid-feedback d-block text-danger small animate__animated animate__pulse">
-                  <i class="bi bi-exclamation-circle-fill me-1"></i>Title must be at least 5 characters
-                </div>
-              }
-            </div>
-
-            <!-- Content -->
-            <div class="mb-4">
-              <div class="form-floating">
-                <textarea matInput rows="6" formControlName="content" 
-                          class="form-control rounded-3 shadow-sm" 
-                          id="contentInput" 
-                          placeholder="Share your learning journey..." 
-                          style="min-height: 180px; resize: vertical;"></textarea>
-                <label for="contentInput">
-                  <i class="bi bi-card-text me-2"></i>Content *
-                </label>
-              </div>
-              @if (f.content.touched && f.content.invalid) {
-                <div class="invalid-feedback d-block text-danger small mt-2 animate__animated animate__pulse">
-                  <i class="bi bi-exclamation-circle-fill me-1"></i>Content must be at least 20 characters
-                </div>
-              }
-            </div>
-
-            <!-- ✨ MULTI-MEDIA UPLOAD ✨ -->
-            <div class="mb-4">
-              <label class="form-label fw-semibold mb-3 d-flex align-items-center justify-content-between">
-                <span>
-                  <i class="bi bi-images text-primary me-2"></i>
-                  Media (Optional - Max 4 files)
-                </span>
-                <span class="badge bg-primary rounded-pill">{{ selectedFiles().length }}/4</span>
-              </label>
-              
-              <!-- Drag Zone -->
-              <div class="drop-zone border-2 border-dashed rounded-3 p-5 mb-4 text-center transition-all position-relative overflow-hidden cursor-pointer"
-                   [class.drag-over]="dragOver()"
-                   [class.border-primary]="dragOver()"
-                   style="transition: all 0.2s ease;"
-                   (dragover)="onDragOver($event)" 
-                   (dragleave)="onDragLeave($event)"
-                   (drop)="onDrop($event)"
-                   (click)="fileInput.click()">
-                
-                @if (!dragOver()) {
-                  <i class="bi bi-cloud-upload fs-1 text-muted mb-3 d-block"></i>
-                  <h6 class="fw-bold text-muted mb-1">Drop files here or click</h6>
-                  <p class="text-muted mb-0 small">Supports JPG, PNG, GIF, MP4, MOV (Max 10MB each)</p>
-                } @else {
-                  <i class="bi bi-cloud-download fs-1 text-primary mb-3 d-block animate__animated animate__pulse animate__infinite"></i>
-                  <h6 class="fw-bold text-primary mb-1 animate__animated animate__pulse animate__infinite">Drop to upload</h6>
-                  <p class="badge bg-primary fs-6 px-3 py-2 animate__animated animate__pulse animate__infinite">Ready</p>
-                }
-                
-                <input #fileInput type="file" class="d-none"
-                       accept="image/*,video/*" multiple
-                       (change)="onFilesSelected($event)" />
-              </div>
-
-              <!-- ✅ Media Preview Grid -->
-              @if (selectedFiles().length > 0) {
-                <div class="row g-3 mb-3">
-                  @for (file of selectedFiles(); track file.name + $index; let i = $index) {
-                    <div class="col-6 col-sm-4 col-md-3 col-lg-3">
-                      <div class="media-preview rounded-3 overflow-hidden shadow border h-100 position-relative"
-                           style="height: 140px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); transition: all 0.3s ease;">
-                        
-                        <!-- Preview Content -->
-                        @if (getPreviewUrl(file)) {
-                          <div class="w-100 h-100 position-relative rounded-top bg-dark"
-                               [style.background-image]="'url(' + getPreviewUrl(file) + ')'"
-                               style="background-size: cover; background-position: center;">
-                            
-                            @if (isVideoFile(file)) {
-                              <div class="position-absolute top-50 start-50 translate-middle bg-dark bg-opacity-60 rounded-circle p-3 shadow">
-                                <i class="bi bi-play-fill fs-3 text-white"></i>
-                              </div>
-                            }
-                          </div>
-                        } @else {
-                          <!-- Loading State -->
-                          <div class="h-100 d-flex flex-column justify-content-center align-items-center text-center p-3">
-                            <div class="spinner-border spinner-border-sm text-muted mb-2" role="status"></div>
-                            <small class="text-muted fw-medium">{{ file.name | slice:0:12 }}{{ file.name.length > 12 ? '...' : '' }}</small>
-                          </div>
-                        }
-
-                        <!-- File Info Bar -->
-                        <div class="p-2 bg-white border-top d-flex justify-content-between align-items-center">
-                          <small class="text-muted text-truncate flex-grow-1 me-2">{{ file.name | slice:0:15 }}{{ file.name.length > 15 ? '...' : '' }}</small>
-                          <small class="badge bg-secondary bg-opacity-75 px-2">{{ formatFileSize(file.size) }}</small>
-                        </div>
-
-                        <!-- Delete Button -->
-                        <button type="button" class="position-absolute top-0 end-0 m-2 btn-close btn-close-white shadow rounded-circle p-1"
-                                style="width: 32px; height: 32px; z-index: 5; opacity: 0.9;"
-                                (click)="removeFile(file); $event.stopPropagation()"
-                                title="Remove file">
-                          <i class="bi bi-x-lg"></i>
-                        </button>
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
-
-              @if (selectedFiles().length === 4) {
-                <div class="alert alert-info border-0 rounded-3 text-center py-2 mb-0 animate__animated animate__tada">
-                  <i class="bi bi-check-circle me-2"></i>Maximum 4 files uploaded ✨
-                </div>
-              }
-            </div>
-
-            <!-- Submit Progress -->
-            @if (loading()) {
-              <div class="progress mb-4 rounded-3 overflow-hidden shadow-sm" style="height: 8px;">
-                <div class="progress-bar progress-bar-striped progress-bar-animated bg-gradient-primary" 
-                     role="progressbar" style="width: 100%;"></div>
-              </div>
-            }
-
-            <!-- Submit Button -->
-            <button type="submit" 
-                    class="btn btn-lg w-100 rounded-3 fw-bold py-4 position-relative overflow-hidden shadow-lg transition-all mb-3"
-                    [class.disabled]="disabled()"
-                    [disabled]="disabled()"
-                    style="transition: all 0.2s ease;">
-              @if (loading()) {
-                <span class="spinner-border spinner-border-sm me-3" role="status" style="width: 20px; height: 20px;"></span>
-                <span>Publishing...</span>
-              } @else {
-                <i class="bi bi-send-fill me-3"></i>
-                <span>{{ selectedFiles().length > 0 ? `Create Blog + ${selectedFiles().length} Media` : 'Create Blog Post' }}</span>
-              }
-            </button>
-
-            <div class="text-center">
-              <small class="text-muted">
-                <i class="bi bi-asterisk-circle text-danger me-1"></i>Title & Content required
-              </small>
-            </div>
-          </form>
+      <div class="hero__meta">
+        <div class="count">
+          <span class="count__num">{{ selectedFiles().length }}</span>
+          <span class="count__den">/ 4</span>
         </div>
       </div>
-    </div>
+    </header>
+
+    <!-- Alerts -->
+    @if (successMsg()) {
+      <div class="notice notice--success" role="status">
+        <mat-icon>check_circle</mat-icon>
+        <div class="notice__text">{{ successMsg() }}</div>
+      </div>
+    }
+
+    @if (errorMsg()) {
+      <div class="notice notice--error" role="alert">
+        <mat-icon>error</mat-icon>
+        <div class="notice__text">{{ errorMsg() }}</div>
+      </div>
+    }
+
+    <!-- Form -->
+    <form class="form" [formGroup]="form" (ngSubmit)="submit()">
+      <!-- Title -->
+      <div class="field">
+        <label class="field__label" for="title">Title</label>
+        <div class="field__control">
+          <mat-icon class="field__icon">title</mat-icon>
+          <input
+            id="title"
+            class="field__input"
+            type="text"
+            formControlName="title"
+            placeholder="A clear, catchy title…" />
+        </div>
+
+        @if (f.title.touched && f.title.invalid) {
+          <div class="field__error">
+            <mat-icon>error_outline</mat-icon>
+            <span>Title must be at least 5 characters.</span>
+          </div>
+        }
+      </div>
+
+      <!-- Content -->
+      <div class="field">
+        <label class="field__label" for="content">Content</label>
+        <div class="field__control field__control--textarea">
+          <mat-icon class="field__icon">notes</mat-icon>
+          <textarea
+            id="content"
+            class="field__input"
+            rows="7"
+            formControlName="content"
+            placeholder="Share your learning journey…"></textarea>
+        </div>
+
+        @if (f.content.touched && f.content.invalid) {
+          <div class="field__error">
+            <mat-icon>error_outline</mat-icon>
+            <span>Content must be at least 20 characters.</span>
+          </div>
+        }
+      </div>
+
+      <!-- Upload -->
+      <section class="upload">
+        <div class="upload__head">
+          <div class="upload__title">
+            <mat-icon>collections</mat-icon>
+            <span>Media</span>
+            <small>(optional)</small>
+          </div>
+
+          <div class="upload__hint">
+            JPG/PNG/GIF/MP4/MOV • max 10MB each
+          </div>
+        </div>
+
+        <!-- Dropzone -->
+        <div
+          class="dropzone"
+          [class.dropzone--over]="dragOver()"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+          (click)="fileInput.click()"
+          tabindex="0"
+          (keydown.enter)="fileInput.click()"
+          (keydown.space)="fileInput.click()"
+          role="button"
+          aria-label="Upload media">
+
+          <input
+            #fileInput
+            class="dropzone__input"
+            type="file"
+            accept="image/*,video/*"
+            multiple
+            (change)="onFilesSelected($event)" />
+
+          <div class="dropzone__content">
+            <div class="dropzone__badge">
+              <mat-icon>{{ dragOver() ? 'cloud_download' : 'cloud_upload' }}</mat-icon>
+            </div>
+
+            @if (!dragOver()) {
+              <div class="dropzone__text">
+                <strong>Drop files here</strong>
+                <span>or click to browse</span>
+              </div>
+            } @else {
+              <div class="dropzone__text">
+                <strong>Release to upload</strong>
+                <span>We’ll preview instantly</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Previews -->
+        @if (selectedFiles().length > 0) {
+          <div class="grid">
+            @for (file of selectedFiles(); track file.name + file.size; let i = $index) {
+              <article class="media">
+                <div class="media__preview">
+                  @if (isVideoFile(file)) {
+                    <video
+                      [src]="getPreviewUrl(file)"
+                      muted
+                      playsinline
+                      preload="metadata">
+                    </video>
+
+                    <div class="media__chip">
+                      <mat-icon>play_arrow</mat-icon>
+                      <span>Video</span>
+                    </div>
+                  } @else {
+                    <img [src]="getPreviewUrl(file)" [alt]="file.name" />
+                  }
+
+                  <button
+                    type="button"
+                    class="media__remove"
+                    (click)="removeFile(file); $event.stopPropagation()"
+                    aria-label="Remove file">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+
+                <footer class="media__meta">
+                  <div class="media__name" [title]="file.name">{{ file.name }}</div>
+                  <div class="media__size">{{ formatFileSize(file.size) }}</div>
+                </footer>
+              </article>
+            }
+          </div>
+        }
+
+        @if (selectedFiles().length === 4) {
+          <div class="cap">
+            <mat-icon>verified</mat-icon>
+            <span>Maximum 4 files added</span>
+          </div>
+        }
+      </section>
+
+      <!-- Progress -->
+      @if (loading()) {
+        <div class="bar" aria-label="Uploading">
+          <div class="bar__fill"></div>
+        </div>
+      }
+
+      <!-- Actions -->
+      <div class="actions">
+        <button
+          type="submit"
+          class="cta"
+          [disabled]="disabled()"
+          [class.cta--loading]="loading()">
+
+          @if (loading()) {
+            <span class="cta__spinner" aria-hidden="true"></span>
+            <span>Publishing…</span>
+          } @else {
+            <mat-icon>send</mat-icon>
+            <span>
+              @if (selectedFiles().length > 0) {
+                Create blog + {{ selectedFiles().length }} media
+              } @else {
+                Create blog post
+              }
+            </span>
+          }
+        </button>
+
+        <div class="footnote">
+          <mat-icon>info</mat-icon>
+          <span>Title and content are required.</span>
+        </div>
+      </div>
+    </form>
   </div>
 </div>

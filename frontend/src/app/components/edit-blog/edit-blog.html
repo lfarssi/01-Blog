@@ -1,187 +1,238 @@
-<div class="edit-blog-container">
+<div class="edit-blog">
 
-  <!-- Loading State -->
+  <!-- Loading -->
   @if (loading()) {
-  <div class="loading-state d-flex flex-column align-items-center justify-content-center p-5">
-    <mat-spinner diameter="56"></mat-spinner>
-    <p class="mt-3 text-muted">Loading blog...</p>
-  </div>
+    <div class="state state--loading">
+      <mat-spinner diameter="56"></mat-spinner>
+      <p>Loading blog…</p>
+    </div>
   } @else if (blog()) {
 
-  <!-- ================= FORM ================= -->
-  <form id="editor-form" [formGroup]="form" (ngSubmit)="submit()" class="editor-form">
+    <!-- HERO -->
+    <header class="hero">
+      <div class="hero__left">
+        <div class="hero__icon" aria-hidden="true">
+          <mat-icon>edit_note</mat-icon>
+        </div>
 
-    <mat-card class="editor-card shadow-lg border-0 rounded-3 mb-4">
+        <div class="hero__text">
+          <h1>Edit blog</h1>
+          <p class="hero__subtitle">
+            Update title/content and manage up to <strong>4</strong> media items.
+          </p>
+        </div>
+      </div>
 
-      <mat-card-header class="bg-gradient-primary text-white p-4 rounded-top-3">
-        <div class="d-flex align-items-center gap-3 w-100">
-          <mat-icon class="fs-2 opacity-90">edit</mat-icon>
-          <div class="flex-grow-1">
-            <mat-card-title class="fs-4 fw-bold mb-1">Edit Blog Post</mat-card-title>
-            <mat-card-subtitle class="opacity-90">
-              {{ blog()?.title }}
-            </mat-card-subtitle>
+      <div class="hero__right">
+        <div class="pill">
+          <mat-icon>collections</mat-icon>
+          <span>{{ media().length }}/4 media</span>
+        </div>
+
+        <div class="pill pill--soft">
+          <mat-icon>badge</mat-icon>
+          <span>ID: {{ blog()?.id }}</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Alerts -->
+    @if (successMsg()) {
+      <div class="notice notice--success" role="status">
+        <mat-icon>check_circle</mat-icon>
+        <span class="notice__text">{{ successMsg() }}</span>
+        <button
+          type="button"
+          class="notice__close"
+          (click)="successMsg.set(null)"
+          aria-label="Close">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    }
+
+    @if (errorMsg()) {
+      <div class="notice notice--error" role="alert">
+        <mat-icon>error</mat-icon>
+        <span class="notice__text">{{ errorMsg() }}</span>
+        <button
+          type="button"
+          class="notice__close"
+          (click)="errorMsg.set(null)"
+          aria-label="Close">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    }
+
+    <!-- FORM -->
+    <form id="editor-form" class="panel" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="panel__head">
+        <div class="panel__title">
+          <mat-icon>description</mat-icon>
+          <div>
+            <h2>Post details</h2>
+            <p>Make sure the title and content are meaningful (not only spaces).</p>
           </div>
         </div>
-      </mat-card-header>
 
-      <mat-card-content class="p-4">
+        <div class="panel__meta">
+          <div class="chip">
+            <mat-icon>schedule</mat-icon>
+            <span>Saved on update</span>
+          </div>
+        </div>
+      </div>
 
-        <!-- Title -->
-        <mat-form-field appearance="outline" class="w-100 mb-4">
-          <mat-label>Blog Title</mat-label>
-          <input matInput formControlName="title" cdkFocusInitial>
-          <mat-hint>Minimum 5 characters</mat-hint>
-          @if (f.title.touched && f.title.invalid) {
-          <mat-error>Title required (min 5 characters)</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- Content -->
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label>Content</mat-label>
-          <textarea matInput rows="10" formControlName="content"></textarea>
-          <mat-hint>Share your learning progress</mat-hint>
-          @if (f.content.touched && f.content.invalid) {
-          <mat-error>Content required (min 20 characters)</mat-error>
-          }
-        </mat-form-field>
-
-      </mat-card-content>
-    </mat-card>
-  </form>
-
-  <!-- ================= ALERTS ================= -->
-  @if (successMsg()) {
-  <div class="alert alert-success mx-4 mb-4 d-flex align-items-center">
-    <mat-icon class="me-2">check_circle</mat-icon>
-    {{ successMsg() }}
-    <button class="btn-close ms-auto" type="button" (click)="successMsg.set(null)"></button>
-  </div>
-  }
-
-  @if (errorMsg()) {
-  <div class="alert alert-danger mx-4 mb-4 d-flex align-items-center">
-    <mat-icon class="me-2">error</mat-icon>
-    {{ errorMsg() }}
-    <button class="btn-close ms-auto" type="button" (click)="errorMsg.set(null)"></button>
-  </div>
-  }
-
-  <!-- ================= MEDIA ================= -->
-  <mat-card class="shadow-sm border-0 rounded-3 mb-4 mx-4">
-
-    <mat-card-header>
-      <mat-card-title class="d-flex justify-content-between align-items-center">
-        <span>
-          <mat-icon class="me-2">photo_library</mat-icon>
-          Media
-        </span>
-        <span class="badge bg-info">{{ media().length }}/4</span>
-      </mat-card-title>
-    </mat-card-header>
-
-    <mat-card-content class="p-4">
-
-      <!-- Media Grid -->
-      <div class="row g-3">
-        @for (item of media(); track item.url; let i = $index) {
-        <div class="col-6 col-md-3">
-
-          <!-- IMPORTANT: keep media-tile -->
-          <div class="position-relative rounded-3 overflow-hidden shadow border media-tile" style="height: 160px">
-
-            @if (isVideo(item.url)) {
-            <video [src]="item.url" class="w-100 h-100 object-cover" muted></video>
-            } @else {
-            <img [src]="item.url" class="w-100 h-100 object-cover">
-            }
-
-            <!-- IMPORTANT: keep media-remove-btn -->
-            <button mat-icon-button type="button" class="media-remove-btn" (click)="removeMedia(i)">
-              <mat-icon>close</mat-icon>
-            </button>
-
-
-            <div
-              class="position-absolute bottom-0 start-0 end-0 p-2 bg-dark bg-opacity-75 text-white text-xs d-flex justify-content-between">
-              <small>Media {{ i + 1 }}</small>
-              @if (item.isNew) {
-              <small class="badge bg-warning">New</small>
+      <div class="panel__body">
+        <div class="fields">
+          <!-- Title -->
+          <div class="field">
+            <label class="label" for="title">Title</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Blog title</mat-label>
+              <input id="title" matInput formControlName="title" cdkFocusInitial />
+              <mat-hint>Minimum 5 characters</mat-hint>
+              @if (f.title.touched && f.title.invalid) {
+                <mat-error>Title required (min 5 characters)</mat-error>
               }
-            </div>
+            </mat-form-field>
+          </div>
 
+          <!-- Content -->
+          <div class="field">
+            <label class="label" for="content">Content</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Content</mat-label>
+              <textarea id="content" matInput rows="10" formControlName="content"></textarea>
+              <mat-hint>Minimum 20 characters</mat-hint>
+              @if (f.content.touched && f.content.invalid) {
+                <mat-error>Content required (min 20 characters)</mat-error>
+              }
+            </mat-form-field>
           </div>
         </div>
-        }
+      </div>
+    </form>
+
+    <!-- MEDIA PANEL -->
+    <section class="panel">
+      <div class="panel__head">
+        <div class="panel__title">
+          <mat-icon>photo_library</mat-icon>
+          <div>
+            <h2>Media</h2>
+            <p>Click “Choose files” to add new items. Remove any item instantly.</p>
+          </div>
+        </div>
+
+        <div class="panel__meta">
+          <div class="chip">
+            <mat-icon>layers</mat-icon>
+            <span>{{ 4 - media().length }} slots left</span>
+          </div>
+        </div>
       </div>
 
-      <!-- Empty Slots -->
-      <div class="row g-3 mt-2">
-        @for (_ of [].constructor(4 - media().length); track $index) {
-        <div class="col-6 col-md-3">
-          <div class="border border-dashed rounded-3 d-flex align-items-center justify-content-center text-muted"
-            style="height: 160px">
+      <div class="panel__body">
+        <!-- Media Grid -->
+        <div class="media-grid">
+          @for (item of media(); track item.url; let i = $index) {
+            <article class="media-tile">
+              <div class="media-tile__preview">
+                @if (isVideo(item.url)) {
+                  <video [src]="item.url" muted playsinline preload="metadata"></video>
+                  <div class="media-tile__badge">
+                    <mat-icon>play_arrow</mat-icon>
+                    <span>Video</span>
+                  </div>
+                } @else {
+                  <img [src]="item.url" alt="Media preview" />
+                }
+
+                <!-- IMPORTANT: keep media-remove-btn -->
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="media-remove-btn"
+                  (click)="removeMedia(i)"
+                  aria-label="Remove media">
+                  <mat-icon>close</mat-icon>
+                </button>
+
+                <div class="media-tile__footer">
+                  <span>Media {{ i + 1 }}</span>
+                  @if (item.isNew) {
+                    <span class="tag tag--new">New</span>
+                  } @else {
+                    <span class="tag">Existing</span>
+                  }
+                </div>
+              </div>
+            </article>
+          }
+
+          <!-- Empty placeholders -->
+          @for (_ of [].constructor(4 - media().length); track $index) {
+            <article class="media-empty" aria-hidden="true">
+              <div class="media-empty__box">
+                <mat-icon>add</mat-icon>
+                <span>Empty slot</span>
+              </div>
+            </article>
+          }
+        </div>
+
+        <!-- Upload -->
+        <div class="upload">
+          <input
+            #fileInput
+            type="file"
+            class="upload__input"
+            accept="image/*,video/*"
+            multiple
+            (change)="onNewFilesSelected($event)" />
+
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            [disabled]="media().length >= 4 || isSaving()"
+            (click)="fileInput.click()">
             <mat-icon>add</mat-icon>
+            Choose files
+          </button>
+
+          <div class="upload__hint">
+            Max 4 items • images/videos only • best under 10MB each
           </div>
         </div>
-        }
       </div>
+    </section>
 
-    </mat-card-content>
-  </mat-card>
-
-  <!-- ================= UPLOAD ================= -->
-  <mat-card class="shadow-sm border-0 rounded-3 mb-4 mx-4">
-    <mat-card-header>
-      <mat-card-title class="d-flex justify-content-between">
-        <span>
-          <mat-icon class="me-2">cloud_upload</mat-icon>
-          Add Media
-        </span>
-        <span class="badge bg-warning">
-          {{ 4 - media().length }} slots left
-        </span>
-      </mat-card-title>
-    </mat-card-header>
-
-    <mat-card-content class="p-4 text-center">
-
-      <input #fileInput type="file" class="d-none" accept="image/*,video/*" multiple
-        (change)="onNewFilesSelected($event)">
-
-      <button mat-raised-button color="primary" type="button" [disabled]="media().length >= 4 || isSaving()"
-        (click)="fileInput.click()">
-        <mat-icon class="me-2">add</mat-icon>
-        Choose Files
+    <!-- ACTIONS -->
+    <footer class="actions">
+      <button mat-stroked-button type="button" (click)="cancel()" [disabled]="isSaving()">
+        <mat-icon>close</mat-icon>
+        Cancel
       </button>
 
-      <p class="text-muted mt-2">Maximum 4 media files</p>
+      <div class="actions__right">
+        <button mat-flat-button color="warn" type="button" (click)="deleteBlog()" [disabled]="isSaving()">
+          <mat-icon>delete</mat-icon>
+          Delete
+        </button>
 
-    </mat-card-content>
-  </mat-card>
-
-  <!-- ================= ACTIONS ================= -->
-  <div class="mx-4 mb-4 p-4 bg-light rounded-3 d-flex justify-content-between">
-
-    <button mat-stroked-button type="button" (click)="cancel()" [disabled]="isSaving()">
-      <mat-icon class="me-2">close</mat-icon>
-      Cancel
-    </button>
-
-    <div class="d-flex gap-2">
-      <button mat-flat-button color="warn" type="button" (click)="deleteBlog()" [disabled]="isSaving()">
-        <mat-icon class="me-2">delete</mat-icon>
-        Delete
-      </button>
-
-      <button mat-raised-button color="primary" type="submit" form="editor-form"
-        [disabled]="form.invalid || isSaving() || media().length > 4">
-        <mat-icon class="me-2">save</mat-icon>
-        Update Blog
-      </button>
-    </div>
-
-  </div>
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          form="editor-form"
+          [disabled]="form.invalid || isSaving() || media().length > 4">
+          <mat-icon>save</mat-icon>
+          @if (isSaving()) { Saving… } @else { Update }
+        </button>
+      </div>
+    </footer>
   }
 </div>

@@ -72,7 +72,7 @@ export class BlogDetail implements OnInit {
   mediaList = computed(() => this.getMediaArray().slice(0, 4));
 
   selectedMediaUrl = computed(
-    () => this.mediaList()[this.selectedMediaIndex()] ?? null
+    () => this.mediaList()[this.selectedMediaIndex()] ?? null,
   );
 
   isSelectedVideo = computed(() => {
@@ -140,9 +140,7 @@ export class BlogDetail implements OnInit {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       this.currentUsername.set(payload.sub ?? '');
-      this.isAdmin.set(
-        (payload.role ?? '').toLowerCase().includes('admin')
-      );
+      this.isAdmin.set((payload.role ?? '').toLowerCase().includes('admin'));
     } catch {}
   }
 
@@ -232,8 +230,8 @@ export class BlogDetail implements OnInit {
           err.status === 404
             ? 'This post has been deleted'
             : err.status === 403
-            ? 'You do not have access to this post'
-            : this.extractErrorMessage(err, 'Failed to load blog post')
+              ? 'You do not have access to this post'
+              : this.extractErrorMessage(err, 'Failed to load blog post'),
         );
 
         this.loadingBlog.set(false);
@@ -260,7 +258,7 @@ export class BlogDetail implements OnInit {
         this.snackBar.open(
           this.extractErrorMessage(err, 'Failed to delete post'),
           'OK',
-          { duration: 3000 }
+          { duration: 3000 },
         ),
     });
   }
@@ -292,7 +290,7 @@ export class BlogDetail implements OnInit {
         this.snackBar.open(
           this.extractErrorMessage(err, 'Failed to like post'),
           'OK',
-          { duration: 3000 }
+          { duration: 3000 },
         ),
     });
   }
@@ -313,73 +311,87 @@ export class BlogDetail implements OnInit {
       },
       error: (err) => {
         this.commentsError.set(
-          this.extractErrorMessage(err, 'Failed to load comments')
+          this.extractErrorMessage(err, 'Failed to load comments'),
         );
         this.loadingComments.set(false);
       },
     });
   }
 
-postComment(): void {
-  if (this.isPostUnavailable()) return;
+  // ✅ Updated: blocks spaces-only + prevents double submit + safer commentCount update
+  postComment(): void {
+    if (this.isPostUnavailable()) return;
+    if (this.postingComment()) return; // prevent double click spam
 
-  const blog = this.blog();
-  const text = this.commentText().trim();
-  if (!blog || !text) return;
+    const blog = this.blog();
+    const text = this.commentText().trim();
 
-  this.postingComment.set(true);
+    if (!blog) return;
 
-  this.blogService.postComment(Number(blog.id), text).subscribe({
-    next: () => {
-      // Clear the input
-      this.commentText.set('');
-      // Refresh all comments from backend
-      this.blogService.getComments(blog.id.toString()).subscribe({
-        next: (comments) => {
-          this.comments.set(comments);
-          // Update comment count in blog
-          this.blog.set({
-            ...blog,
-            commentCount: comments.length,
-          });
-          this.postingComment.set(false);
-        },
-        error: (err) => {
-          this.postingComment.set(false);
-          this.snackBar.open(
-            this.extractErrorMessage(err, 'Failed to refresh comments'),
-            'OK',
-            { duration: 3000 }
-          );
-        },
-      });
-    },
-    error: (err) => {
-      this.postingComment.set(false);
-      this.snackBar.open(
-        this.extractErrorMessage(err, 'Failed to post comment'),
-        'OK',
-        { duration: 3000 }
-      );
-    },
-  });
-}
+    if (!text) {
+      this.snackBar.open('Comment cannot be empty', 'OK', { duration: 2500 });
+      return;
+    }
 
+    this.postingComment.set(true);
+
+    this.blogService.postComment(Number(blog.id), text).subscribe({
+      next: () => {
+        // Clear the input
+        this.commentText.set('');
+
+        // Refresh all comments from backend
+        this.blogService.getComments(String(blog.id)).subscribe({
+          next: (comments) => {
+            this.comments.set(comments);
+
+            // Update comment count in blog (use update to avoid stale blog ref)
+            this.blog.update((b) =>
+              b ? { ...b, commentCount: comments.length } : b,
+            );
+
+            this.postingComment.set(false);
+          },
+          error: (err) => {
+            this.postingComment.set(false);
+            this.snackBar.open(
+              this.extractErrorMessage(err, 'Failed to refresh comments'),
+              'OK',
+              { duration: 3000 },
+            );
+          },
+        });
+      },
+      error: (err) => {
+        this.postingComment.set(false);
+        this.snackBar.open(
+          this.extractErrorMessage(err, 'Failed to post comment'),
+          'OK',
+          { duration: 3000 },
+        );
+      },
+    });
+  }
 
   deleteComment(commentId: number): void {
     if (this.isPostUnavailable()) return;
     if (!confirm('Delete this comment?')) return;
 
     this.blogService.deleteComment(commentId).subscribe({
-      next: () =>
-        this.comments.update((c) =>
-          c.filter((comment) => comment.id !== commentId)
-        ),
+      next: () => {
+        // remove from UI
+        this.comments.update((c) => c.filter((cm) => cm.id !== commentId));
+
+        // keep blog.commentCount in sync
+        this.blog.update((b) =>
+          b ? { ...b, commentCount: Math.max(0, (b.commentCount ?? 0) - 1) } : b,
+        );
+      },
       error: (err) =>
         this.snackBar.open(
           this.extractErrorMessage(err, 'Failed to delete comment'),
           'OK',
-          { duration: 3000 }
+          { duration: 3000 },
         ),
     });
   }
@@ -418,7 +430,7 @@ postComment(): void {
         this.snackBar.open(
           this.extractErrorMessage(err, 'Failed to report post'),
           'OK',
-          { duration: 3000 }
+          { duration: 3000 },
         ),
     });
   }

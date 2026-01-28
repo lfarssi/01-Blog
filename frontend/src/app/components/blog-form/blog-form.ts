@@ -1,5 +1,12 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  AbstractControl,
+  ValidationErrors,
+  ValidatorFn,
+  FormBuilder,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +17,23 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { BlogsService } from '../../services/blogs.service';
 import { Router } from '@angular/router';
+
+// ─────────────────────────────
+// ✅ Trim-aware validators (spaces-only becomes invalid)
+// ─────────────────────────────
+function requiredTrimmed(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const v = String(control.value ?? '');
+    return v.trim().length ? null : { requiredTrimmed: true };
+  };
+}
+
+function minLengthTrimmed(min: number): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const v = String(control.value ?? '');
+    return v.trim().length >= min ? null : { minLengthTrimmed: { min } };
+  };
+}
 
 @Component({
   selector: 'app-blog-form',
@@ -36,9 +60,10 @@ export class BlogFormComponent {
 
   /* ================= FORM ================= */
 
+  // ✅ spaces-only invalid + trimmed length
   form = this.fb.group({
-    title: ['', [Validators.required, Validators.minLength(5)]],
-    content: ['', [Validators.required, Validators.minLength(20)]],
+    title: ['', [requiredTrimmed(), minLengthTrimmed(5)]],
+    content: ['', [requiredTrimmed(), minLengthTrimmed(20)]],
   });
 
   /* ================= STATE ================= */
@@ -95,9 +120,7 @@ export class BlogFormComponent {
     const validFiles: File[] = [];
 
     for (const file of files) {
-      const validType = allowedTypes.some(t =>
-        file.type.startsWith(t),
-      );
+      const validType = allowedTypes.some(t => file.type.startsWith(t));
       const validSize = file.size <= maxSize;
 
       if (!validType) {
@@ -178,9 +201,21 @@ export class BlogFormComponent {
     this.successMsg.set(null);
     this.errorMsg.set(null);
 
+    const title = this.form.value.title?.trim() ?? '';
+    const content = this.form.value.content?.trim() ?? '';
+
+    // Extra safety: if somehow whitespace slips through
+    if (!title || !content) {
+      const msg = 'Title and content cannot be empty';
+      this.errorMsg.set(msg);
+      this.showError(msg);
+      this.loading.set(false);
+      return;
+    }
+
     const formData = new FormData();
-    formData.append('title', this.form.value.title!);
-    formData.append('content', this.form.value.content!);
+    formData.append('title', title);
+    formData.append('content', content);
 
     this.selectedFiles().forEach(file => {
       formData.append('media', file, file.name);

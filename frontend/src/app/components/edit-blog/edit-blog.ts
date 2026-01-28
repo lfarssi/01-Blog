@@ -8,7 +8,14 @@ import {
   DestroyRef,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  AbstractControl,
+  ValidationErrors,
+  ValidatorFn,
+  FormBuilder,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -19,14 +26,32 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { BlogsService } from '../../services/blogs.service';
 import { Blog } from '../../models/blog.model';
 
 interface MediaItem {
   url: string;
-  file?: File;     // present only for new media
+  file?: File; // present only for new media
   isNew: boolean;
+}
+
+// ─────────────────────────────
+// ✅ Trim-aware validators (spaces-only becomes invalid)
+// ─────────────────────────────
+function requiredTrimmed(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const v = String(control.value ?? '');
+    return v.trim().length ? null : { requiredTrimmed: true };
+  };
+}
+
+function minLengthTrimmed(min: number): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const v = String(control.value ?? '');
+    return v.trim().length >= min ? null : { minLengthTrimmed: { min } };
+  };
 }
 
 @Component({
@@ -41,6 +66,7 @@ interface MediaItem {
     MatCardModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatSnackBarModule,
   ],
   templateUrl: './edit-blog.html',
   styleUrls: ['./edit-blog.scss'],
@@ -52,6 +78,7 @@ export class EditBlogComponent implements OnInit {
   private fb = inject(FormBuilder);
   private blogsService = inject(BlogsService);
   private destroyRef = inject(DestroyRef);
+  private snackBar = inject(MatSnackBar);
 
   // ─────────────────────────────
   // Core state
@@ -61,6 +88,9 @@ export class EditBlogComponent implements OnInit {
   isSaving = signal(false);
   successMsg = signal<string | null>(null);
   errorMsg = signal<string | null>(null);
+
+  /** 🔒 POST AVAILABILITY */
+  isPostUnavailable = signal(false);
 
   // ─────────────────────────────
   // Unified Media (MAX 4)
@@ -72,11 +102,11 @@ export class EditBlogComponent implements OnInit {
   readonly canAddMedia = computed(() => this.mediaCount() < this.MAX_MEDIA);
 
   // ─────────────────────────────
-  // Form
+  // Form (✅ spaces-only invalid + trimmed length)
   // ─────────────────────────────
   form = this.fb.group({
-    title: ['', [Validators.required, Validators.minLength(5)]],
-    content: ['', [Validators.required, Validators.minLength(20)]],
+    title: ['', [requiredTrimmed(), minLengthTrimmed(5)]],
+    content: ['', [requiredTrimmed(), minLengthTrimmed(20)]],
   });
 
   readonly f = this.form.controls;
@@ -91,6 +121,52 @@ export class EditBlogComponent implements OnInit {
   }
 
   // ─────────────────────────────
+  // Error helpers (same style as BlogDetail / BlogForm)
+  // ─────────────────────────────
+  private extractErrorMessage(err: any, fallback: string): string {
+    if (!err) return fallback;
+
+    // Backend message shapes
+    if (err.error) {
+      if (typeof err.error.message === 'string') return err.error.message;
+      if (typeof err.error.error === 'string') return err.error.error;
+      if (Array.isArray(err.error.errors) && err.error.errors.length) {
+        return err.error.errors.join(', ');
+      }
+    }
+
+    // Network
+    if (err.status === 0) return 'Cannot reach server';
+
+    // Common HTTP mappings
+    if (err.status === 401) return 'You must be logged in';
+    if (err.status === 403) return 'You are not allowed to perform this action';
+    if (err.status === 404) return 'Blog not found';
+    if (err.status === 413) return 'One of the uploaded files is too large';
+    if (err.status === 415) return 'Invalid media type (only images/videos allowed)';
+
+    return fallback;
+  }
+
+  private showError(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 5000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar'],
+    });
+  }
+
+  private showSuccess(message: string): void {
+    this.snackBar.open(message, 'OK', {
+      duration: 3000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+      panelClass: ['success-snackbar'],
+    });
+  }
+
+  // ─────────────────────────────
   // Helpers
   // ─────────────────────────────
   isVideo(url: string): boolean {
@@ -102,6 +178,8 @@ export class EditBlogComponent implements OnInit {
   // ─────────────────────────────
   private loadBlog(id: number): void {
     this.loading.set(true);
+    this.errorMsg.set(null);
+    this.isPostUnavailable.set(false);
 
     this.blogsService
       .getBlogById(id)
@@ -109,6 +187,17 @@ export class EditBlogComponent implements OnInit {
       .subscribe({
         next: (res: any) => {
           const blog = res.data ?? res;
+
+          // Optional: if backend includes a hidden/visible flag
+          if ((blog as any)?.visible === false) {
+            this.isPostUnavailable.set(true);
+            const msg = 'This blog is hidden';
+            this.errorMsg.set(msg);
+            this.showError(msg);
+            this.loading.set(false);
+            return;
+          }
+
           this.blog.set(blog);
 
           this.form.patchValue({
@@ -120,14 +209,24 @@ export class EditBlogComponent implements OnInit {
             (url): MediaItem => ({
               url,
               isNew: false,
-            })
+            }),
           );
 
           this.media.set(existingMedia.slice(0, this.MAX_MEDIA));
           this.loading.set(false);
         },
-        error: () => {
-          this.errorMsg.set('Failed to load blog');
+        error: (err) => {
+          this.isPostUnavailable.set(true);
+
+          const msg =
+            err.status === 404
+              ? 'This blog has been deleted'
+              : err.status === 403
+                ? 'You do not have access to this blog'
+                : this.extractErrorMessage(err, 'Failed to load blog');
+
+          this.errorMsg.set(msg);
+          this.showError(msg);
           this.loading.set(false);
         },
       });
@@ -137,15 +236,32 @@ export class EditBlogComponent implements OnInit {
   // Media actions
   // ─────────────────────────────
   onNewFilesSelected(event: Event): void {
+    if (this.isPostUnavailable()) return;
+
     const input = event.target as HTMLInputElement;
     if (!input.files) return;
 
-    const files = Array.from(input.files).filter(
-      (f) => f.size <= 10 * 1024 * 1024
-    );
+    const maxSize = 10 * 1024 * 1024;
+    const allowedTypes = ['image/', 'video/'];
 
-    files.forEach((file) => {
-      if (!this.canAddMedia()) return;
+    const files = Array.from(input.files);
+
+    for (const file of files) {
+      if (!this.canAddMedia()) {
+        this.showError(`Maximum ${this.MAX_MEDIA} media files allowed`);
+        break;
+      }
+
+      const okType = allowedTypes.some((t) => file.type.startsWith(t));
+      if (!okType) {
+        this.showError(`Unsupported file type: ${file.name}`);
+        continue;
+      }
+
+      if (file.size > maxSize) {
+        this.showError(`File too large (max 10MB): ${file.name}`);
+        continue;
+      }
 
       const reader = new FileReader();
       reader.onload = () => {
@@ -159,12 +275,14 @@ export class EditBlogComponent implements OnInit {
         ]);
       };
       reader.readAsDataURL(file);
-    });
+    }
 
     input.value = '';
   }
 
   removeMedia(index: number): void {
+    if (this.isPostUnavailable()) return;
+
     this.media.update((list) => {
       const copy = [...list];
       copy.splice(index, 1);
@@ -176,9 +294,16 @@ export class EditBlogComponent implements OnInit {
   // Submit
   // ─────────────────────────────
   submit(): void {
+    if (this.isPostUnavailable()) {
+      this.showError('This blog is no longer available');
+      return;
+    }
+
     if (this.form.invalid || this.mediaCount() > this.MAX_MEDIA) {
       this.form.markAllAsTouched();
-      this.errorMsg.set('Fix form errors or reduce media');
+      const msg = 'Fix form errors or reduce media';
+      this.errorMsg.set(msg);
+      this.showError(msg);
       return;
     }
 
@@ -189,9 +314,21 @@ export class EditBlogComponent implements OnInit {
     this.errorMsg.set(null);
     this.successMsg.set(null);
 
+    const title = this.form.value.title?.trim() ?? '';
+    const content = this.form.value.content?.trim() ?? '';
+
+    // Extra safety: if somehow whitespace slips through
+    if (!title || !content) {
+      const msg = 'Title and content cannot be empty';
+      this.errorMsg.set(msg);
+      this.showError(msg);
+      this.isSaving.set(false);
+      return;
+    }
+
     const formData = new FormData();
-    formData.append('title', this.form.value.title!);
-    formData.append('content', this.form.value.content!);
+    formData.append('title', title);
+    formData.append('content', content);
 
     // Existing media (keep)
     const keptMedia = this.media()
@@ -211,17 +348,40 @@ export class EditBlogComponent implements OnInit {
       .subscribe({
         next: () => {
           this.isSaving.set(false);
-          this.successMsg.set('Blog updated successfully');
-          setTimeout(() => this.router.navigate(['/blogs', blogId]), 1200);
+
+          const msg = 'Blog updated successfully';
+          this.successMsg.set(msg);
+          this.showSuccess(msg);
+
+          setTimeout(() => this.router.navigate(['/blogs', blogId]), 900);
         },
-        error: () => {
+        error: (err) => {
           this.isSaving.set(false);
-          this.errorMsg.set('Update failed');
+
+          // If blog is deleted/hidden while editing
+          if (err.status === 404 || err.status === 410) {
+            this.isPostUnavailable.set(true);
+          }
+
+          const msg =
+            err.status === 404
+              ? 'This blog has been deleted'
+              : err.status === 403
+                ? 'You are not allowed to update this blog'
+                : this.extractErrorMessage(err, 'Update failed');
+
+          this.errorMsg.set(msg);
+          this.showError(msg);
         },
       });
   }
 
   deleteBlog(): void {
+    if (this.isPostUnavailable()) {
+      this.showError('This blog is no longer available');
+      return;
+    }
+
     if (!confirm('Delete this blog permanently?')) return;
 
     const blogId = this.blog()?.id;
@@ -230,7 +390,19 @@ export class EditBlogComponent implements OnInit {
     this.blogsService
       .deleteBlog(blogId)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.router.navigate(['/']));
+      .subscribe({
+        next: () => this.router.navigate(['/']),
+        error: (err) => {
+          const msg =
+            err.status === 404
+              ? 'This blog has already been deleted'
+              : err.status === 403
+                ? 'You are not allowed to delete this blog'
+                : this.extractErrorMessage(err, 'Failed to delete blog');
+
+          this.showError(msg);
+        },
+      });
   }
 
   cancel(): void {

@@ -1,66 +1,91 @@
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="m-0">Notifications</h2>
+<div class="notifications-container">
+  <div class="notifications-header">
+    <h2 class="notifications-title">Notifications</h2>
 
-    <button mat-stroked-button (click)="markAllAsRead()" [disabled]="loading()">
+    <button
+      mat-stroked-button
+      class="mark-all-btn"
+      (click)="markAllAsRead()"
+      [disabled]="loading()">
       Mark all as read
     </button>
   </div>
 
   @if (loading()) {
-    <div class="text-center py-5">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
-      </div>
+    <div class="loading-state">
+      <mat-spinner diameter="36"></mat-spinner>
     </div>
   }
 
   @if (errorMsg()) {
-    <div class="mb-3 text-danger">{{ errorMsg() }}</div>
+    <div class="error-state">
+      <mat-icon class="error-icon">error</mat-icon>
+      <span>{{ errorMsg() }}</span>
+    </div>
   }
 
   @if (!loading() && !errorMsg() && notifications().length === 0) {
-    <div class="mb-3">No notifications.</div>
+    <div class="empty-state">
+      <mat-icon class="empty-icon">notifications_off</mat-icon>
+      <p>No notifications.</p>
+    </div>
   }
 
-  @for (n of notifications(); track n.id) {
-    <mat-card class="mb-2">
-      <mat-card-content class="d-flex justify-content-between align-items-start gap-3">
-        <div class="flex-grow-1">
-          <div class="fw-semibold">
-            {{ n.title ?? 'Notification' }}
-            @if (n.isRead === false) {
-              <span class="badge bg-primary ms-2">Unread</span>
-            }
-          </div>
+  <div class="notifications-list">
+    @for (n of notifications(); track n.id) {
+      <div class="notification-card" [class.unread]="n.isRead === false">
+        @if (n.isRead === false) {
+          <span class="unread-dot" aria-hidden="true"></span>
+        }
 
-          @if (n.content) {
-            <div class="text-muted">{{ n.content }}</div>
-          }
+        <mat-card class="notification-surface">
+          <mat-card-content class="card-inner">
+            <div class="content">
+              <div class="top-row">
+                <div class="notification-title">
+                  {{ n.title ?? 'Notification' }}
+                </div>
 
-          @if (n.createdAt) {
-            <div class="small text-muted mt-1">
-              {{ n.createdAt | date:'medium' }}
+                @if (n.isRead === false) {
+                  <span class="unread-pill">Unread</span>
+                }
+              </div>
+
+              @if (n.content) {
+                <div class="notification-message">
+                  {{ n.content }}
+                </div>
+              }
+
+              @if (n.createdAt) {
+                <div class="notification-timestamp">
+                  <mat-icon class="time-icon">schedule</mat-icon>
+                  <span>{{ n.createdAt | date:'medium' }}</span>
+                </div>
+              }
             </div>
-          }
-        </div>
 
-        <div class="d-flex align-items-center gap-2">
-          <button
-            mat-icon-button
-            (click)="markAsRead(n.id); $event.stopPropagation()"
-            [disabled]="n.isRead === true">
-            <mat-icon>done</mat-icon>
-          </button>
+            <div class="actions">
+              <button
+                mat-icon-button
+                class="mark-read-btn"
+                matTooltip="Mark as read"
+                (click)="markAsRead(n.id); $event.stopPropagation()"
+                [disabled]="n.isRead === true">
+                <mat-icon>done</mat-icon>
+              </button>
 
-          <button
-            mat-icon-button
-            color="warn"
-            (click)="deleteNotification(n.id); $event.stopPropagation()">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  }
+              <button
+                mat-icon-button
+                class="delete-btn"
+                matTooltip="Delete"
+                (click)="deleteNotification(n.id); $event.stopPropagation()">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    }
+  </div>
 </div>

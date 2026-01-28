@@ -1,165 +1,34 @@
+/* =========================================
+   PREMIUM NOTIFICATIONS UI (Material tokens)
+   Works with your current HTML structure
+========================================= */
+
 .notifications-container {
-  max-width: 800px;
+  max-width: 920px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 22px 16px 34px;
   min-height: 100vh;
-  background: var(--mat-sys-surface);
+
   color: var(--mat-sys-on-surface);
+
+  /* subtle “panel” background */
+  background: color-mix(in srgb, var(--mat-sys-surface) 92%, var(--mat-sys-primary) 8%);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 60%, transparent);
+  border-radius: 22px;
+
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.03),
+    0 18px 45px rgba(0, 0, 0, 0.10);
 }
 
-// ================= HEADER =================
+/* ================= HEADER ================= */
 .notifications-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
-  gap: 16px;
-
-  @media (max-width: 640px) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-.notifications-title {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--mat-sys-on-surface);
-  margin: 0;
-  letter-spacing: -0.5px;
-}
-
-.mark-all-btn {
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: 6px;
-  border: 1.5px solid var(--mat-sys-primary);
-  color: var(--mat-sys-primary);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-  &:hover:not(:disabled) {
-    background-color: var(--mat-sys-primary);
-    color: var(--mat-sys-on-primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
-// ================= STATES =================
-.loading-state {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 60px 20px;
-
-  .spinner-border {
-    width: 40px;
-    height: 40px;
-    border-width: 3px;
-    border-color: var(--mat-sys-primary) transparent transparent transparent;
-  }
-}
-
-.error-state {
-  padding: 16px 20px;
-  background-color: rgba(var(--mat-sys-error-rgb), 0.1);
-  color: var(--mat-sys-error);
-  border-radius: 8px;
-  border-left: 4px solid var(--mat-sys-error);
-  font-weight: 500;
-  margin-bottom: 24px;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  background: var(--mat-sys-surface-variant);
-  border-radius: 12px;
-  border: 2px dashed var(--mat-sys-outline);
-
-  .empty-icon {
-    font-size: 64px;
-    color: var(--mat-sys-on-surface-variant);
-    margin-bottom: 16px;
-    opacity: 0.6;
-  }
-
-  p {
-    font-size: 16px;
-    color: var(--mat-sys-on-surface-variant);
-    margin: 0;
-  }
-}
-
-// ================= LIST & CARDS =================
-.notifications-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.notification-card {
-  position: relative;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-  &.unread {
-    mat-card {
-      background: linear-gradient(135deg, rgba(var(--mat-sys-primary-rgb),0.08) 0%, var(--mat-sys-surface) 100%);
-      border-left: 4px solid var(--mat-sys-primary);
-    }
-  }
-
-  &:hover {
-    transform: translateY(-2px);
-
-    mat-card {
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-    }
-  }
-}
-
-// ================= UNREAD INDICATOR =================
-.unread-indicator {
-  position: absolute;
-  top: -8px;
-  right: 16px;
-  width: 12px;
-  height: 12px;
-  background-color: var(--mat-sys-error);
-  border-radius: 50%;
-  border: 2px solid var(--mat-sys-surface);
-  animation: pulse 2s ease-in-out infinite;
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.8; transform: scale(1.2); }
-  }
-}
-
-// ================= CARD CONTENT =================
-mat-card.notification-content {
-  border-radius: 10px;
-  background: var(--mat-sys-surface);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  transition: all 0.3s ease;
-
-  &:hover {
-    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-  }
-}
-
-.card-inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 20px;
+  gap: 14px;
+  padding: 10px 10px 18px;
+  margin-bottom: 10px;
 
   @media (max-width: 640px) {
     flex-direction: column;
@@ -167,37 +36,266 @@ mat-card.notification-content {
   }
 }
 
+.notifications-title {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+  letter-spacing: -0.6px;
+}
+
+.mark-all-btn {
+  border-radius: 999px !important;
+  padding: 8px 14px !important;
+
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 55%, transparent) !important;
+  background: color-mix(in srgb, var(--mat-sys-surface) 92%, var(--mat-sys-primary) 8%);
+
+  transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.12);
+    background: color-mix(in srgb, var(--mat-sys-primary) 12%, var(--mat-sys-surface));
+  }
+
+  &:disabled {
+    opacity: 0.55;
+  }
+}
+
+/* ================= STATES ================= */
+.loading-state {
+  display: grid;
+  place-items: center;
+  padding: 56px 0;
+}
+
+.error-state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin: 12px 10px 18px;
+  padding: 12px 14px;
+
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-error) 40%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-error) 10%, var(--mat-sys-surface));
+  color: var(--mat-sys-error);
+
+  .error-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  margin: 14px 10px 0;
+  padding: 48px 16px;
+
+  border-radius: 18px;
+  border: 1px dashed color-mix(in srgb, var(--mat-sys-outline) 60%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-surface-variant) 75%, var(--mat-sys-surface));
+
+  .empty-icon {
+    width: 54px;
+    height: 54px;
+    font-size: 54px;
+    opacity: 0.85;
+    color: var(--mat-sys-on-surface-variant);
+    margin-bottom: 10px;
+  }
+
+  p {
+    margin: 0;
+    font: var(--mat-sys-body-large);
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+/* ================= LIST ================= */
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 10px 14px;
+}
+
+/* ================= CARD WRAPPER ================= */
+.notification-card {
+  position: relative;
+  border-radius: 18px;
+  transition: transform 160ms ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+/* Unread dot (YOUR HTML uses .unread-dot) */
+.unread-dot {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+
+  background: var(--mat-sys-primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+}
+
+/* ================= MATERIAL CARD ================= */
+.notification-surface {
+  border-radius: 18px !important;
+  overflow: hidden;
+
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 60%, transparent);
+
+  background: var(--mat-sys-surface);
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.03),
+    0 10px 26px rgba(0, 0, 0, 0.08);
+
+  transition: box-shadow 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+/* Unread look */
+.notification-card.unread .notification-surface {
+  border-left: 4px solid var(--mat-sys-primary);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--mat-sys-primary) 10%, transparent),
+    var(--mat-sys-surface)
+  );
+}
+
+/* Hover polish */
+.notification-card:hover .notification-surface {
+  border-color: color-mix(in srgb, var(--mat-sys-outline) 55%, transparent);
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.03),
+    0 18px 42px rgba(0, 0, 0, 0.12);
+}
+
+/* ================= CONTENT LAYOUT ================= */
+.card-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 16px;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .notification-title {
-  font-size: 16px;
-  font-weight: 600;
+  font: var(--mat-sys-title-medium);
   color: var(--mat-sys-on-surface);
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.unread-pill {
+  flex: 0 0 auto;
+  font: var(--mat-sys-label-medium);
+
+  padding: 4px 10px;
+  border-radius: 999px;
+
+  color: var(--mat-sys-on-primary);
+  background: var(--mat-sys-primary);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.10);
 }
 
 .notification-message {
-  font-size: 14px;
+  margin-top: 6px;
+  font: var(--mat-sys-body-medium);
   color: var(--mat-sys-on-surface-variant);
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .notification-timestamp {
-  font-size: 12px;
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  font: var(--mat-sys-body-small);
   color: var(--mat-sys-on-surface-variant);
-}
 
-// ================= ACTIONS =================
-.notification-actions .mark-read-btn {
-  color: var(--mat-sys-success);
-  background-color: rgba(var(--mat-sys-success-rgb),0.1);
-
-  &:hover:not(:disabled) {
-    background-color: rgba(var(--mat-sys-success-rgb),0.2);
+  .time-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    opacity: 0.9;
   }
 }
 
-.notification-actions .delete-btn {
+/* ================= ACTIONS ================= */
+/* Your HTML uses: <div class="actions"> ... */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Icon button base polish */
+.actions :host ::ng-deep .mat-mdc-icon-button,
+.actions ::ng-deep .mat-mdc-icon-button {
+  border-radius: 14px;
+  transition: transform 120ms ease, background 120ms ease, box-shadow 120ms ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.10);
+  }
+}
+
+/* Mark read button */
+.mark-read-btn {
+  background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+  color: var(--mat-sys-primary);
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+  }
+}
+
+/* Delete button */
+.delete-btn {
+  background: color-mix(in srgb, var(--mat-sys-error) 10%, transparent);
   color: var(--mat-sys-error);
-  background-color: rgba(var(--mat-sys-error-rgb),0.1);
 
   &:hover:not(:disabled) {
-    background-color: rgba(var(--mat-sys-error-rgb),0.2);
+    background: color-mix(in srgb, var(--mat-sys-error) 16%, transparent);
   }
+}
+
+/* Disabled look */
+:host ::ng-deep button.mat-mdc-icon-button:disabled {
+  opacity: 0.55;
 }

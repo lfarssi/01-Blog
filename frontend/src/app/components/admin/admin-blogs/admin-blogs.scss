@@ -1,158 +1,386 @@
-// Admin Blogs Component - Material Themed (Dark/Light)
+/* ============================================================================
+   ADMIN BLOGS — PREMIUM + STABLE TABLE (NO GLITCH)
+   - sticky header (safe)
+   - zebra rows + hover highlight
+   - consistent borders (no border-spacing hacks)
+   - action pills
+============================================================================ */
+
 .admin-blogs {
-  max-width: 1400px;
+  --r-xl: 22px;
+  --r-lg: 16px;
+  --r-md: 12px;
+
+  --b: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 62%, transparent);
+
+  --shadow-1: 0 1px 0 rgba(0,0,0,0.03), 0 14px 42px rgba(0,0,0,0.10);
+  --shadow-2: 0 1px 0 rgba(0,0,0,0.04), 0 22px 64px rgba(0,0,0,0.14);
+
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 32px 24px;
-  background: var(--mat-sys-surface);
+  padding: 18px 14px 48px;
   min-height: 100vh;
+  color: var(--mat-sys-on-surface);
   font-family: var(--mat-typography-body-font-family);
 
+  /* ---------- Header ---------- */
   .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 32px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid rgba(var(--mat-sys-primary-rgb), 0.12);
+    border-radius: var(--r-xl);
+    border: var(--b);
+    padding: 18px 18px;
+    margin-bottom: 14px;
+
+    background:
+      radial-gradient(950px 240px at 12% -45%, color-mix(in srgb, var(--mat-sys-primary) 40%, transparent), transparent 62%),
+      radial-gradient(950px 240px at 88% -45%, color-mix(in srgb, var(--mat-sys-tertiary) 30%, transparent), transparent 62%),
+      color-mix(in srgb, var(--mat-sys-surface) 86%, transparent);
+
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    box-shadow: var(--shadow-2);
 
     h2 {
-      font-size: 28px;
-      font-weight: 600;
-      color: var(--mat-sys-on-surface);
       margin: 0;
-      letter-spacing: -0.5px;
+      font-size: 22px;
+      font-weight: 1000;
+      letter-spacing: -0.6px;
+
+      background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--mat-sys-on-surface) 92%, var(--mat-sys-primary) 8%),
+        color-mix(in srgb, var(--mat-sys-on-surface) 84%, var(--mat-sys-tertiary) 16%)
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
   }
 
-  > p:first-of-type {
-    text-align: center;
-    color: var(--mat-sys-on-surface-variant);
-    font-size: 16px;
-    padding: 40px 0;
-    animation: pulse 1.5s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-  }
-
+  /* ---------- Error ---------- */
   .error {
-    background: rgba(var(--mat-sys-error-rgb), 0.08);
-    border: 1px solid rgba(var(--mat-sys-error-rgb), 0.3);
-    border-radius: 8px;
-    padding: 16px 20px;
+    margin: 12px 0 14px;
+    padding: 14px 16px;
+    border-radius: var(--r-lg);
+    border: 1px solid color-mix(in srgb, var(--mat-sys-error) 44%, transparent);
+    background: color-mix(in srgb, var(--mat-sys-error) 10%, var(--mat-sys-surface));
     color: var(--mat-sys-error);
-    font-size: 14px;
-    margin-bottom: 24px;
-    box-shadow: 0 2px 8px rgba(var(--mat-sys-error-rgb), 0.12);
+    box-shadow: var(--shadow-1);
+    font-weight: 850;
   }
 
+  /* ---------- Meta ---------- */
   .meta {
     display: flex;
-    gap: 24px;
-    margin-bottom: 24px;
-    padding: 16px 20px;
-    background: rgba(var(--mat-sys-primary-rgb), 0.05);
-    border: 1px solid rgba(var(--mat-sys-primary-rgb), 0.15);
-    border-radius: 8px;
-    backdrop-filter: blur(10px);
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 12px 0 14px;
+    padding: 10px;
+
+    border-radius: var(--r-xl);
+    border: var(--b);
+    background: color-mix(in srgb, var(--mat-sys-surface) 84%, transparent);
+    box-shadow: var(--shadow-1);
 
     span {
-      font-size: 14px;
-      color: var(--mat-sys-on-surface-variant);
-      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
 
-      &:first-child { color: var(--mat-sys-primary); }
+      padding: 10px 12px;
+      border-radius: 999px;
+
+      border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
+      background: color-mix(in srgb, var(--mat-sys-surface) 86%, var(--mat-sys-primary) 14%);
+
+      font-size: 13px;
+      font-weight: 950;
+      color: var(--mat-sys-on-surface-variant);
+
+      &::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: linear-gradient(180deg, var(--mat-sys-primary), var(--mat-sys-tertiary));
+        box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+      }
     }
   }
+
+  /* ============================================================================
+     TABLE (stable)
+  ============================================================================ */
 
   .blogs-table {
     width: 100%;
-    border-collapse: collapse;
-    background: var(--mat-sys-surface-variant);
-    border: 1px solid rgba(var(--mat-sys-primary-rgb), 0.12);
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(var(--mat-sys-primary-rgb), 0.08);
-
-    thead {
-      background: rgba(var(--mat-sys-primary-rgb), 0.08);
-      border-bottom: 1px solid rgba(var(--mat-sys-primary-rgb), 0.15);
-
-      tr th {
-        padding: 16px 20px;
-        text-align: left;
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--mat-sys-primary);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-    }
-
-    tbody {
-      tr {
-        border-bottom: 1px solid rgba(var(--mat-sys-primary-rgb), 0.08);
-        transition: all 0.3s ease;
-
-        &:hover { background: rgba(var(--mat-sys-primary-rgb), 0.05); td { color: var(--mat-sys-on-surface); } }
-
-        &:last-child { border-bottom: none; }
-
-        td {
-          padding: 16px 20px;
-          color: var(--mat-sys-on-surface-variant);
-          font-size: 14px;
-          transition: color 0.3s ease;
-
-          &:first-child { color: var(--mat-sys-primary); font-weight: 500; font-family: 'Monaco', 'Courier New', monospace; font-size: 13px; }
-
-          &:nth-child(4) {
-            font-weight: 500;
-            color: var(--mat-sys-error);
-          }
-        }
-      }
-    }
+    border-collapse: collapse; /* ✅ stable */
+    border-radius: var(--r-xl);
+    overflow: hidden; /* works with border-radius */
+    border: var(--b);
+    background: var(--mat-sys-surface);
+    box-shadow: var(--shadow-2);
   }
+
+  .blogs-table thead th {
+    position: sticky;
+    top: 0;              /* ✅ stable; parent page scroll */
+    z-index: 2;
+
+    padding: 14px 16px;
+    text-align: left;
+
+    font-size: 12px;
+    font-weight: 1000;
+    letter-spacing: 0.85px;
+    text-transform: uppercase;
+
+    color: var(--mat-sys-on-surface);
+    background: color-mix(in srgb, var(--mat-sys-surface) 78%, var(--mat-sys-primary) 22%);
+
+    border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 70%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .blogs-table tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
+    color: var(--mat-sys-on-surface-variant);
+    font-size: 14px;
+    vertical-align: middle;
+  }
+
+  .blogs-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  /* zebra */
+  .blogs-table tbody tr:nth-child(odd) {
+    background: color-mix(in srgb, var(--mat-sys-surface) 92%, var(--mat-sys-primary) 8%);
+  }
+
+  .blogs-table tbody tr:nth-child(even) {
+    background: var(--mat-sys-surface);
+  }
+
+  /* hover (no transform -> avoids layout shift/glitch) */
+  .blogs-table tbody tr:hover {
+    background: color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface));
+  }
+
+  /* ID column */
+  .blogs-table tbody td:first-child {
+    width: 90px;
+    color: var(--mat-sys-primary);
+    font-weight: 1000;
+    font-size: 12.5px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+
+  /* Title column */
+  .blogs-table tbody td:nth-child(2) {
+    color: var(--mat-sys-on-surface);
+    font-weight: 950;
+    letter-spacing: -0.2px;
+    max-width: 560px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Created */
+  .blogs-table tbody td:nth-child(3) {
+    white-space: nowrap;
+    font-size: 13px;
+  }
+
+  /* Actions */
+  .blogs-table tbody td:nth-child(4) {
+    white-space: nowrap;
+  }
+
+  /* ============================================================================
+     BUTTONS (stable + clean)
+  ============================================================================ */
 
   button {
-    padding: 8px 16px;
-    margin-right: 8px;
-    background: var(--mat-sys-primary);
-    color: var(--mat-sys-on-primary);
-    border: none;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
+    border: 0;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(var(--mat-sys-primary-rgb), 0.25);
+    user-select: none;
 
-    &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(var(--mat-sys-primary-rgb), 0.4); }
-    &:active:not(:disabled) { transform: translateY(0); }
-    &:disabled { opacity: 0.5; cursor: not-allowed; }
+    padding: 9px 12px;
+    border-radius: 999px;
 
-    &:last-of-type { background: var(--mat-sys-error); color: var(--mat-sys-on-error); box-shadow: 0 2px 8px rgba(var(--mat-sys-error-rgb), 0.25); margin-right: 0; }
+    font-size: 13px;
+    font-weight: 1000;
+    letter-spacing: 0.12px;
+
+    transition: background 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+    box-shadow: 0 14px 34px rgba(0,0,0,0.14);
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 20px 52px rgba(0,0,0,0.18);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
   }
 
-  > p:last-of-type {
-    text-align: center;
-    color: var(--mat-sys-on-surface-variant);
-    padding: 60px 20px;
-    font-size: 16px;
+  .view-btn {
+    margin-right: 8px;
+    border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 35%, transparent);
+    background: color-mix(in srgb, var(--mat-sys-primary) 16%, var(--mat-sys-surface));
+    color: var(--mat-sys-on-surface);
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--mat-sys-primary) 22%, var(--mat-sys-surface));
+    }
   }
 
-  @media (max-width: 768px) {
-    padding: 16px 12px;
+  .hide-btn {
+    margin-right: 8px;
+    border: 1px solid color-mix(in srgb, var(--mat-sys-tertiary) 35%, transparent);
+    background: color-mix(in srgb, var(--mat-sys-tertiary) 16%, var(--mat-sys-surface));
+    color: var(--mat-sys-on-surface);
 
-    .header { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 24px; h2 { font-size: 22px; } }
-    .meta { flex-direction: column; gap: 12px; font-size: 13px; }
-    .blogs-table { font-size: 13px; thead { display: none; } tbody tr { display: block; margin-bottom: 16px; border-radius: 8px; border: 1px solid rgba(var(--mat-sys-primary-rgb), 0.15); box-shadow: 0 2px 6px rgba(var(--mat-sys-primary-rgb), 0.08); } }
-    button { padding: 6px 12px; font-size: 12px; margin-right: 6px; margin-bottom: 6px; }
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--mat-sys-tertiary) 22%, var(--mat-sys-surface));
+    }
   }
 
-  .view-btn { background: var(--mat-sys-secondary); color: var(--mat-sys-on-secondary); margin-right: 8px; }
-  .delete-btn { background: var(--mat-sys-error); color: var(--mat-sys-on-error); }
+  .delete-btn {
+    border: 1px solid color-mix(in srgb, var(--mat-sys-error) 40%, transparent);
+    background: color-mix(in srgb, var(--mat-sys-error) 14%, var(--mat-sys-surface));
+    color: var(--mat-sys-on-surface);
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--mat-sys-error) 18%, var(--mat-sys-surface));
+    }
+  }
+
+  /* ============================================================================
+     MOBILE: safe “card mode”
+  ============================================================================ */
+  @media (max-width: 860px) {
+    .blogs-table thead { display: none; }
+    .blogs-table,
+    .blogs-table tbody,
+    .blogs-table tr,
+    .blogs-table td { display: block; width: 100%; }
+
+    .blogs-table {
+      border: 0;
+      box-shadow: none;
+      background: transparent;
+      overflow: visible;
+    }
+
+    .blogs-table tbody tr {
+      border-radius: var(--r-xl);
+      border: var(--b);
+      background: var(--mat-sys-surface);
+      box-shadow: var(--shadow-1);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .blogs-table tbody td {
+      border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
+    }
+
+    .blogs-table tbody td:last-child {
+      border-bottom: 0;
+      background: color-mix(in srgb, var(--mat-sys-surface) 86%, var(--mat-sys-primary) 14%);
+      padding: 12px;
+    }
+
+    button {
+      width: 100%;
+      margin: 6px 0 0 !important;
+    }
+
+    .view-btn, .hide-btn { margin-right: 0 !important; }
+  }
+}
+@media (max-width: 860px) {
+  .admin-blogs {
+    /* ✅ remove desktop constraints that cause overflow/glitch */
+    .blogs-table tbody td,
+    .blogs-table tbody td:first-child,
+    .blogs-table tbody td:nth-child(2),
+    .blogs-table tbody td:nth-child(3),
+    .blogs-table tbody td:nth-child(4) {
+      width: 100% !important;
+      max-width: none !important;
+      white-space: normal !important;
+      overflow: visible !important;
+      text-overflow: initial !important;
+    }
+
+    /* ✅ make each row a proper card */
+    .blogs-table tbody tr {
+      display: block;
+      padding: 10px 12px;
+    }
+
+    /* ✅ make cells look like labeled sections */
+    .blogs-table tbody td {
+      display: flex !important;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+
+      padding: 10px 0 !important;
+      border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
+    }
+
+    .blogs-table tbody td:last-child {
+      border-bottom: 0;
+      padding-top: 12px !important;
+      background: transparent !important; /* ✅ remove footer bg that can look broken */
+    }
+
+    /* ✅ add labels using CSS (no HTML changes) */
+    .blogs-table tbody td:nth-child(1)::before { content: "ID"; }
+    .blogs-table tbody td:nth-child(2)::before { content: "Title"; }
+    .blogs-table tbody td:nth-child(3)::before { content: "Created"; }
+    .blogs-table tbody td:nth-child(4)::before { content: "Actions"; }
+
+    .blogs-table tbody td::before {
+      flex: 0 0 76px;
+      color: var(--mat-sys-on-surface-variant);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      opacity: 0.8;
+      padding-top: 2px;
+    }
+
+    /* ✅ title wraps nicely */
+    .blogs-table tbody td:nth-child(2) {
+      font-size: 15px !important;
+      font-weight: 950;
+      line-height: 1.25;
+    }
+
+    /* ✅ actions become a clean vertical stack */
+    .blogs-table tbody td:nth-child(4) {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 8px;
+    }
+
+    .blogs-table tbody td:nth-child(4)::before {
+      align-self: flex-start;
+    }
+
+    button {
+      width: 100% !important;
+      margin: 0 !important;
+    }
+  }
 }

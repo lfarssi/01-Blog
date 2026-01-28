@@ -75,13 +75,13 @@
       @for (blog of blogs(); track blog.id) {
       <mat-card class="blog-card" (click)="viewBlog(blog.id)">
         @if (hasMedia(blog)) {
-        <div class="media-container">
+        <!-- <div class="media-container">
           @if (isBlogVideo(blog)) {
           <video [src]="getBlogMedia(blog)[0]" class="blog-media"></video>
           } @else {
           <img [src]="getBlogMedia(blog)[0]" class="blog-media">
           }
-        </div>
+        </div> -->
         }
 
         <mat-card-content>

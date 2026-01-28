@@ -1,51 +1,201 @@
+/* ============================================================================
+   ULTRA PREMIUM HEADER (Material 3 tokens, light/dark, glass + sticky)
+   Works with your current HTML
+============================================================================ */
+
 .header-toolbar {
-  height: 64px;
-  background: var(--mat-sys-surface);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1200;
 
+  height: 72px;
+  padding: 0;
+
+  /* glass surface */
+  background: color-mix(in srgb, var(--mat-sys-surface) 82%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 60%, transparent);
+
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.03),
+    0 14px 40px rgba(0, 0, 0, 0.12);
+
+  /* remove default mat toolbar padding so our container aligns perfectly */
+  :host ::ng-deep &.mat-toolbar,
+  &.mat-toolbar {
+    padding: 0;
+  }
+
+  .container {
+    height: 72px;
+  }
+
+  /* ================= LOGO ================= */
   .logo {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--mat-sys-primary) !important;
-  }
+    position: relative;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: -0.6px;
 
-  .nav-link {
     text-decoration: none;
-    font-weight: 500;
-    color: var(--mat-sys-primary) !important;
-    transition: all 0.2s ease;
+    color: var(--mat-sys-on-surface) !important;
+
+    /* gradient text */
+    background: linear-gradient(
+      135deg,
+      var(--mat-sys-primary),
+      var(--mat-sys-tertiary)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    /* tiny shine underline */
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -10px;
+      width: 44px;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--mat-sys-primary) 65%, transparent),
+        color-mix(in srgb, var(--mat-sys-tertiary) 65%, transparent)
+      );
+      opacity: 0.85;
+    }
+  }
+
+  /* ================= NAV LINKS ================= */
+  .nav-link {
+    position: relative;
+    text-decoration: none;
+    font: var(--mat-sys-label-large);
+    font-weight: 700;
+    letter-spacing: 0.2px;
+
+    padding: 10px 12px;
+    border-radius: 999px;
+
+    color: var(--mat-sys-on-surface-variant) !important;
+    transition: background 140ms ease, color 140ms ease, transform 140ms ease;
 
     &:hover {
-      color: var(--mat-sys-primary-container);
+      background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+      color: var(--mat-sys-on-surface) !important;
+      transform: translateY(-1px);
     }
 
+    /* premium active indicator */
     &.active {
-      font-weight: bold;
-      border-bottom: 2px solid var(--mat-sys-primary);
-      padding-bottom: 4px;
+      color: var(--mat-sys-on-surface) !important;
+      background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.10);
+    }
+
+    &.active::after {
+      content: '';
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 6px;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(
+        90deg,
+        var(--mat-sys-primary),
+        var(--mat-sys-tertiary)
+      );
+      opacity: 0.95;
     }
   }
 
+  /* ================= ICON BUTTONS ================= */
+  /* Your template uses: <button mat-button> with mat-icon inside */
+  :host ::ng-deep button.mat-mdc-button,
   button.mat-mdc-button {
-    line-height: 1.5;
-    min-height: 36px;
-    color: var(--mat-sys-primary);
-    border: 1px solid var(--mat-sys-primary);
+    border-radius: 999px;
+    min-height: 40px;
+    line-height: 40px;
 
-    &:hover {
-      background-color: var(--mat-sys-primary);
-      color: var(--mat-sys-on-primary);
+    padding: 0 12px;
+    font-weight: 700;
+
+    border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
+    background: color-mix(in srgb, var(--mat-sys-surface) 86%, var(--mat-sys-primary) 14%);
+    color: var(--mat-sys-on-surface);
+
+    transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      background: color-mix(in srgb, var(--mat-sys-primary) 16%, var(--mat-sys-surface));
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.14);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: none;
     }
   }
 
-  span {
+  /* icons look centered and “premium” */
+  :host ::ng-deep button.mat-mdc-button .mat-icon,
+  button.mat-mdc-button .mat-icon {
+    margin-right: 0; /* icon-only look */
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+
+  /* Make user action group more compact & aligned */
+  .d-flex.align-items-center {
+    gap: 10px;
+
+    @media (max-width: 520px) {
+      gap: 6px;
+    }
+  }
+
+  /* Special accent: Notifications button */
+  /* If you want, add class="notif-btn" to that button for even more pop.
+     Since you didn't add it, we target by icon name. */
+  :host ::ng-deep button.mat-mdc-button mat-icon,
+  button.mat-mdc-button mat-icon {
     color: var(--mat-sys-on-surface);
-    font-weight: 500;
+    opacity: 0.95;
+  }
+
+  /* Disabled polish */
+  :host ::ng-deep button.mat-mdc-button:disabled,
+  button.mat-mdc-button:disabled {
+    opacity: 0.55;
   }
 }
 
+/* ================= MOBILE ================= */
 @media (max-width: 767.98px) {
   .header-toolbar .d-none {
     display: none !important;
+  }
+
+  .header-toolbar {
+    height: 68px;
+
+    .container {
+      height: 68px;
+    }
+
+    .logo {
+      font-size: 18px;
+
+      &::after {
+        width: 36px;
+        bottom: -9px;
+      }
+    }
   }
 }

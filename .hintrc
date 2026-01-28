@@ -20,14 +20,17 @@
     "axe/aria": [
       "default",
       {
-        "aria-progressbar-name": "off"
+        "aria-progressbar-name": "off",
+        "aria-required-children": "off"
       }
     ],
     "compat-api/css": [
       "default",
       {
         "ignore": [
-          "backdrop-filter"
+          "backdrop-filter",
+          "user-select",
+          "border: 1px solid color-mix(in srgb, var(--mat-sys-tertiary) 35%, transparent)"
         ]
       }
     ],

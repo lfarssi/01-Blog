@@ -45,4 +45,23 @@ public class MediaStorageService {
 
         return paths;
     }
+    public void delete(List<String> mediaPaths) {
+    if (mediaPaths == null || mediaPaths.isEmpty()) return;
+
+    for (String path : mediaPaths) {
+        try {
+            // "/api/uploads/abc.jpg" → "uploads/abc.jpg"
+            String filename = path.replace("/api/uploads/", "");
+
+            Path filePath = Paths.get(UPLOAD_DIR).resolve(filename);
+
+            Files.deleteIfExists(filePath);
+
+        } catch (IOException e) {
+            // Log only, don't crash update
+            System.err.println("Failed to delete file: " + path);
+        }
+    }
+}
+
 }
