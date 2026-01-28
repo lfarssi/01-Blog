@@ -11,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { UserService } from '../../services/user.serivce';
 import { ThemeService } from '../../services/theme.service';
+import { MatMenuModule } from '@angular/material/menu';
 
 @Component({
   selector: 'app-header',
@@ -27,6 +28,10 @@ import { ThemeService } from '../../services/theme.service';
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
+    MatToolbarModule,
+    MatMenuModule,
+    MatButtonModule,
+    MatIconModule,
   ],
 })
 export class Header {

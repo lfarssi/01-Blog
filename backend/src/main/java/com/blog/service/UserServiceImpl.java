@@ -71,8 +71,7 @@ public class UserServiceImpl implements UserService {
                 .username(request.username())
                 .createdAt(Instant.now())
                 .build();
-
-        userRepository.save(user);
+            userRepository.save(user);
     }
 
     @Override

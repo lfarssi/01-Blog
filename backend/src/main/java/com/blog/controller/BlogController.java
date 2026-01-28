@@ -68,10 +68,11 @@ public class BlogController {
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Object> updateBlog(
             @PathVariable Long id,
-            @RequestPart(value = "title", required = false) String title,
-            @RequestPart(value = "content", required = false) String content,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String content,
             @RequestPart(value = "media", required = false) List<MultipartFile> media,
             Authentication authentication) {
+
         String username = authentication.getName();
         BlogResponse blog = blogService.updateBlog(id, title, content, media, username);
         return ApiResponse.from(200, "Blog Updated successfully", blog);

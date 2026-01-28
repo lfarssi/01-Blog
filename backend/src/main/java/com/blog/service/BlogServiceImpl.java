@@ -4,6 +4,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import com.fasterxml.jackson.core.type.TypeReference;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -30,6 +32,7 @@ import com.blog.repository.LikeRepository;
 import com.blog.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -60,24 +63,20 @@ public class BlogServiceImpl implements BlogService {
 
         BlogEntity blog = blogRepository.findByIdAndVisibleTrue(id).orElse(null);
 
-        // ✅ Fix: check blog null FIRST
         if (blog == null) {
-            // Try full findById for owners/admins
             blog = blogRepository.findById(id).orElse(null);
             if (blog == null) {
                 throw new ResourceNotFoundException("Blog not found");
             }
         }
 
-        // ✅ Safe checks
         boolean isOwner = currentUser != null && currentUser.getId().equals(blog.getUserId().getId());
-        boolean isAdmin = currentUser != null && "ADMIN".equals(currentUser.getRole()); // ✅ String compare
+        boolean isAdmin = currentUser != null && "ADMIN".equals(currentUser.getRole());
 
         if (!blog.getVisible() && !isOwner && !isAdmin) {
             throw new ResourceNotFoundException("Blog not found");
         }
 
-        // ✅ Update counts (safe)
         blog.setLike_count(likeRepository.countByBlog_Id(id));
         blog.setComment_count(commentRepository.countByBlog_Id(id));
 
@@ -109,34 +108,43 @@ public class BlogServiceImpl implements BlogService {
         BlogEntity blog = BlogEntity.builder()
                 .title(title)
                 .content(content)
-                .media(mediaJson) // ✅ STRING
+                .media(mediaJson)
                 .userId(user)
                 .like_count(0L)
                 .comment_count(0L)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
+
         BlogEntity saved = blogRepository.save(blog);
 
         List<FollowEntity> followers = followRepository.findByFollowing_Id(user.getId());
         for (FollowEntity f : followers) {
             notificationService.createNotification(
-                    f.getFollower().getId(), // receiver (the follower)
+                    f.getFollower().getId(),
                     "NEW_BLOG",
                     user.getUsername() + " posted a new blog",
-                    saved.getId() // relatedId = blogId
-            );
+                    saved.getId());
         }
+
         return BlogMapper.toResponse(saved);
     }
 
+    // ✅ UPDATED: If mediaFiles is present => delete ALL old media + replace with
+    // new.
+    // If mediaFiles is null/empty => DO NOT touch media.
     @Override
     @Transactional
-    public BlogResponse updateBlog(Long id, String title, String content, List<MultipartFile> mediaFiles,
+    public BlogResponse updateBlog(
+            Long id,
+            String title,
+            String content,
+            List<MultipartFile> mediaFiles,
             String username) {
-        // Auth check
+
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
         BlogEntity blog = blogRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
 
@@ -144,25 +152,38 @@ public class BlogServiceImpl implements BlogService {
             throw new AccessDeniedException("Unauthorized to update this blog");
         }
 
-        // Update text (optional)
         if (title != null && !title.trim().isEmpty())
-            blog.setTitle(title);
+            blog.setTitle(title.trim());
         if (content != null && !content.trim().isEmpty())
-            blog.setContent(content);
+            blog.setContent(content.trim());
 
-        // Update media (optional - replaces existing)
         if (mediaFiles != null && !mediaFiles.isEmpty()) {
             MediaValidator.validate(mediaFiles);
-            List<String> mediaPaths = mediaStorageService.store(mediaFiles);
 
-            // ✅ Simple JSON array (your exact create format)
-            String mediaJson;
+            ObjectMapper om = new ObjectMapper();
+
+            // 1) Parse old media safely (List<String>)
+            List<String> oldMedia = List.of();
             try {
-                mediaJson = new ObjectMapper().writeValueAsString(mediaPaths);
+                String oldMediaJson = blog.getMedia();
+                if (oldMediaJson != null && !oldMediaJson.isBlank()) {
+                    oldMedia = om.readValue(oldMediaJson, new TypeReference<List<String>>() {
+                    });
+                }
+            } catch (Exception e) {
+                oldMedia = List.of();
+            }
+
+            // 2) Delete all old files
+            mediaStorageService.delete(oldMedia);
+
+            // 3) Store new and replace JSON
+            List<String> mediaPaths = mediaStorageService.store(mediaFiles);
+            try {
+                blog.setMedia(om.writeValueAsString(mediaPaths));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Failed to serialize media", e);
             }
-            blog.setMedia(mediaJson);
         }
 
         blog.setUpdatedAt(Instant.now());
@@ -175,8 +196,10 @@ public class BlogServiceImpl implements BlogService {
     public void deleteBlog(Long id, String username) {
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
         BlogEntity blog = blogRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
+
         if (!blog.getUserId().getId().equals(user.getId())) {
             throw new AccessDeniedException("Unauthorized to delete this blog");
         }
@@ -185,7 +208,6 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    // ✅ Replace your existing getBlogsByUser
     public List<BlogResponse> getUserBlogs(Long profileUserId, String currentUsername, int page, int size) {
         Pageable pageable = PageRequest.of(
                 page,
@@ -201,10 +223,8 @@ public class BlogServiceImpl implements BlogService {
 
         Page<BlogEntity> blogs;
         if (currentUserId != null && currentUserId.equals(profileUserId)) {
-            // ✅ Owner: see ALL blogs (including hidden)
             blogs = blogRepository.findByUserIdIdOrderByCreatedAtDesc(profileUserId, pageable);
         } else {
-            // ✅ Visitor: only VISIBLE blogs
             blogs = blogRepository.findByUserIdIdAndVisibleTrueOrderByCreatedAtDesc(profileUserId, pageable);
         }
 
@@ -218,24 +238,19 @@ public class BlogServiceImpl implements BlogService {
         var me = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 1) get followed user ids
         List<Long> followedIds = followRepository.findFollowingIdsByFollowerId(me.getId());
         if (followedIds.isEmpty())
             return List.of();
 
-        // 2) page request (newest first)
         Pageable pageable = PageRequest.of(
                 page,
                 size,
                 Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        // 3) query blogs by authors you follow
         var pageResult = blogRepository.findByUserIdsAndVisibleTrue(followedIds, pageable);
 
-        // 4) map to BlogResponse (reuse your existing mapper)
         return pageResult.getContent().stream()
-                .map(BlogMapper::toResponse) // <-- use your existing mapping logic
+                .map(BlogMapper::toResponse)
                 .toList();
     }
-
 }

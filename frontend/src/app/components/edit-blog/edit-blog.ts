@@ -13,7 +13,6 @@ import {
   ValidationErrors,
   ValidatorFn,
   FormBuilder,
-  Validators,
   ReactiveFormsModule,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -98,11 +97,15 @@ export class EditBlogComponent implements OnInit {
   readonly MAX_MEDIA = 4;
   media = signal<MediaItem[]>([]);
 
+  // Store initial existing media (so we can detect changes)
+  private readonly API_BASE = 'http://localhost:8080';
+  initialExistingMedia = signal<string[]>([]);
+
   readonly mediaCount = computed(() => this.media().length);
   readonly canAddMedia = computed(() => this.mediaCount() < this.MAX_MEDIA);
 
   // ─────────────────────────────
-  // Form (✅ spaces-only invalid + trimmed length)
+  // Form
   // ─────────────────────────────
   form = this.fb.group({
     title: ['', [requiredTrimmed(), minLengthTrimmed(5)]],
@@ -121,12 +124,11 @@ export class EditBlogComponent implements OnInit {
   }
 
   // ─────────────────────────────
-  // Error helpers (same style as BlogDetail / BlogForm)
+  // Error helpers
   // ─────────────────────────────
   private extractErrorMessage(err: any, fallback: string): string {
     if (!err) return fallback;
 
-    // Backend message shapes
     if (err.error) {
       if (typeof err.error.message === 'string') return err.error.message;
       if (typeof err.error.error === 'string') return err.error.error;
@@ -135,10 +137,7 @@ export class EditBlogComponent implements OnInit {
       }
     }
 
-    // Network
     if (err.status === 0) return 'Cannot reach server';
-
-    // Common HTTP mappings
     if (err.status === 401) return 'You must be logged in';
     if (err.status === 403) return 'You are not allowed to perform this action';
     if (err.status === 404) return 'Blog not found';
@@ -173,6 +172,12 @@ export class EditBlogComponent implements OnInit {
     return /\.(mp4|mov|avi|wmv|webm)$/i.test(url);
   }
 
+  // Normalize URL to compare against DB paths
+  // "http://localhost:8080/api/uploads/x" -> "/api/uploads/x"
+  private normalizeUrl(u: string): string {
+    return u.startsWith(this.API_BASE) ? u.replace(this.API_BASE, '') : u;
+  }
+
   // ─────────────────────────────
   // Load blog
   // ─────────────────────────────
@@ -188,7 +193,6 @@ export class EditBlogComponent implements OnInit {
         next: (res: any) => {
           const blog = res.data ?? res;
 
-          // Optional: if backend includes a hidden/visible flag
           if ((blog as any)?.visible === false) {
             this.isPostUnavailable.set(true);
             const msg = 'This blog is hidden';
@@ -212,7 +216,12 @@ export class EditBlogComponent implements OnInit {
             }),
           );
 
-          this.media.set(existingMedia.slice(0, this.MAX_MEDIA));
+          const limited = existingMedia.slice(0, this.MAX_MEDIA);
+          this.media.set(limited);
+
+          // ✅ store initial existing media (urls) for change detection
+          this.initialExistingMedia.set(limited.map((m) => m.url));
+
           this.loading.set(false);
         },
         error: (err) => {
@@ -292,6 +301,10 @@ export class EditBlogComponent implements OnInit {
 
   // ─────────────────────────────
   // Submit
+  // Strategy:
+  // - If media changed: send ONLY new files under key "media"
+  //   (backend will delete all old media and replace)
+  // - If no media change: send no files (backend won't touch media)
   // ─────────────────────────────
   submit(): void {
     if (this.isPostUnavailable()) {
@@ -317,7 +330,6 @@ export class EditBlogComponent implements OnInit {
     const title = this.form.value.title?.trim() ?? '';
     const content = this.form.value.content?.trim() ?? '';
 
-    // Extra safety: if somehow whitespace slips through
     if (!title || !content) {
       const msg = 'Title and content cannot be empty';
       this.errorMsg.set(msg);
@@ -330,17 +342,35 @@ export class EditBlogComponent implements OnInit {
     formData.append('title', title);
     formData.append('content', content);
 
-    // Existing media (keep)
-    const keptMedia = this.media()
-      .filter((m) => !m.isNew)
-      .map((m) => m.url);
+    // --- Robust media change detection (order-independent) ---
+    const initialSet = new Set(
+      this.initialExistingMedia().map((u) => this.normalizeUrl(u)),
+    );
 
-    formData.append('existingMedia', JSON.stringify(keptMedia));
+    const currentExistingSet = new Set(
+      this.media()
+        .filter((m) => !m.isNew)
+        .map((m) => this.normalizeUrl(m.url)),
+    );
 
-    // New media
-    this.media()
-      .filter((m) => m.isNew && m.file)
-      .forEach((m) => formData.append('newMedia', m.file!));
+    const removedSomething = [...initialSet].some(
+      (u) => !currentExistingSet.has(u),
+    );
+
+    const hasNewFiles = this.media().some((m) => m.isNew && !!m.file);
+
+    const hasMediaChanged = removedSomething || hasNewFiles;
+
+    // ✅ IMPORTANT FIX: Controller expects part name "media" (NOT "mediaFiles")
+    if (hasMediaChanged) {
+      this.media()
+        .filter((m) => m.isNew && m.file)
+        .forEach((m) => formData.append('media', m.file!));
+    }
+
+    // Optional debug (remove later)
+    // console.log('hasMediaChanged', hasMediaChanged);
+    // console.log('new files count', this.media().filter(m => m.isNew && m.file).length);
 
     this.blogsService
       .updateBlog(blogId, formData)
@@ -358,7 +388,6 @@ export class EditBlogComponent implements OnInit {
         error: (err) => {
           this.isSaving.set(false);
 
-          // If blog is deleted/hidden while editing
           if (err.status === 404 || err.status === 410) {
             this.isPostUnavailable.set(true);
           }
@@ -415,7 +444,7 @@ export class EditBlogComponent implements OnInit {
   // ─────────────────────────────
   private parseMediaUrls(media: string | string[] | undefined): string[] {
     if (!media) return [];
-    const BASE = 'http://localhost:8080';
+    const BASE = this.API_BASE;
 
     if (Array.isArray(media)) {
       return media.map((m) => (m.startsWith('http') ? m : BASE + m));

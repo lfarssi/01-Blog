@@ -1,6 +1,5 @@
 /* ============================================================================
-   ULTRA PREMIUM HEADER (Material 3 tokens, light/dark, glass + sticky)
-   Works with your current HTML
+   PREMIUM HEADER (Glass + sticky + desktop nav + mobile menu)
 ============================================================================ */
 
 .header-toolbar {
@@ -11,10 +10,10 @@
   height: 72px;
   padding: 0;
 
-  /* glass surface */
+  /* Glass surface */
   background: color-mix(in srgb, var(--mat-sys-surface) 82%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 
   border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 60%, transparent);
 
@@ -22,36 +21,50 @@
     0 1px 0 rgba(0, 0, 0, 0.03),
     0 14px 40px rgba(0, 0, 0, 0.12);
 
-  /* remove default mat toolbar padding so our container aligns perfectly */
+  /* Remove default toolbar padding */
   :host ::ng-deep &.mat-toolbar,
   &.mat-toolbar {
     padding: 0;
   }
 
+  /* Main layout container */
   .container {
     height: 72px;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 18px;
+
+    padding: 0 16px;
+
+    @media (max-width: 767.98px) {
+      height: 68px;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      padding: 0 12px;
+    }
   }
 
   /* ================= LOGO ================= */
   .logo {
     position: relative;
+    display: inline-flex;
+    align-items: center;
+
     font-size: 20px;
     font-weight: 900;
     letter-spacing: -0.6px;
-
     text-decoration: none;
-    color: var(--mat-sys-on-surface) !important;
 
-    /* gradient text */
-    background: linear-gradient(
-      135deg,
-      var(--mat-sys-primary),
-      var(--mat-sys-tertiary)
-    );
+    /* Gradient text */
+    background: linear-gradient(135deg, var(--mat-sys-primary), var(--mat-sys-tertiary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 
-    /* tiny shine underline */
+    /* Shine underline */
     &::after {
       content: '';
       position: absolute;
@@ -67,33 +80,49 @@
       );
       opacity: 0.85;
     }
+
+    @media (max-width: 767.98px) {
+      font-size: 18px;
+
+      &::after {
+        width: 36px;
+        bottom: -9px;
+      }
+    }
   }
 
-  /* ================= NAV LINKS ================= */
+  /* ================= NAV ================= */
+  .nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 0 8px;
+  }
+
   .nav-link {
     position: relative;
     text-decoration: none;
     font: var(--mat-sys-label-large);
-    font-weight: 700;
+    font-weight: 750;
     letter-spacing: 0.2px;
 
     padding: 10px 12px;
     border-radius: 999px;
 
-    color: var(--mat-sys-on-surface-variant) !important;
-    transition: background 140ms ease, color 140ms ease, transform 140ms ease;
+    color: var(--mat-sys-on-surface-variant);
+    transition: background 140ms ease, color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
 
     &:hover {
       background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
-      color: var(--mat-sys-on-surface) !important;
+      color: var(--mat-sys-on-surface);
       transform: translateY(-1px);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
     }
 
-    /* premium active indicator */
     &.active {
-      color: var(--mat-sys-on-surface) !important;
+      color: var(--mat-sys-on-surface);
       background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
-      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.10);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14);
     }
 
     &.active::after {
@@ -104,25 +133,29 @@
       bottom: 6px;
       height: 3px;
       border-radius: 999px;
-      background: linear-gradient(
-        90deg,
-        var(--mat-sys-primary),
-        var(--mat-sys-tertiary)
-      );
+      background: linear-gradient(90deg, var(--mat-sys-primary), var(--mat-sys-tertiary));
       opacity: 0.95;
     }
   }
 
-  /* ================= ICON BUTTONS ================= */
-  /* Your template uses: <button mat-button> with mat-icon inside */
-  :host ::ng-deep button.mat-mdc-button,
-  button.mat-mdc-button {
-    border-radius: 999px;
-    min-height: 40px;
-    line-height: 40px;
+  /* ================= ACTIONS ================= */
+  .actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
 
-    padding: 0 12px;
-    font-weight: 700;
+    @media (max-width: 767.98px) {
+      gap: 6px;
+    }
+  }
+
+  /* Icon buttons: consistent size + premium border */
+  :host ::ng-deep button.mat-mdc-icon-button,
+  button.mat-mdc-icon-button {
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
 
     border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
     background: color-mix(in srgb, var(--mat-sys-surface) 86%, var(--mat-sys-primary) 14%);
@@ -142,60 +175,39 @@
     }
   }
 
-  /* icons look centered and “premium” */
-  :host ::ng-deep button.mat-mdc-button .mat-icon,
-  button.mat-mdc-button .mat-icon {
-    margin-right: 0; /* icon-only look */
+  /* Icon sizing polish */
+  :host ::ng-deep button.mat-mdc-icon-button .mat-icon,
+  button.mat-mdc-icon-button .mat-icon {
     width: 20px;
     height: 20px;
     font-size: 20px;
-  }
-
-  /* Make user action group more compact & aligned */
-  .d-flex.align-items-center {
-    gap: 10px;
-
-    @media (max-width: 520px) {
-      gap: 6px;
-    }
-  }
-
-  /* Special accent: Notifications button */
-  /* If you want, add class="notif-btn" to that button for even more pop.
-     Since you didn't add it, we target by icon name. */
-  :host ::ng-deep button.mat-mdc-button mat-icon,
-  button.mat-mdc-button mat-icon {
-    color: var(--mat-sys-on-surface);
     opacity: 0.95;
   }
 
-  /* Disabled polish */
-  :host ::ng-deep button.mat-mdc-button:disabled,
-  button.mat-mdc-button:disabled {
-    opacity: 0.55;
+  /* Logout gets a subtle “danger” hint without being loud */
+  :host ::ng-deep button.mat-mdc-icon-button.logout,
+  button.mat-mdc-icon-button.logout {
+    background: color-mix(in srgb, var(--mat-sys-surface) 86%, var(--mat-sys-error) 14%);
+    border-color: color-mix(in srgb, var(--mat-sys-error) 28%, var(--mat-sys-outline-variant) 72%);
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--mat-sys-error) 18%, var(--mat-sys-surface));
+    }
   }
 }
 
-/* ================= MOBILE ================= */
-@media (max-width: 767.98px) {
-  .header-toolbar .d-none {
-    display: none !important;
-  }
+/* Material menu polish */
+:host ::ng-deep .admin-menu.mat-mdc-menu-panel {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-surface) 92%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+}
 
-  .header-toolbar {
-    height: 68px;
-
-    .container {
-      height: 68px;
-    }
-
-    .logo {
-      font-size: 18px;
-
-      &::after {
-        width: 36px;
-        bottom: -9px;
-      }
-    }
-  }
+/* Menu item spacing */
+:host ::ng-deep .admin-menu .mat-mdc-menu-item {
+  font-weight: 650;
 }

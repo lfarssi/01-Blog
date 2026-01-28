@@ -1,45 +1,69 @@
 <mat-toolbar class="header-toolbar">
-  <div class="container d-flex justify-content-between align-items-center">
-    <!-- Logo -->
-    <div class="d-flex align-items-center">
-      <a routerLink="/" class="logo text-decoration-none">01Blog</a>
-    </div>
+  <div class="container">
+    <!-- LEFT: Logo -->
+    <a routerLink="/" class="logo">01Blog</a>
 
-    <!-- Navigation Links -->
-    <div class="d-none d-md-flex align-items-center">
-      @if (isAdmin()) {
-      <a routerLink="/admin/blogs" class="nav-link me-3" routerLinkActive="active">Blogs</a>
-      <a routerLink="/admin/users" class="nav-link me-3" routerLinkActive="active">Users</a>
-      <a routerLink="/admin/reports" class="nav-link me-3" routerLinkActive="active">Reports</a>
-
-      }
-    </div>
-
-    <!-- User Actions -->
-    @if (isLoggedIn()) {
-    <div class="d-flex align-items-center">
-      <button mat-button class="me-2" (click)="toggleTheme()">
-        <mat-icon>{{ isDarkMode() ? 'dark_mode' : 'light_mode' }}</mat-icon>
-      </button>
-
-
-      <button mat-button class="me-2" (click)="goToNotifications()">
-        <mat-icon>notifications</mat-icon>
-      </button>
-
-
-      <button mat-button class="me-2" (click)="createBlog()">
-        <mat-icon>add icon</mat-icon>
-      </button>
-      <button mat-button class="me-2" (click)="goToProfile()">
-        <mat-icon>person</mat-icon>
-      </button>
-      <!-- Logout -->
-      <button mat-button (click)="logout()">
-        <mat-icon>logout</mat-icon>
-      </button>
-    </div>
+    <!-- CENTER: Desktop nav -->
+    @if (isAdmin()) {
+      <nav class="nav d-none d-md-flex" aria-label="Admin navigation">
+        <a routerLink="/admin/blogs" class="nav-link" routerLinkActive="active">Blogs</a>
+        <a routerLink="/admin/users" class="nav-link" routerLinkActive="active">Users</a>
+        <a routerLink="/admin/reports" class="nav-link" routerLinkActive="active">Reports</a>
+      </nav>
     }
 
+    <!-- RIGHT: Actions -->
+    <div class="actions">
+      <!-- Mobile Admin Menu -->
+      @if (isAdmin()) {
+        <button
+          mat-icon-button
+          class="menu-btn d-md-none"
+          [matMenuTriggerFor]="adminMenu"
+          aria-label="Open admin menu"
+        >
+          <mat-icon>menu</mat-icon>
+        </button>
+
+        <mat-menu #adminMenu="matMenu" class="admin-menu">
+          <a mat-menu-item routerLink="/admin/blogs">
+            <mat-icon>article</mat-icon>
+            <span>Blogs</span>
+          </a>
+
+          <a mat-menu-item routerLink="/admin/users">
+            <mat-icon>group</mat-icon>
+            <span>Users</span>
+          </a>
+
+          <a mat-menu-item routerLink="/admin/reports">
+            <mat-icon>flag</mat-icon>
+            <span>Reports</span>
+          </a>
+        </mat-menu>
+      }
+
+      @if (isLoggedIn()) {
+        <button mat-icon-button class="icon-btn" (click)="toggleTheme()" aria-label="Toggle theme">
+          <mat-icon>{{ isDarkMode() ? 'dark_mode' : 'light_mode' }}</mat-icon>
+        </button>
+
+        <button mat-icon-button class="icon-btn" (click)="goToNotifications()" aria-label="Notifications">
+          <mat-icon>notifications</mat-icon>
+        </button>
+
+        <button mat-icon-button class="icon-btn" (click)="createBlog()" aria-label="Create blog">
+          <mat-icon>add</mat-icon>
+        </button>
+
+        <button mat-icon-button class="icon-btn" (click)="goToProfile()" aria-label="Profile">
+          <mat-icon>person</mat-icon>
+        </button>
+
+        <button mat-icon-button class="icon-btn logout" (click)="logout()" aria-label="Logout">
+          <mat-icon>logout</mat-icon>
+        </button>
+      }
+    </div>
   </div>
 </mat-toolbar>
