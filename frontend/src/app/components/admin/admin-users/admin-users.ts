@@ -3,15 +3,27 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BASE_URL } from '../../../services/env';
 import type { ApiResponse, PageResponse, User } from '../../../models/user.model';
 
+// ✅ Material
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+
+// ✅ Confirm Dialog (standalone)
+import { ConfirmDialogComponent } from '../../confirm-dialog/confirm-dialog';
+
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [],
+  imports: [
+    MatDialogModule,
+    MatSnackBarModule,
+  ],
   templateUrl: './admin-users.html',
   styleUrl: './admin-users.scss',
 })
 export class AdminUsers implements OnInit {
   private http = inject(HttpClient);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
 
   loading = signal(false);
   errorMsg = signal<string | null>(null);
@@ -44,8 +56,12 @@ export class AdminUsers implements OnInit {
       },
       error: (err: HttpErrorResponse) => {
         this.loading.set(false);
-        if (err.status === 403) this.errorMsg.set('403 Forbidden: ADMIN only.');
-        else this.errorMsg.set(err.error?.message ?? err.message ?? 'Failed to load users.');
+        const msg =
+          err.status === 403
+            ? '403 Forbidden: ADMIN only.'
+            : err.error?.message ?? err.message ?? 'Failed to load users.';
+        this.errorMsg.set(msg);
+        this.snackBar.open(msg, 'OK', { duration: 3000 });
       },
     });
   }
@@ -54,21 +70,48 @@ export class AdminUsers implements OnInit {
     const action = u.banned ? 'unban' : 'ban';
 
     this.http.post<ApiResponse<null>>(`${BASE_URL}/admin/users/${u.id}/${action}`, {}).subscribe({
-      next: () => this.loadUsers(this.currentPage()),
+      next: () => {
+        // refresh list
+        this.snackBar.open(`User ${action}ned`, 'OK', { duration: 2000 });
+        this.loadUsers(this.currentPage());
+      },
       error: (err: HttpErrorResponse) => {
-        this.errorMsg.set(err.error?.message ?? err.message ?? 'Failed to update user.');
+        const msg = err.error?.message ?? err.message ?? 'Failed to update user.';
+        this.errorMsg.set(msg);
+        this.snackBar.open(msg, 'OK', { duration: 3000 });
       },
     });
   }
 
+  // ✅ Dialog confirm instead of confirm()
   deleteUser(u: User) {
-    if (!confirm(`Delete user "${u.username}"?`)) return;
-
-    this.http.delete<ApiResponse<null>>(`${BASE_URL}/admin/users/${u.id}`).subscribe({
-      next: () => this.loadUsers(this.currentPage()),
-      error: (err: HttpErrorResponse) => {
-        this.errorMsg.set(err.error?.message ?? err.message ?? 'Failed to delete user.');
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '340px',
+      data: {
+        message: `Delete user "${u.username}"? This cannot be undone.`,
       },
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (!confirmed) return;
+
+      this.http.delete<ApiResponse<null>>(`${BASE_URL}/admin/users/${u.id}`).subscribe({
+        next: () => {
+          // remove from UI immediately (optional but feels great)
+          this.users.update((list) => list.filter((x) => x.id !== u.id));
+          this.totalElements.update((n) => Math.max(0, n - 1));
+
+          this.snackBar.open('User deleted', 'OK', { duration: 2000 });
+
+          // reload to keep pagination consistent
+          this.loadUsers(this.currentPage());
+        },
+        error: (err: HttpErrorResponse) => {
+          const msg = err.error?.message ?? err.message ?? 'Failed to delete user.';
+          this.errorMsg.set(msg);
+          this.snackBar.open(msg, 'OK', { duration: 3000 });
+        },
+      });
     });
   }
 }

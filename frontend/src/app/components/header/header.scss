@@ -1,48 +1,63 @@
 /* ============================================================================
-   PREMIUM HEADER (Glass + sticky + desktop nav + mobile menu)
+   ULTRA PREMIUM HEADER v2 (Glass + sticky + animated underline + mobile scroll)
+   NO HTML changes required
 ============================================================================ */
 
 .header-toolbar {
   position: sticky;
   top: 0;
   z-index: 1200;
-
-  height: 72px;
   padding: 0;
+  height: 72px;
 
-  /* Glass surface */
-  background: color-mix(in srgb, var(--mat-sys-surface) 82%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  /* glass + depth */
+  background: color-mix(in srgb, var(--mat-sys-surface) 76%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 
   border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 60%, transparent);
 
   box-shadow:
-    0 1px 0 rgba(0, 0, 0, 0.03),
-    0 14px 40px rgba(0, 0, 0, 0.12);
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 18px 55px rgba(0, 0, 0, 0.14);
 
-  /* Remove default toolbar padding */
+  /* subtle top highlight line */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--mat-sys-primary) 30%, transparent),
+      color-mix(in srgb, var(--mat-sys-tertiary) 26%, transparent),
+      transparent
+    );
+    opacity: 0.9;
+    pointer-events: none;
+  }
+
+  /* remove default toolbar padding */
   :host ::ng-deep &.mat-toolbar,
   &.mat-toolbar {
     padding: 0;
   }
 
-  /* Main layout container */
   .container {
     height: 72px;
-    max-width: 1200px;
+    max-width: 1220px;
     margin: 0 auto;
 
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
-    gap: 18px;
+    gap: 16px;
 
     padding: 0 16px;
 
     @media (max-width: 767.98px) {
       height: 68px;
-      grid-template-columns: auto 1fr auto;
       gap: 10px;
       padding: 0 12px;
     }
@@ -55,37 +70,47 @@
     align-items: center;
 
     font-size: 20px;
-    font-weight: 900;
-    letter-spacing: -0.6px;
+    font-weight: 950;
+    letter-spacing: -0.7px;
     text-decoration: none;
 
-    /* Gradient text */
-    background: linear-gradient(135deg, var(--mat-sys-primary), var(--mat-sys-tertiary));
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--mat-sys-primary) 92%, white),
+      color-mix(in srgb, var(--mat-sys-tertiary) 88%, white)
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 
-    /* Shine underline */
+    /* animated underline */
     &::after {
       content: '';
       position: absolute;
       left: 0;
       bottom: -10px;
-      width: 44px;
+      width: 46px;
       height: 4px;
       border-radius: 999px;
-      background: linear-gradient(
-        90deg,
-        color-mix(in srgb, var(--mat-sys-primary) 65%, transparent),
-        color-mix(in srgb, var(--mat-sys-tertiary) 65%, transparent)
-      );
-      opacity: 0.85;
+
+      background: linear-gradient(90deg, var(--mat-sys-primary), var(--mat-sys-tertiary));
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+
+      transform-origin: left center;
+      transform: scaleX(0.78);
+      opacity: 0.9;
+      transition: transform 180ms ease, opacity 180ms ease;
+    }
+
+    &:hover::after {
+      transform: scaleX(1);
+      opacity: 1;
     }
 
     @media (max-width: 767.98px) {
       font-size: 18px;
 
       &::after {
-        width: 36px;
+        width: 38px;
         bottom: -9px;
       }
     }
@@ -95,41 +120,80 @@
   .nav {
     display: flex;
     justify-content: center;
+    align-items: center;
     gap: 10px;
     padding: 0 8px;
+
+    /* ✅ keep admin links accessible on small screens */
+    @media (max-width: 767.98px) {
+      justify-content: flex-start;
+      overflow-x: auto;
+      gap: 8px;
+      padding: 0 4px;
+
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* fade edges hint */
+      mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+      -webkit-mask-image: linear-gradient(
+        90deg,
+        transparent,
+        #000 16px,
+        #000 calc(100% - 16px),
+        transparent
+      );
+    }
   }
 
   .nav-link {
     position: relative;
     text-decoration: none;
+    white-space: nowrap;
+
     font: var(--mat-sys-label-large);
-    font-weight: 750;
+    font-weight: 780;
     letter-spacing: 0.2px;
 
-    padding: 10px 12px;
+    padding: 10px 14px;
     border-radius: 999px;
 
     color: var(--mat-sys-on-surface-variant);
-    transition: background 140ms ease, color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+    background: transparent;
+
+    transition:
+      background 140ms ease,
+      color 140ms ease,
+      transform 140ms ease,
+      box-shadow 140ms ease;
+
+    /* micro border on hover */
+    border: 1px solid transparent;
 
     &:hover {
       background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+      border-color: color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
       color: var(--mat-sys-on-surface);
       transform: translateY(-1px);
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.12);
     }
 
     &.active {
       color: var(--mat-sys-on-surface);
       background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14);
+      border-color: color-mix(in srgb, var(--mat-sys-primary) 28%, var(--mat-sys-outline-variant) 72%);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.14);
     }
 
     &.active::after {
       content: '';
       position: absolute;
-      left: 14px;
-      right: 14px;
+      left: 16px;
+      right: 16px;
       bottom: 6px;
       height: 3px;
       border-radius: 999px;
@@ -150,23 +214,30 @@
     }
   }
 
-  /* Icon buttons: consistent size + premium border */
+  /* Icon buttons: premium ring + subtle glow */
   :host ::ng-deep button.mat-mdc-icon-button,
   button.mat-mdc-icon-button {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     border-radius: 999px;
 
     border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
-    background: color-mix(in srgb, var(--mat-sys-surface) 86%, var(--mat-sys-primary) 14%);
+    background: color-mix(in srgb, var(--mat-sys-surface) 84%, var(--mat-sys-primary) 16%);
     color: var(--mat-sys-on-surface);
 
-    transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+    box-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.04),
+      0 14px 36px rgba(0, 0, 0, 0.10);
+
+    transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease, border-color 140ms ease;
 
     &:hover:not(:disabled) {
       transform: translateY(-1px);
-      background: color-mix(in srgb, var(--mat-sys-primary) 16%, var(--mat-sys-surface));
-      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.14);
+      background: color-mix(in srgb, var(--mat-sys-primary) 18%, var(--mat-sys-surface));
+      border-color: color-mix(in srgb, var(--mat-sys-primary) 26%, var(--mat-sys-outline-variant) 74%);
+      box-shadow:
+        0 1px 0 rgba(0, 0, 0, 0.04),
+        0 20px 52px rgba(0, 0, 0, 0.14);
     }
 
     &:active:not(:disabled) {
@@ -175,7 +246,6 @@
     }
   }
 
-  /* Icon sizing polish */
   :host ::ng-deep button.mat-mdc-icon-button .mat-icon,
   button.mat-mdc-icon-button .mat-icon {
     width: 20px;
@@ -184,30 +254,30 @@
     opacity: 0.95;
   }
 
-  /* Logout gets a subtle “danger” hint without being loud */
+  /* logout subtle danger */
   :host ::ng-deep button.mat-mdc-icon-button.logout,
   button.mat-mdc-icon-button.logout {
-    background: color-mix(in srgb, var(--mat-sys-surface) 86%, var(--mat-sys-error) 14%);
-    border-color: color-mix(in srgb, var(--mat-sys-error) 28%, var(--mat-sys-outline-variant) 72%);
+    background: color-mix(in srgb, var(--mat-sys-surface) 84%, var(--mat-sys-error) 16%);
+    border-color: color-mix(in srgb, var(--mat-sys-error) 26%, var(--mat-sys-outline-variant) 74%);
 
     &:hover:not(:disabled) {
       background: color-mix(in srgb, var(--mat-sys-error) 18%, var(--mat-sys-surface));
+      border-color: color-mix(in srgb, var(--mat-sys-error) 34%, var(--mat-sys-outline-variant) 66%);
     }
   }
 }
 
-/* Material menu polish */
+/* ================= MENU POLISH ================= */
 :host ::ng-deep .admin-menu.mat-mdc-menu-panel {
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
   background: color-mix(in srgb, var(--mat-sys-surface) 92%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 24px 68px rgba(0, 0, 0, 0.18);
 }
 
-/* Menu item spacing */
 :host ::ng-deep .admin-menu .mat-mdc-menu-item {
-  font-weight: 650;
+  font-weight: 700;
 }

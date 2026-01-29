@@ -1,14 +1,16 @@
 @use '@angular/material' as mat;
 
 /* ---------------------------------------
-   1️⃣ MATERIAL PALETTES
+   1️⃣ MATERIAL PALETTES (more balanced)
 --------------------------------------- */
 
+/* Light: azure primary is fine, but make tertiary slightly warmer */
 $light-primary: mat.$azure-palette;
-$light-tertiary: mat.$blue-palette;
+$light-tertiary: mat.$rose-palette;
 
-$dark-primary: mat.$blue-palette;
-$dark-tertiary: mat.$azure-palette;
+/* Dark: keep blue/azure but invert for contrast */
+$dark-primary: mat.$azure-palette;
+$dark-tertiary: mat.$violet-palette;
 
 /* ---------------------------------------
    2️⃣ LIGHT THEME (DEFAULT)
@@ -26,6 +28,21 @@ $dark-tertiary: mat.$azure-palette;
   ));
 
   color-scheme: light;
+
+  /* ✅ Brand accents (used in your custom CSS) */
+  --brand-1: color-mix(in srgb, var(--mat-sys-primary) 92%, white);
+  --brand-2: color-mix(in srgb, var(--mat-sys-tertiary) 92%, white);
+
+  /* ✅ Surface hierarchy (better contrast than plain surface everywhere) */
+  --app-bg: color-mix(in srgb, var(--mat-sys-surface) 85%, var(--mat-sys-primary) 15%);
+  --card-bg: color-mix(in srgb, var(--mat-sys-surface) 92%, white 8%);
+  --elev-bg: color-mix(in srgb, var(--mat-sys-surface) 86%, white 14%);
+
+  /* ✅ Text subtlety */
+  --text-muted: color-mix(in srgb, var(--mat-sys-on-surface) 65%, transparent);
+
+  /* ✅ Premium gradient (for headers/logos/active tabs) */
+  --brand-gradient: linear-gradient(135deg, var(--brand-1), var(--brand-2));
 }
 
 /* ---------------------------------------
@@ -44,6 +61,22 @@ $dark-tertiary: mat.$azure-palette;
   ));
 
   color-scheme: dark;
+
+  /* ✅ Brand accents (slightly brighter in dark mode) */
+  --brand-1: color-mix(in srgb, var(--mat-sys-primary) 95%, white);
+  --brand-2: color-mix(in srgb, var(--mat-sys-tertiary) 95%, white);
+
+  /* ✅ Dark surfaces: avoid pure black; use deep “ink” */
+  --app-bg: color-mix(in srgb, #0b1220 80%, var(--mat-sys-primary) 20%);
+  --card-bg: color-mix(in srgb, #111a2d 86%, var(--mat-sys-primary) 14%);
+  --elev-bg: color-mix(in srgb, #15203a 85%, var(--mat-sys-primary) 15%);
+
+  --text-muted: color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent);
+
+  --brand-gradient: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+
+  /* ✅ Optional: subtle glow for “premium” dark mode */
+  --soft-glow: 0 18px 60px rgba(0, 0, 0, 0.45);
 }
 
 /* ---------------------------------------
@@ -56,7 +89,28 @@ html, body {
 
 body {
   margin: 0;
-  background-color: var(--mat-sys-surface);
+  background: var(--app-bg);
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
+}
+
+/* ✅ Cards / surfaces look richer everywhere */
+.mat-mdc-card,
+.mat-mdc-dialog-surface,
+.mat-mdc-menu-panel {
+  background: var(--card-bg) !important;
+}
+
+/* ✅ Premium elevated surfaces */
+.mat-mdc-snack-bar-container,
+.mat-mdc-dialog-surface {
+  box-shadow: var(--soft-glow, 0 14px 50px rgba(0,0,0,0.18));
+}
+
+/* ✅ Links feel “brand” */
+a {
+  color: var(--brand-1);
+}
+a:hover {
+  color: var(--brand-2);
 }

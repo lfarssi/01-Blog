@@ -46,6 +46,7 @@
             id="title"
             class="field__input"
             type="text"
+            maxlength="120"
             formControlName="title"
             placeholder="A clear, catchy title…" />
         </div>
@@ -67,6 +68,7 @@
             id="content"
             class="field__input"
             rows="7"
+            maxlength="10000"
             formControlName="content"
             placeholder="Share your learning journey…"></textarea>
         </div>
@@ -128,7 +130,7 @@
             } @else {
               <div class="dropzone__text">
                 <strong>Release to upload</strong>
-                <span>We’ll preview instantly</span>
+                <span>We'll preview instantly</span>
               </div>
             }
           </div>

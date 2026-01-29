@@ -1,39 +1,90 @@
 .home-content {
   display: flex;
-  gap: 1rem;
+  gap: 1.25rem;
   min-height: calc(100vh - 64px);
-  background: var(--mat-sys-surface);
+  background: var(--app-bg);
   color: var(--mat-sys-on-surface);
+  padding: 1rem;
 }
 
-/* Main feed */
+/* ================= MAIN FEED ================= */
+
 .main-feed {
   flex: 4;
   overflow-y: auto;
-  background: var(--mat-sys-surface);
+  background: var(--card-bg);
   color: var(--mat-sys-on-surface);
+  border-radius: 20px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 200ms ease, transform 200ms ease;
 }
 
-/* Users sidebar */
+.main-feed:hover {
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+/* ================= USERS SIDEBAR ================= */
+
 .users-sidebar {
   flex: 1;
-  border-left: 1px solid var(--mat-sys-outline);
-  padding: 1rem;
-  background: var(--mat-sys-surface-variant);
+  padding: 1.25rem;
+  background: var(--card-bg);
   color: var(--mat-sys-on-surface);
   overflow-y: auto;
-  transition: transform 0.3s ease;
+
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline) 45%, transparent);
+
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+
+  transition: transform 260ms ease, box-shadow 200ms ease;
 }
 
-/* Toggle button (hidden on desktop) */
+.users-sidebar:hover {
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.12);
+}
+
+/* ================= TOGGLE BUTTON ================= */
+
 .users-toggle-btn {
   display: none;
+
+  background: var(--brand-gradient);
+  color: white;
+
+  border: none;
+  border-radius: 50%;
+
+  width: 56px;
+  height: 56px;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 22px;
+
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.users-toggle-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.35);
+}
+
+.users-toggle-btn:active {
+  transform: scale(0.96);
 }
 
 /* ================= MOBILE ================= */
+
 @media (max-width: 768px) {
   .home-content {
     flex-direction: column;
+    padding: 0.75rem;
   }
 
   /* Sidebar hidden by default */
@@ -41,13 +92,21 @@
     position: fixed;
     top: 64px;
     right: 0;
-    width: 80%;
-    max-width: 320px;
+
+    width: 82%;
+    max-width: 340px;
     height: calc(100vh - 64px);
-    transform: translateX(100%);
+
+    transform: translateX(110%);
     z-index: 1000;
-    border-left: none;
-    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.2);
+
+    border-radius: 24px 0 0 24px;
+    border: none;
+
+    box-shadow: -14px 0 50px rgba(0, 0, 0, 0.35);
+
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
   }
 
   /* Sidebar visible */
@@ -58,17 +117,17 @@
   /* Floating toggle button */
   .users-toggle-btn {
     display: flex;
+
     position: fixed;
-    bottom: 1rem;
-    right: 1rem;
+    bottom: 1.25rem;
+    right: 1.25rem;
+
     z-index: 1100;
-    background: var(--mat-sys-primary);
-    color: var(--mat-sys-on-primary);
-    border-radius: 50%;
-    width: 56px;
-    height: 56px;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Main feed mobile polish */
+  .main-feed {
+    border-radius: 18px;
+    padding: 1rem;
   }
 }

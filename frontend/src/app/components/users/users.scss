@@ -1,158 +1,182 @@
 /* users-sidebar.scss */
 
 .users-sidebar {
-  /* Layout */
+  /* ================= LAYOUT ================= */
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 
-  /* Card look */
-  padding: 14px;
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--mat-sys-surface) 92%, var(--mat-sys-primary) 8%);
-  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 65%, transparent);
+  padding: 16px;
+  border-radius: 22px;
+
+  background: color-mix(in srgb, var(--mat-sys-surface) 90%, var(--mat-sys-primary) 10%);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
+
   box-shadow:
-    0 1px 0 rgba(0, 0, 0, 0.03),
-    0 8px 24px rgba(0, 0, 0, 0.06);
+    0 2px 0 rgba(0, 0, 0, 0.04),
+    0 12px 34px rgba(0, 0, 0, 0.08);
 
-  /* Nice scrolling list */
   overflow: hidden;
 
-  /* ---------- Search ---------- */
-  .search-input {
-    width: 100%;
-    margin: 0;
+  transition: box-shadow 180ms ease, transform 180ms ease;
+}
 
-    /* Make the outline field feel premium */
-    ::ng-deep .mat-mdc-text-field-wrapper {
-      border-radius: 14px;
-      background: color-mix(in srgb, var(--mat-sys-surface) 92%, var(--mat-sys-primary) 8%);
-    }
+/* ================= SEARCH ================= */
 
-    ::ng-deep .mdc-notched-outline__leading,
-    ::ng-deep .mdc-notched-outline__notch,
-    ::ng-deep .mdc-notched-outline__trailing {
-      border-color: color-mix(in srgb, var(--mat-sys-outline-variant) 70%, transparent);
-    }
+.users-sidebar .search-input {
+  width: 100%;
+  margin: 0;
+}
 
-    ::ng-deep .mat-mdc-form-field-focus-overlay {
-      opacity: 0; /* remove grey overlay flash */
-    }
+.users-sidebar .search-input ::ng-deep .mat-mdc-text-field-wrapper {
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--mat-sys-surface) 94%, var(--mat-sys-primary) 6%);
+}
 
-    ::ng-deep .mat-mdc-form-field-infix {
-      padding-top: 12px;
-      padding-bottom: 12px;
-      min-height: 46px;
-    }
+.users-sidebar .search-input ::ng-deep
+.mdc-notched-outline__leading,
+.users-sidebar .search-input ::ng-deep
+.mdc-notched-outline__notch,
+.users-sidebar .search-input ::ng-deep
+.mdc-notched-outline__trailing {
+  border-color: color-mix(in srgb, var(--mat-sys-outline-variant) 65%, transparent);
+}
 
-    ::ng-deep input.mat-mdc-input-element {
-      font: var(--mat-sys-body-large);
-      color: var(--mat-sys-on-surface);
-      caret-color: var(--mat-sys-primary);
-    }
+.users-sidebar .search-input ::ng-deep .mat-mdc-form-field-focus-overlay {
+  opacity: 0;
+}
 
-    ::ng-deep .mat-mdc-form-field-icon-suffix {
-      color: color-mix(in srgb, var(--mat-sys-on-surface-variant) 80%, transparent);
-    }
+.users-sidebar .search-input ::ng-deep .mat-mdc-form-field-infix {
+  padding: 13px 0;
+  min-height: 48px;
+}
 
-    ::ng-deep .mat-mdc-text-field-wrapper:has(input:focus) {
-      box-shadow: 0 0 0 4px color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
-    }
-  }
+.users-sidebar .search-input ::ng-deep input.mat-mdc-input-element {
+  font: var(--mat-sys-body-large);
+  color: var(--mat-sys-on-surface);
+  caret-color: var(--mat-sys-primary);
+}
 
-  /* ---------- Loading / Empty ---------- */
-  .loading {
-    display: grid;
-    place-items: center;
-    padding: 12px 0;
-  }
+.users-sidebar .search-input ::ng-deep .mat-mdc-form-field-icon-suffix {
+  color: color-mix(in srgb, var(--mat-sys-on-surface-variant) 75%, transparent);
+}
 
-  .no-results {
-    margin: 0;
-    padding: 10px 6px;
-    color: var(--mat-sys-on-surface-variant);
-    font: var(--mat-sys-body-medium);
-  }
+.users-sidebar .search-input
+::ng-deep .mat-mdc-text-field-wrapper:has(input:focus) {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+}
 
-  /* ---------- Users list ---------- */
-  .users-list {
-    flex: 1;
-    overflow: auto;
-    padding: 6px;
-    border-radius: 14px;
-    background: color-mix(in srgb, var(--mat-sys-surface) 96%, var(--mat-sys-primary) 4%);
-    border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
+/* ================= STATES ================= */
 
-    /* Smooth scroll look */
-    scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--mat-sys-outline) 35%, transparent) transparent;
+.users-sidebar .loading {
+  display: grid;
+  place-items: center;
+  padding: 14px 0;
+}
 
-    &::-webkit-scrollbar {
-      width: 10px;
-    }
-    &::-webkit-scrollbar-thumb {
-      border-radius: 999px;
-      background: color-mix(in srgb, var(--mat-sys-outline) 30%, transparent);
-      border: 3px solid transparent;
-      background-clip: content-box;
-    }
-  }
+.users-sidebar .no-results {
+  margin: 0;
+  padding: 12px 6px;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
+}
 
-  /* Each row */
-  .user-item {
-    border-radius: 12px;
-    margin: 6px 0;
-    transition: transform 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
+/* ================= LIST ================= */
 
-    /* Give the list-item "card row" feel */
-    background: transparent;
+.users-sidebar .users-list {
+  flex: 1;
+  overflow: auto;
+  padding: 8px;
 
-    &:hover {
-      background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-    }
+  border-radius: 16px;
 
-    &:active {
-      transform: translateY(0px);
-      box-shadow: none;
-    }
+  background: color-mix(in srgb, var(--mat-sys-surface) 97%, var(--mat-sys-primary) 3%);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 45%, transparent);
 
-    /* Make the clickable area feel roomy */
-    ::ng-deep .mdc-list-item__content {
-      padding: 12px 10px;
-    }
-  }
+  scrollbar-width: thin;
+  scrollbar-color:
+    color-mix(in srgb, var(--mat-sys-outline) 35%, transparent)
+    transparent;
+}
 
-  .user-info {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
-    width: 100%;
+.users-sidebar .users-list::-webkit-scrollbar {
+  width: 10px;
+}
 
-    strong {
-      font: var(--mat-sys-title-medium);
-      color: var(--mat-sys-on-surface);
-      letter-spacing: 0.2px;
-    }
+.users-sidebar .users-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mat-sys-outline) 35%, transparent);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
 
-    .user-role {
-      font: var(--mat-sys-label-medium);
-      color: var(--mat-sys-on-surface-variant);
+/* ================= ITEM ================= */
 
-      padding: 4px 10px;
-      border-radius: 999px;
+.users-sidebar .user-item {
+  border-radius: 14px;
+  margin: 6px 0;
 
-      background: color-mix(in srgb, var(--mat-sys-secondary-container) 70%, transparent);
-      border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 60%, transparent);
-    }
-  }
+  background: transparent;
 
-  /* Optional: selected/active state (if you add a class) */
-  .user-item.active {
-    background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
-  }
+  transition:
+    background-color 140ms ease,
+    transform 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.users-sidebar .user-item:hover {
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+}
+
+.users-sidebar .user-item:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.users-sidebar .user-item ::ng-deep .mdc-list-item__content {
+  padding: 14px 12px;
+}
+
+/* ================= USER INFO ================= */
+
+.users-sidebar .user-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.users-sidebar .user-info strong {
+  font: var(--mat-sys-title-medium);
+  color: var(--mat-sys-on-surface);
+  letter-spacing: 0.25px;
+}
+
+.users-sidebar .user-info .user-role {
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-on-surface-variant);
+
+  padding: 5px 12px;
+  border-radius: 999px;
+
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-secondary-container) 75%,
+    transparent
+  );
+
+  border: 1px solid
+    color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
+}
+
+/* ================= ACTIVE ================= */
+
+.users-sidebar .user-item.active {
+  background: color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mat-sys-primary) 22%, transparent);
 }

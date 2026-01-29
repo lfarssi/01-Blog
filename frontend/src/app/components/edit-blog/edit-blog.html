@@ -91,7 +91,7 @@
             <label class="label" for="title">Title</label>
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Blog title</mat-label>
-              <input id="title" matInput formControlName="title" cdkFocusInitial />
+              <input id="title" matInput formControlName="title" maxlength="120" cdkFocusInitial />
               <mat-hint>Minimum 5 characters</mat-hint>
               @if (f.title.touched && f.title.invalid) {
                 <mat-error>Title required (min 5 characters)</mat-error>
@@ -104,7 +104,7 @@
             <label class="label" for="content">Content</label>
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Content</mat-label>
-              <textarea id="content" matInput rows="10" formControlName="content"></textarea>
+              <textarea id="content" matInput maxlength="10000" rows="10" formControlName="content"></textarea>
               <mat-hint>Minimum 20 characters</mat-hint>
               @if (f.content.touched && f.content.invalid) {
                 <mat-error>Content required (min 20 characters)</mat-error>
