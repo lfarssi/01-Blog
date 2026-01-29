@@ -30,6 +30,6 @@ public class UserEntity {
 
     @Builder.Default
     private  String role = "USER";
-
-    private Instant createdAt;
+    @Builder.Default
+    private Instant createdAt=Instant.now();
 }

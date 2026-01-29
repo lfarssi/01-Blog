@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -12,7 +13,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
-
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -85,6 +86,17 @@ public class GlobalExceptionHandler {
                                                 "message", "Validation failed: " + errors));
         }
 
+        @ExceptionHandler(UsernameNotFoundException.class)
+        @ResponseStatus(HttpStatus.UNAUTHORIZED)
+        public ResponseEntity<Map<String, Object>> handleUsernameNotFound(UsernameNotFoundException ex) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                                .body(Map.of(
+                                                "timestamp", LocalDateTime.now().toString(),
+                                                "status", HttpStatus.UNAUTHORIZED.value(),
+                                                "error", "Unauthorized",
+                                                "message", "Invalid or expired token"));
+        }
+
         // ✅ RequestParam / PathVariable validation (@Validated)
         @ExceptionHandler(ConstraintViolationException.class)
         @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -146,4 +158,48 @@ public class GlobalExceptionHandler {
                                                 "error", "Internal Server Error",
                                                 "message", "Something went wrong on our side, please try again later"));
         }
+
+        @ExceptionHandler(DataIntegrityViolationException.class)
+        @ResponseStatus(HttpStatus.BAD_REQUEST)
+        public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
+
+                String msg = "Invalid data";
+
+                // Try to detect common Postgres message
+                String raw = ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage()
+                                : ex.getMessage();
+                if (raw != null) {
+                        String lower = raw.toLowerCase();
+
+                        if (lower.contains("value too long") && lower.contains("character varying(255)")) {
+                                msg = "Text is too long (max 255 characters).";
+                        } else if (lower.contains("duplicate key") || lower.contains("unique constraint")) {
+                                msg = "This value already exists.";
+                        } else if (lower.contains("not-null") || lower.contains("null value")) {
+                                msg = "A required field is missing.";
+                        } else if (lower.contains("foreign key")) {
+                                msg = "Invalid reference (related record not found).";
+                        }
+                }
+
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(Map.of(
+                                                "timestamp", LocalDateTime.now().toString(),
+                                                "status", HttpStatus.BAD_REQUEST.value(),
+                                                "error", "Bad Request",
+                                                "message", msg));
+        }
+
+        // ✅ Media / validation errors (wrong file type, too many files, size, etc.)
+        @ExceptionHandler(IllegalArgumentException.class)
+        @ResponseStatus(HttpStatus.BAD_REQUEST)
+        public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(Map.of(
+                                                "timestamp", LocalDateTime.now().toString(),
+                                                "status", HttpStatus.BAD_REQUEST.value(),
+                                                "error", "Bad Request",
+                                                "message", ex.getMessage()));
+        }
+
 }

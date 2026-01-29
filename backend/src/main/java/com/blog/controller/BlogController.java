@@ -72,7 +72,6 @@ public class BlogController {
             @RequestParam(required = false) String content,
             @RequestPart(value = "media", required = false) List<MultipartFile> media,
             Authentication authentication) {
-
         String username = authentication.getName();
         BlogResponse blog = blogService.updateBlog(id, title, content, media, username);
         return ApiResponse.from(200, "Blog Updated successfully", blog);

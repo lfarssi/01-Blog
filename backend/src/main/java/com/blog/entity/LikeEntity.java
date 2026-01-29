@@ -32,8 +32,8 @@ public class LikeEntity {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private UserEntity user;
-
-    private  Instant createdAt;
+    @Builder.Default
+    private  Instant createdAt=Instant.now();
     private  Instant updatedAt;
 
 }

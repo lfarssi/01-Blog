@@ -1,6 +1,7 @@
 package com.blog.entity;
 import java.time.Instant;
 
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -32,8 +33,9 @@ public class FollowEntity {
     @ManyToOne
     @JoinColumn(name = "following_id")
     private UserEntity following;
-
-    private  Instant createdAt;
+    @Builder.Default
+    private  Instant createdAt=Instant.now();
     private  Instant updatedAt;
+    
 
 }

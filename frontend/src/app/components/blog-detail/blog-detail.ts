@@ -7,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -15,12 +15,15 @@ import { BlogDetailService } from '../../services/blog-detail.service';
 import { BlogsService } from '../../services/blogs.service';
 import { ReportDialog } from '../report-dialog/report-dialog';
 import { Blog, Comment } from '../../models/blog.model';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-blog-detail',
   standalone: true,
   imports: [
     CommonModule,
+    MatDialogModule,
+
     FormsModule,
     MatCardModule,
     MatButtonModule,
@@ -71,9 +74,7 @@ export class BlogDetail implements OnInit {
 
   mediaList = computed(() => this.getMediaArray().slice(0, 4));
 
-  selectedMediaUrl = computed(
-    () => this.mediaList()[this.selectedMediaIndex()] ?? null,
-  );
+  selectedMediaUrl = computed(() => this.mediaList()[this.selectedMediaIndex()] ?? null);
 
   isSelectedVideo = computed(() => {
     const url = this.selectedMediaUrl();
@@ -129,7 +130,7 @@ export class BlogDetail implements OnInit {
         const user = JSON.parse(userStr);
         this.currentUserId.set(user.id);
         this.currentUsername.set(user.username);
-        this.isAdmin.set(user.role === 'admin');
+        this.isAdmin.set(String(user.role ?? '').toLowerCase() === 'admin');
         return;
       } catch {}
     }
@@ -182,9 +183,7 @@ export class BlogDetail implements OnInit {
 
     try {
       const parsed = JSON.parse(media);
-      return Array.isArray(parsed)
-        ? parsed.map((u) => (u.startsWith('http') ? u : BASE + u))
-        : [];
+      return Array.isArray(parsed) ? parsed.map((u) => (u.startsWith('http') ? u : BASE + u)) : [];
     } catch {
       return [BASE + media];
     }
@@ -250,16 +249,25 @@ export class BlogDetail implements OnInit {
 
     const blog = this.blog();
     if (!blog) return;
-    if (!confirm('Are you sure you want to delete this post?')) return;
 
-    this.blogService.deleteBlog(Number(blog.id)).subscribe({
-      next: () => this.router.navigate(['/']),
-      error: (err) =>
-        this.snackBar.open(
-          this.extractErrorMessage(err, 'Failed to delete post'),
-          'OK',
-          { duration: 3000 },
-        ),
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      width: '340px',
+      data: { message: 'Are you sure you want to delete this post?' },
+    });
+
+    ref.afterClosed().subscribe((confirmed: boolean) => {
+      if (!confirmed) return;
+
+      this.blogService.deleteBlog(Number(blog.id)).subscribe({
+        next: () => {
+          this.snackBar.open('Post deleted', 'OK', { duration: 2000 });
+          this.router.navigate(['/']);
+        },
+        error: (err) =>
+          this.snackBar.open(this.extractErrorMessage(err, 'Failed to delete post'), 'OK', {
+            duration: 3000,
+          }),
+      });
     });
   }
 
@@ -287,11 +295,9 @@ export class BlogDetail implements OnInit {
         this.blog.set({ ...blog, likeCount: res.data.likeCount });
       },
       error: (err) =>
-        this.snackBar.open(
-          this.extractErrorMessage(err, 'Failed to like post'),
-          'OK',
-          { duration: 3000 },
-        ),
+        this.snackBar.open(this.extractErrorMessage(err, 'Failed to like post'), 'OK', {
+          duration: 3000,
+        }),
     });
   }
 
@@ -310,9 +316,7 @@ export class BlogDetail implements OnInit {
         this.loadingComments.set(false);
       },
       error: (err) => {
-        this.commentsError.set(
-          this.extractErrorMessage(err, 'Failed to load comments'),
-        );
+        this.commentsError.set(this.extractErrorMessage(err, 'Failed to load comments'));
         this.loadingComments.set(false);
       },
     });
@@ -346,53 +350,64 @@ export class BlogDetail implements OnInit {
             this.comments.set(comments);
 
             // Update comment count in blog (use update to avoid stale blog ref)
-            this.blog.update((b) =>
-              b ? { ...b, commentCount: comments.length } : b,
-            );
+            this.blog.update((b) => (b ? { ...b, commentCount: comments.length } : b));
 
             this.postingComment.set(false);
           },
           error: (err) => {
             this.postingComment.set(false);
-            this.snackBar.open(
-              this.extractErrorMessage(err, 'Failed to refresh comments'),
-              'OK',
-              { duration: 3000 },
-            );
+            this.snackBar.open(this.extractErrorMessage(err, 'Failed to refresh comments'), 'OK', {
+              duration: 3000,
+            });
           },
         });
       },
       error: (err) => {
         this.postingComment.set(false);
-        this.snackBar.open(
-          this.extractErrorMessage(err, 'Failed to post comment'),
-          'OK',
-          { duration: 3000 },
-        );
+        this.snackBar.open(this.extractErrorMessage(err, 'Failed to post comment'), 'OK', {
+          duration: 3000,
+        });
       },
     });
   }
-
   deleteComment(commentId: number): void {
     if (this.isPostUnavailable()) return;
-    if (!confirm('Delete this comment?')) return;
 
-    this.blogService.deleteComment(commentId).subscribe({
-      next: () => {
-        // remove from UI
-        this.comments.update((c) => c.filter((cm) => cm.id !== commentId));
-
-        // keep blog.commentCount in sync
-        this.blog.update((b) =>
-          b ? { ...b, commentCount: Math.max(0, (b.commentCount ?? 0) - 1) } : b,
-        );
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '320px',
+      data: {
+        message: 'Are you sure you want to delete this comment?',
       },
-      error: (err) =>
-        this.snackBar.open(
-          this.extractErrorMessage(err, 'Failed to delete comment'),
-          'OK',
-          { duration: 3000 },
-        ),
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (!confirmed) return;
+
+      this.blogService.deleteComment(commentId).subscribe({
+        next: () => {
+          // remove from UI
+          this.comments.update((c) => c.filter((cm) => cm.id !== commentId));
+
+          // keep blog.commentCount in sync
+          this.blog.update((b) =>
+            b
+              ? {
+                  ...b,
+                  commentCount: Math.max(0, (b.commentCount ?? 0) - 1),
+                }
+              : b,
+          );
+
+          this.snackBar.open('Comment deleted', 'OK', {
+            duration: 2000,
+          });
+        },
+
+        error: (err) =>
+          this.snackBar.open(this.extractErrorMessage(err, 'Failed to delete comment'), 'OK', {
+            duration: 3000,
+          }),
+      });
     });
   }
 
@@ -427,11 +442,9 @@ export class BlogDetail implements OnInit {
           duration: 3000,
         }),
       error: (err) =>
-        this.snackBar.open(
-          this.extractErrorMessage(err, 'Failed to report post'),
-          'OK',
-          { duration: 3000 },
-        ),
+        this.snackBar.open(this.extractErrorMessage(err, 'Failed to report post'), 'OK', {
+          duration: 3000,
+        }),
     });
   }
 }

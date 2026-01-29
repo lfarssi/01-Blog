@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,17 +17,17 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name="comments")
+@Table(name = "comments")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor 
+@AllArgsConstructor
 public class CommentEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) 
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @ManyToOne
     @JoinColumn(name = "blog_id")
     private BlogEntity blog;
@@ -34,8 +35,13 @@ public class CommentEntity {
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
+    @PrePersist
+    private void onCreate() {
+        this.createdAt = Instant.now();
+    }
+
     private String content;
 
-    private  Instant createdAt;
-    private  Instant updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 }

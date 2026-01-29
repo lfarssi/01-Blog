@@ -134,6 +134,7 @@
             class="form-control"
             rows="2"
             placeholder="Write a comment..."
+            maxlength="10000"
             [ngModel]="commentText()"
             (ngModelChange)="commentText.set($event)"
             [disabled]="postingComment()">

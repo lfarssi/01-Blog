@@ -27,7 +27,7 @@ public class NotificationEntity {
   private String content;
   private Long relatedId;
   private Boolean isRead;
-
-  private Instant createdAt;   // ✅ remove final
+  @Builder.Default
+  private Instant createdAt=Instant.now();   // ✅ remove final
   private Instant updatedAt;
 }
