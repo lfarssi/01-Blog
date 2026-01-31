@@ -14,10 +14,14 @@ public class AdminSeeder {
     @Bean
     ApplicationRunner seedAdmin(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
-            // ✅ Change these
-            String adminUsername = "admin";
-            String adminEmail = "admin@blog.local";
-            String adminPassword = "Admin123!"; // change later
+            String adminUsername = System.getenv("ADMIN_USERNAME");
+            String adminEmail    = System.getenv("ADMIN_EMAIL");
+            String adminPassword = System.getenv("ADMIN_PASSWORD");
+
+            // ✅ If env vars are not set, don't seed anything
+            if (isBlank(adminUsername) || isBlank(adminEmail) || isBlank(adminPassword)) {
+                return;
+            }
 
             boolean exists = userRepository.findByUsername(adminUsername).isPresent()
                     || userRepository.findByEmail(adminEmail).isPresent();
@@ -25,14 +29,16 @@ public class AdminSeeder {
             if (exists) return;
 
             UserEntity admin = new UserEntity();
-            admin.setUsername(adminUsername);
-            admin.setEmail(adminEmail);
+            admin.setUsername(adminUsername.trim());
+            admin.setEmail(adminEmail.trim());
             admin.setPassword(passwordEncoder.encode(adminPassword));
-            admin.setRole("ADMIN"); // match your role format
-            // set other required fields here (createdAt, enabled, etc.)
+            admin.setRole("ADMIN");
 
             userRepository.save(admin);
-
         };
+    }
+
+    private boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
     }
 }
