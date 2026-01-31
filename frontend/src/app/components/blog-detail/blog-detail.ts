@@ -74,12 +74,17 @@ export class BlogDetail implements OnInit {
 
   mediaList = computed(() => this.getMediaArray().slice(0, 4));
 
-  selectedMediaUrl = computed(() => this.mediaList()[this.selectedMediaIndex()] ?? null);
+  selectedMediaUrl = computed(
+    () => this.mediaList()[this.selectedMediaIndex()] ?? null,
+  );
 
   isSelectedVideo = computed(() => {
     const url = this.selectedMediaUrl();
     return !!url && /\.(mp4|avi|mov|wmv|flv|webm)$/i.test(url);
   });
+
+  // ✅ prevent snackbar spam (show once)
+  private notFoundSnackShown = signal(false);
 
   /* =======================
      DEPENDENCIES
@@ -99,9 +104,20 @@ export class BlogDetail implements OnInit {
     if (!id) return;
 
     this.loadUserInfo();
+
+    // ✅ Load blog first; only after success load like/comments
     this.loadBlog(id);
-    this.checkLikeStatus(id);
-    this.loadComments(id);
+  }
+
+  /* =======================
+     SNACKBAR HELPERS
+  ======================== */
+  private showErrorSnack(message: string): void {
+    this.snackBar.open(message, 'OK', {
+      duration: 3500,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+    });
   }
 
   /* =======================
@@ -183,7 +199,9 @@ export class BlogDetail implements OnInit {
 
     try {
       const parsed = JSON.parse(media);
-      return Array.isArray(parsed) ? parsed.map((u) => (u.startsWith('http') ? u : BASE + u)) : [];
+      return Array.isArray(parsed)
+        ? parsed.map((u) => (u.startsWith('http') ? u : BASE + u))
+        : [];
     } catch {
       return [BASE + media];
     }
@@ -207,13 +225,16 @@ export class BlogDetail implements OnInit {
     this.loadingBlog.set(true);
     this.blogError.set(null);
     this.isPostUnavailable.set(false);
+    this.notFoundSnackShown.set(false);
 
     this.blogService.getBlog(id).subscribe({
       next: (res) => {
         // optional hidden flag support
         if ((res.data as any)?.hidden === true) {
           this.isPostUnavailable.set(true);
-          this.blogError.set('This post is hidden');
+          const msg = 'This post is hidden';
+          this.blogError.set(msg);
+          this.showErrorSnack(msg);
           this.loadingBlog.set(false);
           return;
         }
@@ -221,17 +242,28 @@ export class BlogDetail implements OnInit {
         this.blog.set(res.data);
         this.selectedMediaIndex.set(0);
         this.loadingBlog.set(false);
+
+        // ✅ Now that blog exists, load like/comments
+        this.checkLikeStatus(id);
+        this.loadComments(id);
       },
       error: (err) => {
         this.isPostUnavailable.set(true);
 
-        this.blogError.set(
+        const msg =
           err.status === 404
-            ? 'This post has been deleted'
+            ? 'This post has been deleted or does not exist'
             : err.status === 403
               ? 'You do not have access to this post'
-              : this.extractErrorMessage(err, 'Failed to load blog post'),
-        );
+              : this.extractErrorMessage(err, 'Failed to load blog post');
+
+        this.blogError.set(msg);
+
+        // ✅ show snackbar for not found / forbidden / etc (only once)
+        if (!this.notFoundSnackShown()) {
+          this.showErrorSnack(msg);
+          this.notFoundSnackShown.set(true);
+        }
 
         this.loadingBlog.set(false);
       },
@@ -264,9 +296,11 @@ export class BlogDetail implements OnInit {
           this.router.navigate(['/']);
         },
         error: (err) =>
-          this.snackBar.open(this.extractErrorMessage(err, 'Failed to delete post'), 'OK', {
-            duration: 3000,
-          }),
+          this.snackBar.open(
+            this.extractErrorMessage(err, 'Failed to delete post'),
+            'OK',
+            { duration: 3000 },
+          ),
       });
     });
   }
@@ -295,9 +329,11 @@ export class BlogDetail implements OnInit {
         this.blog.set({ ...blog, likeCount: res.data.likeCount });
       },
       error: (err) =>
-        this.snackBar.open(this.extractErrorMessage(err, 'Failed to like post'), 'OK', {
-          duration: 3000,
-        }),
+        this.snackBar.open(
+          this.extractErrorMessage(err, 'Failed to like post'),
+          'OK',
+          { duration: 3000 },
+        ),
     });
   }
 
@@ -316,7 +352,9 @@ export class BlogDetail implements OnInit {
         this.loadingComments.set(false);
       },
       error: (err) => {
-        this.commentsError.set(this.extractErrorMessage(err, 'Failed to load comments'));
+        this.commentsError.set(
+          this.extractErrorMessage(err, 'Failed to load comments'),
+        );
         this.loadingComments.set(false);
       },
     });
@@ -325,7 +363,7 @@ export class BlogDetail implements OnInit {
   // ✅ Updated: blocks spaces-only + prevents double submit + safer commentCount update
   postComment(): void {
     if (this.isPostUnavailable()) return;
-    if (this.postingComment()) return; // prevent double click spam
+    if (this.postingComment()) return;
 
     const blog = this.blog();
     const text = this.commentText().trim();
@@ -341,43 +379,45 @@ export class BlogDetail implements OnInit {
 
     this.blogService.postComment(Number(blog.id), text).subscribe({
       next: () => {
-        // Clear the input
         this.commentText.set('');
 
-        // Refresh all comments from backend
         this.blogService.getComments(String(blog.id)).subscribe({
           next: (comments) => {
             this.comments.set(comments);
 
-            // Update comment count in blog (use update to avoid stale blog ref)
-            this.blog.update((b) => (b ? { ...b, commentCount: comments.length } : b));
+            this.blog.update((b) =>
+              b ? { ...b, commentCount: comments.length } : b,
+            );
 
             this.postingComment.set(false);
           },
           error: (err) => {
             this.postingComment.set(false);
-            this.snackBar.open(this.extractErrorMessage(err, 'Failed to refresh comments'), 'OK', {
-              duration: 3000,
-            });
+            this.snackBar.open(
+              this.extractErrorMessage(err, 'Failed to refresh comments'),
+              'OK',
+              { duration: 3000 },
+            );
           },
         });
       },
       error: (err) => {
         this.postingComment.set(false);
-        this.snackBar.open(this.extractErrorMessage(err, 'Failed to post comment'), 'OK', {
-          duration: 3000,
-        });
+        this.snackBar.open(
+          this.extractErrorMessage(err, 'Failed to post comment'),
+          'OK',
+          { duration: 3000 },
+        );
       },
     });
   }
+
   deleteComment(commentId: number): void {
     if (this.isPostUnavailable()) return;
 
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '320px',
-      data: {
-        message: 'Are you sure you want to delete this comment?',
-      },
+      data: { message: 'Are you sure you want to delete this comment?' },
     });
 
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
@@ -385,28 +425,22 @@ export class BlogDetail implements OnInit {
 
       this.blogService.deleteComment(commentId).subscribe({
         next: () => {
-          // remove from UI
           this.comments.update((c) => c.filter((cm) => cm.id !== commentId));
 
-          // keep blog.commentCount in sync
           this.blog.update((b) =>
             b
-              ? {
-                  ...b,
-                  commentCount: Math.max(0, (b.commentCount ?? 0) - 1),
-                }
+              ? { ...b, commentCount: Math.max(0, (b.commentCount ?? 0) - 1) }
               : b,
           );
 
-          this.snackBar.open('Comment deleted', 'OK', {
-            duration: 2000,
-          });
+          this.snackBar.open('Comment deleted', 'OK', { duration: 2000 });
         },
-
         error: (err) =>
-          this.snackBar.open(this.extractErrorMessage(err, 'Failed to delete comment'), 'OK', {
-            duration: 3000,
-          }),
+          this.snackBar.open(
+            this.extractErrorMessage(err, 'Failed to delete comment'),
+            'OK',
+            { duration: 3000 },
+          ),
       });
     });
   }
@@ -442,9 +476,11 @@ export class BlogDetail implements OnInit {
           duration: 3000,
         }),
       error: (err) =>
-        this.snackBar.open(this.extractErrorMessage(err, 'Failed to report post'), 'OK', {
-          duration: 3000,
-        }),
+        this.snackBar.open(
+          this.extractErrorMessage(err, 'Failed to report post'),
+          'OK',
+          { duration: 3000 },
+        ),
     });
   }
 }

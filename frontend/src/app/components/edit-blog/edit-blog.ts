@@ -37,7 +37,7 @@ interface MediaItem {
 }
 
 // ─────────────────────────────
-// ✅ Trim-aware validators (spaces-only becomes invalid)
+// ✅ Trim-aware validators
 // ─────────────────────────────
 function requiredTrimmed(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -178,6 +178,11 @@ export class EditBlogComponent implements OnInit {
     return u.startsWith(this.API_BASE) ? u.replace(this.API_BASE, '') : u;
   }
 
+  // Only for existing media (NOT data URLs)
+  private isExistingUrl(u: string): boolean {
+    return u.startsWith('http') || u.startsWith('/api/');
+  }
+
   // ─────────────────────────────
   // Load blog
   // ─────────────────────────────
@@ -252,7 +257,6 @@ export class EditBlogComponent implements OnInit {
 
     const maxSize = 10 * 1024 * 1024;
     const allowedTypes = ['image/', 'video/'];
-
     const files = Array.from(input.files);
 
     for (const file of files) {
@@ -300,11 +304,12 @@ export class EditBlogComponent implements OnInit {
   }
 
   // ─────────────────────────────
-  // Submit
-  // Strategy:
-  // - If media changed: send ONLY new files under key "media"
-  //   (backend will delete all old media and replace)
-  // - If no media change: send no files (backend won't touch media)
+  // Submit (IMPORTANT)
+  // Now supports "remove existing media without adding new media"
+  // by sending:
+  // - mediaChanged=true
+  // - keepMedia=<path> (repeat)
+  // - media=<file> (repeat)
   // ─────────────────────────────
   submit(): void {
     if (this.isPostUnavailable()) {
@@ -344,14 +349,16 @@ export class EditBlogComponent implements OnInit {
 
     // --- Robust media change detection (order-independent) ---
     const initialSet = new Set(
-      this.initialExistingMedia().map((u) => this.normalizeUrl(u)),
+      this.initialExistingMedia()
+        .filter((u) => this.isExistingUrl(u))
+        .map((u) => this.normalizeUrl(u)),
     );
 
-    const currentExistingSet = new Set(
-      this.media()
-        .filter((m) => !m.isNew)
-        .map((m) => this.normalizeUrl(m.url)),
-    );
+    const currentExisting = this.media()
+      .filter((m) => !m.isNew && this.isExistingUrl(m.url))
+      .map((m) => this.normalizeUrl(m.url));
+
+    const currentExistingSet = new Set(currentExisting);
 
     const removedSomething = [...initialSet].some(
       (u) => !currentExistingSet.has(u),
@@ -361,14 +368,18 @@ export class EditBlogComponent implements OnInit {
 
     const hasMediaChanged = removedSomething || hasNewFiles;
 
-    // ✅ IMPORTANT FIX: Controller expects part name "media" (NOT "mediaFiles")
     if (hasMediaChanged) {
+      // ✅ tell backend "media should be updated"
+      formData.append('mediaChanged', 'true');
+
+      // ✅ tell backend which existing media to keep (can be empty => clear all)
+      currentExisting.forEach((p) => formData.append('keepMedia', p));
+
+      // ✅ append new files (if any)
       this.media()
         .filter((m) => m.isNew && m.file)
         .forEach((m) => formData.append('media', m.file!));
     }
-
-    // Optional debug (remove later)
 
     this.blogsService
       .updateBlog(blogId, formData)

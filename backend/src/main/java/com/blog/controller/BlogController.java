@@ -70,10 +70,28 @@ public class BlogController {
             @PathVariable Long id,
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String content,
+
+            // new: tells backend "apply media changes even if no files"
+            @RequestParam(required = false) Boolean mediaChanged,
+
+            // new: list of existing media paths to keep (repeatable param)
+            @RequestParam(required = false) List<String> keepMedia,
+
+            // same: uploaded files
             @RequestPart(value = "media", required = false) List<MultipartFile> media,
+
             Authentication authentication) {
         String username = authentication.getName();
-        BlogResponse blog = blogService.updateBlog(id, title, content, media, username);
+
+        BlogResponse blog = blogService.updateBlog(
+                id,
+                title,
+                content,
+                media,
+                mediaChanged,
+                keepMedia,
+                username);
+
         return ApiResponse.from(200, "Blog Updated successfully", blog);
     }
 

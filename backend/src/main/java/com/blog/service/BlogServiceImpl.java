@@ -1,11 +1,14 @@
 package com.blog.service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import com.fasterxml.jackson.core.type.TypeReference;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -18,41 +21,48 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.blog.dto.BlogResponse;
-import com.blog.mapper.BlogMapper;
 import com.blog.entity.BlogEntity;
 import com.blog.entity.FollowEntity;
 import com.blog.entity.UserEntity;
 import com.blog.exception.AccessDeniedException;
 import com.blog.exception.ResourceNotFoundException;
 import com.blog.helper.MediaValidator;
+import com.blog.mapper.BlogMapper;
 import com.blog.repository.BlogRepository;
 import com.blog.repository.CommentRepository;
 import com.blog.repository.FollowRepository;
 import com.blog.repository.LikeRepository;
 import com.blog.repository.UserRepository;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 @Service
 @RequiredArgsConstructor
 public class BlogServiceImpl implements BlogService {
+
     @Autowired
     private BlogRepository blogRepository;
+
     @Autowired
     private LikeRepository likeRepository;
+
     @Autowired
     private FollowRepository followRepository;
+
     @Autowired
     private CommentRepository commentRepository;
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private MediaStorageService mediaStorageService;
+
     @Autowired
     private NotificationServiceImpl notificationService;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public BlogResponse getBlogDetails(Long id) {
@@ -100,7 +110,7 @@ public class BlogServiceImpl implements BlogService {
 
         String mediaJson;
         try {
-            mediaJson = new ObjectMapper().writeValueAsString(mediaPaths);
+            mediaJson = objectMapper.writeValueAsString(mediaPaths);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize media", e);
         }
@@ -130,9 +140,19 @@ public class BlogServiceImpl implements BlogService {
         return BlogMapper.toResponse(saved);
     }
 
-    // ✅ UPDATED: If mediaFiles is present => delete ALL old media + replace with
-    // new.
-    // If mediaFiles is null/empty => DO NOT touch media.
+    // ─────────────────────────────────────────────
+    // ✅ UPDATED UPDATE LOGIC
+    //
+    // Supports:
+    // - mediaChanged=true + keepMedia=[]
+    //     -> delete all old media, set media=[]
+    // - mediaChanged=true + keepMedia=[some old] + mediaFiles=[new]
+    //     -> delete removed, keep selected, append newly stored
+    // - mediaChanged=false/null + mediaFiles present
+    //     -> old behavior: replace all
+    // - mediaChanged=false/null + no files
+    //     -> do not touch media
+    // ─────────────────────────────────────────────
     @Override
     @Transactional
     public BlogResponse updateBlog(
@@ -140,6 +160,8 @@ public class BlogServiceImpl implements BlogService {
             String title,
             String content,
             List<MultipartFile> mediaFiles,
+            Boolean mediaChanged,
+            List<String> keepMedia,
             String username) {
 
         UserEntity user = userRepository.findByUsername(username)
@@ -157,32 +179,54 @@ public class BlogServiceImpl implements BlogService {
         if (content != null && !content.trim().isEmpty())
             blog.setContent(content.trim());
 
-        if (mediaFiles != null && !mediaFiles.isEmpty()) {
-            MediaValidator.validate(mediaFiles);
+        // 1) Parse old media safely
+        List<String> oldMedia = parseMediaSafely(blog.getMedia());
 
-            ObjectMapper om = new ObjectMapper();
+        boolean shouldUpdateMedia = Boolean.TRUE.equals(mediaChanged);
 
-            // 1) Parse old media safely (List<String>)
-            List<String> oldMedia = List.of();
-            try {
-                String oldMediaJson = blog.getMedia();
-                if (oldMediaJson != null && !oldMediaJson.isBlank()) {
-                    oldMedia = om.readValue(oldMediaJson, new TypeReference<List<String>>() {
-                    });
-                }
-            } catch (Exception e) {
-                oldMedia = List.of();
+        // 2) NEW MODE: update even if no new files
+        if (shouldUpdateMedia) {
+
+            List<String> keep = (keepMedia == null) ? List.of() : keepMedia;
+
+            // Delete removed = old - keep
+            List<String> toDelete = oldMedia.stream()
+                    .filter(p -> !keep.contains(p))
+                    .toList();
+            mediaStorageService.delete(toDelete);
+
+            // Store new files (optional)
+            List<String> newPaths = List.of();
+            if (mediaFiles != null && !mediaFiles.isEmpty()) {
+                MediaValidator.validate(mediaFiles);
+                newPaths = mediaStorageService.store(mediaFiles);
             }
 
-            // 2) Delete all old files
-            mediaStorageService.delete(oldMedia);
+            // final = keep + newPaths
+            List<String> finalMedia = new ArrayList<>(keep);
+            finalMedia.addAll(newPaths);
 
-            // 3) Store new and replace JSON
-            List<String> mediaPaths = mediaStorageService.store(mediaFiles);
             try {
-                blog.setMedia(om.writeValueAsString(mediaPaths));
+                blog.setMedia(objectMapper.writeValueAsString(finalMedia));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Failed to serialize media", e);
+            }
+
+        } else {
+            // 3) OLD MODE: only replace when files exist
+            if (mediaFiles != null && !mediaFiles.isEmpty()) {
+                MediaValidator.validate(mediaFiles);
+
+                // delete all old files
+                mediaStorageService.delete(oldMedia);
+
+                // store new and replace JSON
+                List<String> mediaPaths = mediaStorageService.store(mediaFiles);
+                try {
+                    blog.setMedia(objectMapper.writeValueAsString(mediaPaths));
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException("Failed to serialize media", e);
+                }
             }
         }
 
@@ -203,6 +247,10 @@ public class BlogServiceImpl implements BlogService {
         if (!blog.getUserId().getId().equals(user.getId())) {
             throw new AccessDeniedException("Unauthorized to delete this blog");
         }
+
+        // ✅ Delete stored media too
+        List<String> oldMedia = parseMediaSafely(blog.getMedia());
+        mediaStorageService.delete(oldMedia);
 
         blogRepository.delete(blog);
     }
@@ -252,5 +300,22 @@ public class BlogServiceImpl implements BlogService {
         return pageResult.getContent().stream()
                 .map(BlogMapper::toResponse)
                 .toList();
+    }
+
+    // ─────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────
+    private List<String> parseMediaSafely(String mediaJsonOrSingleValue) {
+        if (mediaJsonOrSingleValue == null || mediaJsonOrSingleValue.isBlank()) {
+            return List.of();
+        }
+
+        // If it looks like JSON array, parse it
+        try {
+            return objectMapper.readValue(mediaJsonOrSingleValue, new TypeReference<List<String>>() {});
+        } catch (Exception ignored) {
+            // Otherwise treat as single string path
+            return List.of(mediaJsonOrSingleValue);
+        }
     }
 }

@@ -18,7 +18,13 @@ public interface BlogService {
             List<MultipartFile> mediaFiles,
             String username);
 
-    public BlogResponse updateBlog(Long id, String title, String content, List<MultipartFile> mediaFiles,
+    public BlogResponse updateBlog(
+            Long id,
+            String title,
+            String content,
+            List<MultipartFile> mediaFiles,
+            Boolean mediaChanged,
+            List<String> keepMedia,
             String username);
 
     void deleteBlog(Long id, String username);

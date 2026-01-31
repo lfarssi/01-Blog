@@ -1,24 +1,517 @@
-// Make Material fields look more integrated
-mat-form-field {
-  .mat-mdc-form-field {
-    border-radius: 8px;
-  }
+// ========================================
+// PREMIUM LOGIN FORM STYLES
+// ========================================
 
-  .mat-mdc-form-field-subscript-wrapper {
-    margin-top: 4px;
+// Color Palette
+$color-primary: #2563eb;        // Vibrant blue
+$color-primary-dark: #1e40af;   // Dark blue
+$color-primary-light: #3b82f6;  // Light blue
+$color-text-primary: #1f2937;   // Dark gray text
+$color-text-secondary: #6b7280; // Medium gray
+$color-text-light: #9ca3af;     // Light gray
+$color-bg-primary: #ffffff;     // White
+$color-bg-secondary: #f9fafb;   // Off-white
+$color-border: #e5e7eb;         // Light border
+$color-error: #dc2626;          // Red
+$color-error-light: #fee2e2;    // Light red
+$color-success: #16a34a;        // Green
+
+// Transitions
+$transition-fast: 0.2s ease;
+$transition-normal: 0.3s ease;
+$transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+// Spacing
+$space-xs: 4px;
+$space-sm: 8px;
+$space-md: 16px;
+$space-lg: 24px;
+$space-xl: 32px;
+$space-2xl: 48px;
+
+// Border Radius
+$radius-sm: 6px;
+$radius-md: 8px;
+$radius-lg: 12px;
+$radius-xl: 16px;
+
+// Shadows
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.05);
+$shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+$shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+
+// Typography
+$font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  sans-serif;
+$font-family-mono: 'Courier New', monospace;
+
+// ========================================
+// ANIMATIONS
+// ========================================
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-// Button style
-button[mat-raised-button] {
-  border-radius: 8px;
-  padding: 10px 24px;
-  font-weight: 500;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-// Responsive adjustments
-@media (max-width: 575.98px) {
-  .card-body {
-    padding: 1.5rem;
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes focusGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// ========================================
+// LAYOUT
+// ========================================
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  padding: $space-md;
+  font-family: $font-family-base;
+  animation: fadeIn 0.6s $transition-smooth;
+
+  @media (max-width: 640px) {
+    padding: $space-sm;
+  }
+}
+
+.login-card {
+  background: $color-bg-primary;
+  border-radius: $radius-xl;
+  box-shadow: $shadow-xl;
+  width: 100%;
+  max-width: 420px;
+  padding: $space-2xl;
+  animation: slideIn 0.5s $transition-smooth;
+  overflow: hidden;
+  position: relative;
+
+  // Subtle background shimmer
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.8),
+      transparent
+    );
+  }
+
+  @media (max-width: 640px) {
+    padding: $space-xl $space-lg;
+    border-radius: $radius-lg;
+  }
+}
+
+// ========================================
+// HEADER SECTION
+// ========================================
+
+.login-header {
+  text-align: center;
+  margin-bottom: $space-2xl;
+  animation: slideIn 0.5s $transition-smooth 0.1s backwards;
+}
+
+.login-logo {
+  font-size: 24px;
+  font-weight: 700;
+  color: $color-primary;
+  margin-bottom: $space-sm;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, $color-primary, $color-primary-light);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.login-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin: 0;
+  margin-bottom: $space-sm;
+  letter-spacing: -0.3px;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: $color-text-secondary;
+  margin: 0;
+  line-height: 1.5;
+}
+
+// ========================================
+// FORM STYLES
+// ========================================
+
+.login-form {
+  animation: slideIn 0.5s $transition-smooth 0.15s backwards;
+}
+
+// Form Field Container
+.form-field {
+  margin-bottom: $space-lg;
+  position: relative;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}
+
+// Label
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin-bottom: $space-sm;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color $transition-fast;
+}
+
+// Input Field
+.form-input {
+  width: 100%;
+  padding: $space-md $space-md;
+  font-size: 14px;
+  font-family: $font-family-base;
+  border: 1.5px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-bg-secondary;
+  color: $color-text-primary;
+  transition: all $transition-normal;
+  outline: none;
+  box-sizing: border-box;
+
+  &::placeholder {
+    color: $color-text-light;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: darken($color-border, 5%);
+    background: lighten($color-bg-secondary, 2%);
+  }
+
+  &:focus {
+    border-color: $color-primary;
+    background: $color-bg-primary;
+    box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: $color-bg-secondary;
+  }
+
+  @media (max-width: 640px) {
+    padding: $space-md;
+    font-size: 16px; // Prevent zoom on iOS
+  }
+}
+
+// Input Group (for password toggle)
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-group-input {
+  flex: 1;
+  padding-right: $space-xl; // Space for icon
+}
+
+.input-group-button {
+  position: absolute;
+  right: $space-sm;
+  background: none;
+  border: none;
+  color: $color-text-secondary;
+  cursor: pointer;
+  padding: $space-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $color-primary;
+  }
+
+  &:focus {
+    outline: none;
+  }
+}
+
+// Error Message
+.error-message {
+  font-size: 13px;
+  color: $color-error;
+  margin-top: $space-xs;
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  animation: slideInFromLeft 0.2s $transition-smooth;
+
+  &::before {
+    content: '⚠';
+    font-size: 12px;
+  }
+}
+
+// Form-wide Error
+.form-error {
+  background-color: $color-error-light;
+  border: 1px solid $color-error;
+  color: $color-error;
+  padding: $space-md;
+  border-radius: $radius-md;
+  font-size: 13px;
+  margin-bottom: $space-lg;
+  animation: slideIn 0.3s $transition-smooth;
+  text-align: center;
+}
+
+// ========================================
+// BUTTONS
+// ========================================
+
+.login-button {
+  width: 100%;
+  padding: 12px $space-md;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  border: none;
+  border-radius: $radius-md;
+  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
+  color: $color-bg-primary;
+  cursor: pointer;
+  transition: all $transition-normal;
+  text-transform: uppercase;
+  box-shadow: 0 4px 12px rgba($color-primary, 0.3);
+  outline: none;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba($color-bg-primary, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 8px 20px rgba($color-primary, 0.4);
+    transform: translateY(-2px);
+
+    &::before {
+      width: 300px;
+      height: 300px;
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    box-shadow: 0 2px 8px rgba($color-primary, 0.2);
+  }
+
+  @media (max-width: 640px) {
+    padding: 14px $space-md;
+    font-size: 16px;
+  }
+}
+
+// Loading State
+.login-button--loading {
+  &::after {
+    content: '';
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-left: $space-sm;
+    border: 2px solid rgba($color-bg-primary, 0.3);
+    border-top-color: $color-bg-primary;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ========================================
+// FOOTER SECTION
+// ========================================
+
+.login-footer {
+  margin-top: $space-2xl;
+  padding-top: $space-lg;
+  border-top: 1px solid $color-border;
+  text-align: center;
+  animation: slideIn 0.5s $transition-smooth 0.2s backwards;
+}
+
+.login-footer-text {
+  font-size: 13px;
+  color: $color-text-secondary;
+  line-height: 1.6;
+}
+
+.login-footer-link {
+  color: $color-primary;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all $transition-fast;
+  border-bottom: 1px solid transparent;
+
+  &:hover {
+    color: $color-primary-dark;
+    border-bottom-color: $color-primary;
+  }
+
+  &:focus {
+    outline: 2px solid rgba($color-primary, 0.5);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+// ========================================
+// ACCESSIBILITY
+// ========================================
+
+// Focus visible states (for keyboard navigation)
+.form-input:focus-visible,
+.login-button:focus-visible,
+.login-footer-link:focus-visible {
+  outline: 2px solid $color-primary;
+  outline-offset: 2px;
+}
+
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .login-container {
+    background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+  }
+
+  .login-card {
+    background: #1f2937;
+    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.3);
+  }
+
+  .login-title {
+    color: #f9fafb;
+  }
+
+  .login-subtitle,
+  .login-footer-text {
+    color: #d1d5db;
+  }
+
+  .form-input {
+    background: #111827;
+    border-color: #374151;
+    color: #f9fafb;
+
+    &:focus {
+      background: #1f2937;
+      box-shadow: 0 0 0 3px rgba($color-primary, 0.2);
+    }
+  }
+
+  .form-error {
+    background-color: rgba($color-error, 0.1);
+    border-color: rgba($color-error, 0.3);
+  }
+}
+
+// Print styles
+@media print {
+  .login-container {
+    background: white;
+    min-height: auto;
+  }
+
+  .login-button {
+    display: none;
   }
 }
