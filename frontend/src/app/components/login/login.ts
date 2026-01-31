@@ -95,7 +95,6 @@ export class Login {
           email: userData.email,
           role: userData.role as 'ADMIN' | 'USER',
         });
-        console.log('Login success:', res);
         this.router.navigate(['/']);
       },
       error: (err: HttpErrorResponse) => {

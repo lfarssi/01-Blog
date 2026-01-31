@@ -34,7 +34,6 @@ export class AdminUsers implements OnInit {
   totalElements = signal(0);
 
   ngOnInit(): void {
-    console.log('[Admin] init');
     this.loadUsers();
   }
 

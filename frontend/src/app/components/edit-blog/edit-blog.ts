@@ -369,8 +369,6 @@ export class EditBlogComponent implements OnInit {
     }
 
     // Optional debug (remove later)
-    // console.log('hasMediaChanged', hasMediaChanged);
-    // console.log('new files count', this.media().filter(m => m.isNew && m.file).length);
 
     this.blogsService
       .updateBlog(blogId, formData)

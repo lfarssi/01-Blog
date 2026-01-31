@@ -82,7 +82,6 @@ export class NotificationsComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        console.log(err);
         const msg = this.extractErrorMessage(err, 'Failed to load notifications');
         this.errorMsg.set(msg);
         this.loading.set(false);
@@ -102,7 +101,6 @@ export class NotificationsComponent implements OnInit {
         this.toast('Marked as read');
       },
       error: (err) => {
-        console.log(err);
         // rollback
         this.notifications.set(before);
         this.toast(this.extractErrorMessage(err, 'Failed to mark as read'));
@@ -119,7 +117,6 @@ export class NotificationsComponent implements OnInit {
         this.toast('All notifications marked as read');
       },
       error: (err) => {
-        console.log(err);
         this.notifications.set(before);
         this.toast(this.extractErrorMessage(err, 'Failed to mark all as read'));
       },
@@ -135,7 +132,6 @@ export class NotificationsComponent implements OnInit {
         this.toast('Notification deleted');
       },
       error: (err) => {
-        console.log(err);
         this.notifications.set(before);
         this.toast(this.extractErrorMessage(err, 'Failed to delete notification'));
       },

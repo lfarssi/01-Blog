@@ -48,7 +48,6 @@ export class FollowService {
   getFollowing(userId: number): Observable<User[]> {
     return this.http.get<any>(`${this.apiUrl}/${userId}/following`).pipe(
       map((apiResponse: any) => {
-        console.log('Raw following response:', apiResponse);  // ← DEBUG
         return apiResponse.data || [];  // ✅ Safe array!
       })
     );
@@ -62,7 +61,6 @@ export class FollowService {
 
     this.getFollowing(currentUserId).subscribe({
       next: (following: User[]) => {
-        console.log('Following loaded:', following);
         const ids = new Set(following.map((f) => f.id).filter((id): id is number => id > 0));
         this.followingIds.set(ids);
       },

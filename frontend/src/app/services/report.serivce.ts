@@ -32,7 +32,6 @@ export class ReportService {
       reason         // ✅ Backend requires reason
     };
     
-    console.log('📤 Sending report:', request); // ✅ Debug payload
     
     return this.http.post<ApiResponse<Report>>(`${this.apiUrl}`, request)
       .pipe(
@@ -62,7 +61,6 @@ export class ReportService {
    * Check if current user has already reported a user
    */
   hasReportedUser(userId: number): Observable<boolean> {
-    console.log('🔍 Service: Checking user report:', userId);
     return this.http.get<ApiResponse<boolean>>(`${this.apiUrl}/check/user/${userId}`)
       .pipe(
         map(response => response.data),

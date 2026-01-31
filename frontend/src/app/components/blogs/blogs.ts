@@ -45,7 +45,6 @@ export class Blogs implements OnInit {
   // called by sentinel (infiniteList)
   loadMoreBlogs(): void {
     if (this.loading() || this.loadingMore() || !this.hasMore()) return;
-    console.log("loading");
     
     this.loadingMore.set(true);
     this.fetchPage(this.page() + 1, false);
@@ -70,7 +69,6 @@ export class Blogs implements OnInit {
         if (items.length < this.size) this.hasMore.set(false);
       },
       error: (err) => {
-        console.log(err);
 
         if (isFirst) {
           this.errorMsg.set('Failed to load blogs');

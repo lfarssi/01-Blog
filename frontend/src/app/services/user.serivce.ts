@@ -69,7 +69,6 @@ export class UserService {
    */
   getCurrentUserId(): Observable<number> {
     const userId = this.currentUser()?.id || 0;
-    console.log('UserService currentUserId:', userId);
     return of(userId);
   }
   /**
@@ -142,9 +141,7 @@ export class UserService {
       })
       .pipe(
         map((response) => {
-          console.log('Raw search response:', response);
           const users = response.data || response.users || [];
-          console.log('Extracted users:', users);
           return Array.isArray(users) ? users : [];
         }),
         catchError((error) => {
