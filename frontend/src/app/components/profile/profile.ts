@@ -142,7 +142,9 @@ export class ProfileComponent implements OnInit {
       this.isOwnProfile.set(user.id === currentId);
 
       this.loadFollowStatus(userId);
-      this.checkReportStatus(userId);
+      // this.checkReportStatus(userId);
+
+      // ✅ load first page (page 0)
       this.loadMoreBlogs();
 
       this.isLoading.set(false);
@@ -157,21 +159,36 @@ export class ProfileComponent implements OnInit {
 
     this.blogsLoadingMore.set(true);
 
-    // ✅ FIX: increment page (otherwise you keep loading the same page)
-    const nextPage = this.blogsPage() + 1;
+    // ✅ FIX: Spring paging is 0-based -> start with current page, then increment after success
+    const page = this.blogsPage();
 
     this.blogsService
-      .getBlogsByUser(this.user()!.id, nextPage, 10)
+      .getBlogsByUser(this.user()!.id, page, 10)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: any) => {
-          const newBlogs = response?.data ?? response ?? [];
-          this.blogs.update((prev) => [...prev, ...newBlogs]);
+          // ✅ Supports common API shapes:
+          // - ApiResponse<List<Blog>> => { data: [...] }
+          // - Spring Page<Blog>       => { content: [...] }
+          // - Plain array             => [...]
+          const newBlogs: Blog[] =
+            response?.data ??
+            response?.content ??
+            (Array.isArray(response) ? response : []);
 
-          // ✅ FIX: store the page we just loaded
-          this.blogsPage.set(nextPage);
+          // ✅ append + (optional) dedupe by id to avoid duplicates with infinite scroll
+          this.blogs.update((prev) => {
+            const map = new Map<number, Blog>();
+            [...prev, ...newBlogs].forEach((b) => map.set(b.id, b));
+            return Array.from(map.values());
+          });
 
+          // ✅ increment only after successful fetch
+          this.blogsPage.set(page + 1);
+
+          // ✅ stop when fewer than page size is returned
           this.hasMoreBlogs.set(newBlogs.length === 10);
+
           this.blogsLoadingMore.set(false);
         },
         error: () => this.blogsLoadingMore.set(false),
@@ -186,22 +203,18 @@ export class ProfileComponent implements OnInit {
       .subscribe((status) => this.followStatus.set(status));
   }
 
-  private checkReportStatus(userId: number): void {
-    this.reportService
-      .hasReportedUser(userId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (res: any) => {
-          // ✅ FIX: support both API shapes: boolean OR { data: boolean }
-          const already = typeof res === 'boolean' ? res : !!res?.data;
-          // this.hasAlreadyReported.set(already);
-        },
-        error: () => {
-          // ✅ safest fallback
-          this.hasAlreadyReported.set(false);
-        },
-      });
-  }
+  // private checkReportStatus(userId: number): void {
+  //   this.reportService
+  //     .hasReportedUser(userId)
+  //     .pipe(takeUntilDestroyed(this.destroyRef))
+  //     .subscribe({
+  //       next: (res: any) => {
+  //         const already = typeof res === 'boolean' ? res : !!res?.data;
+  //         this.hasAlreadyReported.set(already);
+  //       },
+  //       error: () => this.hasAlreadyReported.set(false),
+  //     });
+  // }
 
   toggleFollow(): void {
     const userId = this.user()?.id;
@@ -305,7 +318,6 @@ export class ProfileComponent implements OnInit {
 
   /* ---------------- Report (MatDialog) ---------------- */
   openReportDialog(): void {
-    // ✅ blocks if already reported (now reliable)
     // if (this.hasAlreadyReported()) return;
 
     const userId = this.user()?.id;
@@ -334,7 +346,6 @@ export class ProfileComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          // ✅ FIX: update UI immediately so it can't be opened again
           // this.hasAlreadyReported.set(true);
         },
         error: (err) => console.error('Report failed', err),
