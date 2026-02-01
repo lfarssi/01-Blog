@@ -45,58 +45,54 @@ export class AdminBlogs implements OnInit {
   ngOnInit(): void {
     this.loadBlogs();
   }
-toggleVisible(blogId: number): void {
-  const blog = this.blogs().find((b) => b.id === blogId);
-  if (!blog) return;
+  toggleVisible(blogId: number): void {
+    const blog = this.blogs().find((b) => b.id === blogId);
+    if (!blog) return;
 
-  const isVisible = blog.visible === true;
+    const isVisible = blog.visible === true;
 
-  // ✅ Build message
-  const action = isVisible ? 'Hide' : 'Unhide';
-  const message = `${action} this blog${
-    blog.title ? `: "${blog.title}"` : ''
-  }?`;
+    // ✅ Build message
+    // const isVisible = blog.visible === true;
 
-  // ✅ Open confirm dialog
-  const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-    width: '340px',
-    data: { message },
-  });
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '340px',
+      data: {
+        title: isVisible ? 'Hide blog' : 'Unhide blog',
+        message: `${isVisible ? 'Hide' : 'Unhide'} this blog${
+          blog.title ? `: "${blog.title}"` : ''
+        }?`,
+        confirmText: isVisible ? 'Hide' : 'Unhide',
+        confirmColor: isVisible ? 'warn' : 'primary',
+      },
+    });
 
-  dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-    if (!confirmed) return;
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (!confirmed) return;
 
-    // ✅ Only toggle after confirmation
-    this.http
-      .patch<ApiResponse<boolean>>(
-        `${BASE_URL}/admin/blogs/${blogId}/toggle-visible`,
-        {},
-      )
-      .subscribe({
-        next: (res) => {
-          const newVisible = res.data;
+      // ✅ Only toggle after confirmation
+      this.http
+        .patch<ApiResponse<boolean>>(`${BASE_URL}/admin/blogs/${blogId}/toggle-visible`, {})
+        .subscribe({
+          next: (res) => {
+            const newVisible = res.data;
 
-          // Update UI
-          this.blogs.update((blogs) =>
-            blogs.map((b) =>
-              b.id === blogId ? { ...b, visible: newVisible } : b,
-            ),
-          );
+            // Update UI
+            this.blogs.update((blogs) =>
+              blogs.map((b) => (b.id === blogId ? { ...b, visible: newVisible } : b)),
+            );
 
-          this.snackBar.open(
-            newVisible ? 'Blog is now visible' : 'Blog is now hidden',
-            'OK',
-            { duration: 2000 },
-          );
-        },
-        error: (err: HttpErrorResponse) => {
-          const msg = err.error?.message ?? 'Failed to toggle visibility.';
-          this.errorMsg.set(msg);
-          this.snackBar.open(msg, 'OK', { duration: 3000 });
-        },
-      });
-  });
-}
+            this.snackBar.open(newVisible ? 'Blog is now visible' : 'Blog is now hidden', 'OK', {
+              duration: 2000,
+            });
+          },
+          error: (err: HttpErrorResponse) => {
+            const msg = err.error?.message ?? 'Failed to toggle visibility.';
+            this.errorMsg.set(msg);
+            this.snackBar.open(msg, 'OK', { duration: 3000 });
+          },
+        });
+    });
+  }
 
   loadBlogs(page = 0, size = 20, search?: string) {
     this.loading.set(true);
@@ -138,10 +134,13 @@ toggleVisible(blogId: number): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '340px',
       data: {
-        message: `Delete this blog${blog?.title ? `: "${blog.title}"` : ''}?`,
+        title: 'Delete blog',
+        message: `Delete this blog${blog?.title ? `: "${blog.title}"` : ''}? This cannot be undone.`,
+        confirmText: 'Delete',
+        confirmColor: 'warn',
+        cancelText: 'Cancel',
       },
     });
-
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (!confirmed) return;
 

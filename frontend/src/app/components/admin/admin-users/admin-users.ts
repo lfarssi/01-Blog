@@ -64,12 +64,14 @@ export class AdminUsers implements OnInit {
 
   toggleBan(u: User) {
     const isBanned = !!u.banned;
-    const action = isBanned ? 'Unban' : 'Ban';
 
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '340px',
       data: {
-        message: `${action} user "${u.username}"?`,
+        title: isBanned ? 'Unban user' : 'Ban user',
+        message: `${isBanned ? 'Unban' : 'Ban'} user "${u.username}"?`,
+        confirmText: isBanned ? 'Unban' : 'Ban',
+        confirmColor: isBanned ? 'primary' : 'warn',
       },
     });
 
@@ -108,10 +110,13 @@ export class AdminUsers implements OnInit {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '340px',
       data: {
+        title: 'Delete user',
         message: `Delete user "${u.username}"? This cannot be undone.`,
+        confirmText: 'Delete',
+        confirmColor: 'warn',
+        cancelText: 'Cancel',
       },
     });
-
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (!confirmed) return;
 
