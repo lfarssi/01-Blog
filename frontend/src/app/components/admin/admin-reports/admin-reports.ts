@@ -80,7 +80,6 @@ export class AdminReports implements OnInit {
       next: (res) => {
         const data = res.data;
         const list: AdminReport[] = (data?.reports ?? data?.content ?? data) as AdminReport[];
-        console.log('Admin Reports:', list);
 
         this.reports.set(Array.isArray(list) ? list : []);
         this.totalPages.set(data?.totalPages ?? 0);

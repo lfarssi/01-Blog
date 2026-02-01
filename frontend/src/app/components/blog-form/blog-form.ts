@@ -250,7 +250,6 @@ export class BlogFormComponent {
         this.errorMsg.set(message);
         this.showError(message);
 
-        console.error('Create blog error:', err);
       },
     });
   }

@@ -38,6 +38,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar'; // ✅ add
 
 @Component({
   selector: 'app-profile',
@@ -52,6 +53,7 @@ import { MatDialogModule } from '@angular/material/dialog';
     MatTooltipModule,
     InfiniteListDirective,
     MatProgressSpinnerModule,
+    MatSnackBarModule, // ✅ add
   ],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
@@ -62,6 +64,7 @@ export class ProfileComponent implements OnInit {
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
   private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar); // ✅ add
 
   private userService = inject(UserService);
   private blogsService = inject(BlogsService);
@@ -144,12 +147,12 @@ export class ProfileComponent implements OnInit {
       this.loadFollowStatus(userId);
       // this.checkReportStatus(userId);
 
-      // ✅ load first page (page 0)
       this.loadMoreBlogs();
 
       this.isLoading.set(false);
     } catch {
       this.isLoading.set(false);
+      this.showError('Failed to load profile. Please try again.');
     }
   }
 
@@ -159,7 +162,6 @@ export class ProfileComponent implements OnInit {
 
     this.blogsLoadingMore.set(true);
 
-    // ✅ FIX: Spring paging is 0-based -> start with current page, then increment after success
     const page = this.blogsPage();
 
     this.blogsService
@@ -167,31 +169,24 @@ export class ProfileComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: any) => {
-          // ✅ Supports common API shapes:
-          // - ApiResponse<List<Blog>> => { data: [...] }
-          // - Spring Page<Blog>       => { content: [...] }
-          // - Plain array             => [...]
           const newBlogs: Blog[] =
-            response?.data ??
-            response?.content ??
-            (Array.isArray(response) ? response : []);
+            response?.data ?? response?.content ?? (Array.isArray(response) ? response : []);
 
-          // ✅ append + (optional) dedupe by id to avoid duplicates with infinite scroll
           this.blogs.update((prev) => {
             const map = new Map<number, Blog>();
             [...prev, ...newBlogs].forEach((b) => map.set(b.id, b));
             return Array.from(map.values());
           });
 
-          // ✅ increment only after successful fetch
           this.blogsPage.set(page + 1);
-
-          // ✅ stop when fewer than page size is returned
           this.hasMoreBlogs.set(newBlogs.length === 10);
 
           this.blogsLoadingMore.set(false);
         },
-        error: () => this.blogsLoadingMore.set(false),
+        error: () => {
+          this.blogsLoadingMore.set(false);
+          this.showError('Failed to load blogs. Please try again.');
+        },
       });
   }
 
@@ -200,21 +195,11 @@ export class ProfileComponent implements OnInit {
     this.followService
       .getFollowStatus(userId)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((status) => this.followStatus.set(status));
+      .subscribe({
+        next: (status) => this.followStatus.set(status),
+        error: () => this.showError('Failed to load follow status.'),
+      });
   }
-
-  // private checkReportStatus(userId: number): void {
-  //   this.reportService
-  //     .hasReportedUser(userId)
-  //     .pipe(takeUntilDestroyed(this.destroyRef))
-  //     .subscribe({
-  //       next: (res: any) => {
-  //         const already = typeof res === 'boolean' ? res : !!res?.data;
-  //         this.hasAlreadyReported.set(already);
-  //       },
-  //       error: () => this.hasAlreadyReported.set(false),
-  //     });
-  // }
 
   toggleFollow(): void {
     const userId = this.user()?.id;
@@ -223,7 +208,10 @@ export class ProfileComponent implements OnInit {
     this.followService
       .toggleFollow(userId)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((status) => this.followStatus.set(status));
+      .subscribe({
+        next: (status) => this.followStatus.set(status),
+        error: () => this.showError('Failed to update follow status.'),
+      });
   }
 
   /* ---------------- Followers / Following ---------------- */
@@ -242,7 +230,10 @@ export class ProfileComponent implements OnInit {
           this.followers.set(users);
           this.followersLoading.set(false);
         },
-        error: () => this.followersLoading.set(false),
+        error: () => {
+          this.followersLoading.set(false);
+          this.showError('Failed to load followers.');
+        },
       });
   }
 
@@ -266,7 +257,10 @@ export class ProfileComponent implements OnInit {
           this.following.set(users);
           this.followingLoading.set(false);
         },
-        error: () => this.followingLoading.set(false),
+        error: () => {
+          this.followingLoading.set(false);
+          this.showError('Failed to load following users.');
+        },
       });
   }
 
@@ -318,8 +312,6 @@ export class ProfileComponent implements OnInit {
 
   /* ---------------- Report (MatDialog) ---------------- */
   openReportDialog(): void {
-    // if (this.hasAlreadyReported()) return;
-
     const userId = this.user()?.id;
     if (!userId) return;
 
@@ -348,7 +340,17 @@ export class ProfileComponent implements OnInit {
         next: () => {
           // this.hasAlreadyReported.set(true);
         },
-        error: (err) => console.error('Report failed', err),
+        error: () => this.showError('Report failed. Please try again.'),
       });
+  }
+
+  /* ---------------- UI Helpers ---------------- */
+  private showError(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 5000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar'],
+    });
   }
 }

@@ -4,14 +4,16 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import com.blog.entity.UserEntity;
+import com.blog.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.JwtException;
 
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -26,14 +28,13 @@ import lombok.RequiredArgsConstructor;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+            FilterChain filterChain) throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
 
@@ -45,32 +46,43 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String token = authHeader.substring(7);
 
-            // ✅ can throw SignatureException / ExpiredJwtException / etc
-            String username = jwtService.extractUsername(token);
+            // ✅ Validate signature/exp/jti/sub
+            if (!jwtService.isTokenValid(token)) {
+                throw new JwtException("Invalid token");
+            }
 
-            if (username != null &&
-                    SecurityContextHolder.getContext().getAuthentication() == null) {
+            // ✅ NEW: subject = userId
+            Long userId = jwtService.extractUserId(token);
 
-                UserDetails userDetails =
-                        userDetailsService.loadUserByUsername(username);
+            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                // Optional but recommended: validate token against user details
-                if (jwtService.isTokenValid(token, userDetails)) {
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities()
-                            );
+                UserEntity userEntity = userRepository.findById(userId)
+                        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + userId));
 
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                // ✅ Optional: ensure username claim still matches DB (if claim exists)
+                String usernameClaim = jwtService.extractUsername(token);
+                if (usernameClaim != null && !usernameClaim.equals(userEntity.getUsername())) {
+                    throw new JwtException("Token username mismatch");
                 }
+
+                // ✅ Build Spring Security UserDetails for SecurityContext
+                var userDetails = User.withUsername(userEntity.getUsername())
+                        .password(userEntity.getPassword() == null ? "" : userEntity.getPassword())
+                        .authorities(userEntity.getRole() == null ? "USER" : userEntity.getRole())
+                        .build();
+
+                var authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             }
 
             filterChain.doFilter(request, response);
 
-        } catch (JwtException ex) {
-            // ✅ Return 401 instead of 500 + stacktrace
+        } catch (JwtException | UsernameNotFoundException | NumberFormatException ex) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
@@ -78,13 +90,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     "timestamp", LocalDateTime.now().toString(),
                     "status", 401,
                     "error", "Unauthorized",
-                    "message", "Invalid or expired token"
+                    "message", "Invalid token or user no longer exists"
             );
 
             new ObjectMapper().writeValue(response.getOutputStream(), body);
-
-            // IMPORTANT: stop the chain
-            return;
         }
     }
 }
