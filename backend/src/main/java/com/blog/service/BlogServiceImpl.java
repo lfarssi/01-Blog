@@ -3,7 +3,7 @@ package com.blog.service;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+// import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -80,10 +80,10 @@ public class BlogServiceImpl implements BlogService {
             }
         }
 
-        boolean isOwner = currentUser != null && currentUser.getId().equals(blog.getUserId().getId());
-        boolean isAdmin = currentUser != null && "ADMIN".equals(currentUser.getRole());
+        boolean owner = isOwner(blog, currentUser);
+        boolean admin = isAdmin(currentUser);
 
-        if (!blog.getVisible() && !isOwner && !isAdmin) {
+        if (!blog.getVisible() && !owner && !admin) {
             throw new ResourceNotFoundException("Blog not found");
         }
 
@@ -141,17 +141,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     // ─────────────────────────────────────────────
-    // ✅ UPDATED UPDATE LOGIC
-    //
-    // Supports:
-    // - mediaChanged=true + keepMedia=[]
-    //     -> delete all old media, set media=[]
-    // - mediaChanged=true + keepMedia=[some old] + mediaFiles=[new]
-    //     -> delete removed, keep selected, append newly stored
-    // - mediaChanged=false/null + mediaFiles present
-    //     -> old behavior: replace all
-    // - mediaChanged=false/null + no files
-    //     -> do not touch media
+    // ✅ UPDATED UPDATE LOGIC + ✅ ADMIN CAN UPDATE
     // ─────────────────────────────────────────────
     @Override
     @Transactional
@@ -170,7 +160,10 @@ public class BlogServiceImpl implements BlogService {
         BlogEntity blog = blogRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
 
-        if (!Objects.equals(blog.getUserId().getId(), user.getId())) {
+        boolean owner = isOwner(blog, user);
+        boolean admin = isAdmin(user);
+
+        if (!owner && !admin) {
             throw new AccessDeniedException("Unauthorized to update this blog");
         }
 
@@ -235,6 +228,9 @@ public class BlogServiceImpl implements BlogService {
         return BlogMapper.toResponse(saved);
     }
 
+    // ─────────────────────────────────────────────
+    // ✅ OWNER OR ADMIN CAN DELETE
+    // ─────────────────────────────────────────────
     @Override
     @Transactional
     public void deleteBlog(Long id, String username) {
@@ -244,7 +240,10 @@ public class BlogServiceImpl implements BlogService {
         BlogEntity blog = blogRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
 
-        if (!blog.getUserId().getId().equals(user.getId())) {
+        boolean owner = isOwner(blog, user);
+        boolean admin = isAdmin(user);
+
+        if (!owner && !admin) {
             throw new AccessDeniedException("Unauthorized to delete this blog");
         }
 
@@ -305,16 +304,27 @@ public class BlogServiceImpl implements BlogService {
     // ─────────────────────────────────────────────
     // Helpers
     // ─────────────────────────────────────────────
+    private boolean isAdmin(UserEntity user) {
+        return user != null && "ADMIN".equalsIgnoreCase(user.getRole());
+    }
+
+    private boolean isOwner(BlogEntity blog, UserEntity user) {
+        return blog != null
+                && user != null
+                && blog.getUserId() != null
+                && blog.getUserId().getId() != null
+                && blog.getUserId().getId().equals(user.getId());
+    }
+
     private List<String> parseMediaSafely(String mediaJsonOrSingleValue) {
         if (mediaJsonOrSingleValue == null || mediaJsonOrSingleValue.isBlank()) {
             return List.of();
         }
 
-        // If it looks like JSON array, parse it
         try {
-            return objectMapper.readValue(mediaJsonOrSingleValue, new TypeReference<List<String>>() {});
+            return objectMapper.readValue(mediaJsonOrSingleValue, new TypeReference<List<String>>() {
+            });
         } catch (Exception ignored) {
-            // Otherwise treat as single string path
             return List.of(mediaJsonOrSingleValue);
         }
     }
