@@ -45,17 +45,41 @@ export class AdminBlogs implements OnInit {
   ngOnInit(): void {
     this.loadBlogs();
   }
+toggleVisible(blogId: number): void {
+  const blog = this.blogs().find((b) => b.id === blogId);
+  if (!blog) return;
 
-  toggleVisible(blogId: number): void {
+  const isVisible = blog.visible === true;
+
+  // ✅ Build message
+  const action = isVisible ? 'Hide' : 'Unhide';
+  const message = `${action} this blog${
+    blog.title ? `: "${blog.title}"` : ''
+  }?`;
+
+  // ✅ Open confirm dialog
+  const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+    width: '340px',
+    data: { message },
+  });
+
+  dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+    if (!confirmed) return;
+
+    // ✅ Only toggle after confirmation
     this.http
-      .patch<ApiResponse<boolean>>(`${BASE_URL}/admin/blogs/${blogId}/toggle-visible`, {})
+      .patch<ApiResponse<boolean>>(
+        `${BASE_URL}/admin/blogs/${blogId}/toggle-visible`,
+        {},
+      )
       .subscribe({
         next: (res) => {
-          const newVisible = res.data; // ✅ boolean
+          const newVisible = res.data;
 
+          // Update UI
           this.blogs.update((blogs) =>
-            blogs.map((blog) =>
-              blog.id === blogId ? { ...blog, visible: newVisible } : blog,
+            blogs.map((b) =>
+              b.id === blogId ? { ...b, visible: newVisible } : b,
             ),
           );
 
@@ -71,7 +95,8 @@ export class AdminBlogs implements OnInit {
           this.snackBar.open(msg, 'OK', { duration: 3000 });
         },
       });
-  }
+  });
+}
 
   loadBlogs(page = 0, size = 20, search?: string) {
     this.loading.set(true);

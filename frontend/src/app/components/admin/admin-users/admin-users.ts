@@ -13,10 +13,7 @@ import { ConfirmDialogComponent } from '../../confirm-dialog/confirm-dialog';
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [
-    MatDialogModule,
-    MatSnackBarModule,
-  ],
+  imports: [MatDialogModule, MatSnackBarModule],
   templateUrl: './admin-users.html',
   styleUrl: './admin-users.scss',
 })
@@ -58,7 +55,7 @@ export class AdminUsers implements OnInit {
         const msg =
           err.status === 403
             ? '403 Forbidden: ADMIN only.'
-            : err.error?.message ?? err.message ?? 'Failed to load users.';
+            : (err.error?.message ?? err.message ?? 'Failed to load users.');
         this.errorMsg.set(msg);
         this.snackBar.open(msg, 'OK', { duration: 3000 });
       },
@@ -66,19 +63,43 @@ export class AdminUsers implements OnInit {
   }
 
   toggleBan(u: User) {
-    const action = u.banned ? 'unban' : 'ban';
+    const isBanned = !!u.banned;
+    const action = isBanned ? 'Unban' : 'Ban';
 
-    this.http.post<ApiResponse<null>>(`${BASE_URL}/admin/users/${u.id}/${action}`, {}).subscribe({
-      next: () => {
-        // refresh list
-        this.snackBar.open(`User ${action}ned`, 'OK', { duration: 2000 });
-        this.loadUsers(this.currentPage());
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '340px',
+      data: {
+        message: `${action} user "${u.username}"?`,
       },
-      error: (err: HttpErrorResponse) => {
-        const msg = err.error?.message ?? err.message ?? 'Failed to update user.';
-        this.errorMsg.set(msg);
-        this.snackBar.open(msg, 'OK', { duration: 3000 });
-      },
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (!confirmed) return;
+
+      const endpointAction = isBanned ? 'unban' : 'ban';
+
+      this.http
+        .post<ApiResponse<null>>(`${BASE_URL}/admin/users/${u.id}/${endpointAction}`, {})
+        .subscribe({
+          next: () => {
+            // ✅ update UI immediately (no need to reload)
+            this.users.update((list) =>
+              list.map((x) => (x.id === u.id ? { ...x, banned: !isBanned } : x)),
+            );
+
+            this.snackBar.open(isBanned ? 'User unbanned' : 'User banned', 'OK', {
+              duration: 2000,
+            });
+
+            // Optional: keep backend pagination in sync if you need it
+            // this.loadUsers(this.currentPage());
+          },
+          error: (err: HttpErrorResponse) => {
+            const msg = err.error?.message ?? err.message ?? 'Failed to update user.';
+            this.errorMsg.set(msg);
+            this.snackBar.open(msg, 'OK', { duration: 3000 });
+          },
+        });
     });
   }
 
