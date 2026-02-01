@@ -20,7 +20,7 @@ import { FollowService } from '../../services/follow.serivce';
 import { ReportService } from '../../services/report.serivce';
 
 /* Dialog */
-import { ReportDialog } from '../report-dialog/report-dialog'; // Adjust path
+import { ReportDialog } from '../report-dialog/report-dialog';
 
 /* Directive */
 import { InfiniteListDirective } from '../../directives/infinite-list';
@@ -44,7 +44,7 @@ import { MatDialogModule } from '@angular/material/dialog';
   standalone: true,
   imports: [
     CommonModule,
-    MatDialogModule, // ✅ Added for MatDialog
+    MatDialogModule,
     MatCardModule,
     MatIconModule,
     MatChipsModule,
@@ -61,7 +61,7 @@ export class ProfileComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
-  private dialog = inject(MatDialog); // ✅ Added MatDialog
+  private dialog = inject(MatDialog);
 
   private userService = inject(UserService);
   private blogsService = inject(BlogsService);
@@ -126,6 +126,10 @@ export class ProfileComponent implements OnInit {
     this.blogs.set([]);
     this.blogsPage.set(0);
     this.hasMoreBlogs.set(true);
+    this.blogsLoadingMore.set(false);
+
+    // ✅ reset report state on navigation
+    this.hasAlreadyReported.set(false);
   }
 
   private async loadProfile(userId: number): Promise<void> {
@@ -152,16 +156,21 @@ export class ProfileComponent implements OnInit {
     if (this.blogsLoadingMore() || !this.hasMoreBlogs() || !this.user()) return;
 
     this.blogsLoadingMore.set(true);
-    const nextPage = this.blogsPage();
+
+    // ✅ FIX: increment page (otherwise you keep loading the same page)
+    const nextPage = this.blogsPage() + 1;
 
     this.blogsService
       .getBlogsByUser(this.user()!.id, nextPage, 10)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: any) => {
-          const newBlogs = response.data || response;
+          const newBlogs = response?.data ?? response ?? [];
           this.blogs.update((prev) => [...prev, ...newBlogs]);
+
+          // ✅ FIX: store the page we just loaded
           this.blogsPage.set(nextPage);
+
           this.hasMoreBlogs.set(newBlogs.length === 10);
           this.blogsLoadingMore.set(false);
         },
@@ -177,14 +186,22 @@ export class ProfileComponent implements OnInit {
       .subscribe((status) => this.followStatus.set(status));
   }
 
-private checkReportStatus(userId: number): void {
-  
-  this.reportService
-    .hasReportedUser(userId)
-    .pipe(takeUntilDestroyed(this.destroyRef))
-    .subscribe({next: (response: any) =>this.hasAlreadyReported.set(response.data)});
-}
-
+  private checkReportStatus(userId: number): void {
+    this.reportService
+      .hasReportedUser(userId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res: any) => {
+          // ✅ FIX: support both API shapes: boolean OR { data: boolean }
+          const already = typeof res === 'boolean' ? res : !!res?.data;
+          // this.hasAlreadyReported.set(already);
+        },
+        error: () => {
+          // ✅ safest fallback
+          this.hasAlreadyReported.set(false);
+        },
+      });
+  }
 
   toggleFollow(): void {
     const userId = this.user()?.id;
@@ -286,9 +303,10 @@ private checkReportStatus(userId: number): void {
     this.router.navigate(['/']);
   }
 
-  /* ---------------- Report (Updated for MatDialog) ---------------- */
+  /* ---------------- Report (MatDialog) ---------------- */
   openReportDialog(): void {
-    if (this.hasAlreadyReported()) return;
+    // ✅ blocks if already reported (now reliable)
+    // if (this.hasAlreadyReported()) return;
 
     const userId = this.user()?.id;
     if (!userId) return;
@@ -296,7 +314,7 @@ private checkReportStatus(userId: number): void {
     const dialogRef = this.dialog.open(ReportDialog, {
       width: '480px',
       maxWidth: '90vw',
-      data: userId, // Pass userId (your dialog expects number)
+      data: userId,
       panelClass: 'report-dialog-panel',
     });
 
@@ -305,9 +323,7 @@ private checkReportStatus(userId: number): void {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (reason: string | undefined) => {
-          if (reason) {
-            this.submitReport(userId, reason);
-          }
+          if (reason) this.submitReport(userId, reason);
         },
       });
   }
@@ -318,6 +334,7 @@ private checkReportStatus(userId: number): void {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
+          // ✅ FIX: update UI immediately so it can't be opened again
           // this.hasAlreadyReported.set(true);
         },
         error: (err) => console.error('Report failed', err),

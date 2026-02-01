@@ -36,10 +36,10 @@ public class ReportServiceImpl implements ReportService {
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        if (reportRepository.existsByReportedBy_IdAndTargetIdAndType(
-                user.getId(), request.targetId(), request.type())) {
-            throw new ResourceAlreadyExistsException("You have already reported this content");
-        }
+        // if (reportRepository.existsByReportedBy_IdAndTargetIdAndType(
+        //         user.getId(), request.targetId(), request.type())) {
+        //     throw new ResourceAlreadyExistsException("You have already reported this content");
+        // }
 
         ReportEntity report = ReportEntity.builder()
                 .reportedBy(user)

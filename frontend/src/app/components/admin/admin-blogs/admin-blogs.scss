@@ -1,9 +1,8 @@
 /* ============================================================================
-   ADMIN BLOGS — PREMIUM + STABLE TABLE (NO GLITCH)
-   - sticky header (safe)
-   - zebra rows + hover highlight
-   - consistent borders (no border-spacing hacks)
-   - action pills
+   ADMIN BLOGS — RESPONSIVE + STABLE (NO HTML CHANGES INSIDE TABLE)
+   - stable sticky header (desktop) via scroll wrapper
+   - safe mobile card mode
+   - no layout shift / no table glitches
 ============================================================================ */
 
 .admin-blogs {
@@ -12,6 +11,7 @@
   --r-md: 12px;
 
   --b: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 62%, transparent);
+  --line: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
 
   --shadow-1: 0 1px 0 rgba(0,0,0,0.03), 0 14px 42px rgba(0,0,0,0.10);
   --shadow-2: 0 1px 0 rgba(0,0,0,0.04), 0 22px 64px rgba(0,0,0,0.14);
@@ -27,17 +27,14 @@
   .header {
     border-radius: var(--r-xl);
     border: var(--b);
-    padding: 18px 18px;
+    padding: 18px;
     margin-bottom: 14px;
-
     background:
       radial-gradient(950px 240px at 12% -45%, color-mix(in srgb, var(--mat-sys-primary) 40%, transparent), transparent 62%),
       radial-gradient(950px 240px at 88% -45%, color-mix(in srgb, var(--mat-sys-tertiary) 30%, transparent), transparent 62%),
       color-mix(in srgb, var(--mat-sys-surface) 86%, transparent);
-
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-
     box-shadow: var(--shadow-2);
 
     h2 {
@@ -45,7 +42,6 @@
       font-size: 22px;
       font-weight: 1000;
       letter-spacing: -0.6px;
-
       background: linear-gradient(
         135deg,
         color-mix(in srgb, var(--mat-sys-on-surface) 92%, var(--mat-sys-primary) 8%),
@@ -75,7 +71,6 @@
     flex-wrap: wrap;
     margin: 12px 0 14px;
     padding: 10px;
-
     border-radius: var(--r-xl);
     border: var(--b);
     background: color-mix(in srgb, var(--mat-sys-surface) 84%, transparent);
@@ -85,13 +80,10 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
-
       padding: 10px 12px;
       border-radius: 999px;
-
       border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
       background: color-mix(in srgb, var(--mat-sys-surface) 86%, var(--mat-sys-primary) 14%);
-
       font-size: 13px;
       font-weight: 950;
       color: var(--mat-sys-on-surface-variant);
@@ -108,22 +100,34 @@
   }
 
   /* ============================================================================
-     TABLE (stable)
+     TABLE WRAPPER (THIS IS WHAT MAKES STICKY RELIABLE)
+     - prevents “sticky glitch” on some layouts
+     - gives safe horizontal scroll on small desktops
   ============================================================================ */
-
-  .blogs-table {
-    width: 100%;
-    border-collapse: collapse; /* ✅ stable */
+  .table-wrap {
     border-radius: var(--r-xl);
-    overflow: hidden; /* works with border-radius */
     border: var(--b);
     background: var(--mat-sys-surface);
     box-shadow: var(--shadow-2);
+    overflow: auto; /* ✅ enables sticky inside + horizontal scroll if needed */
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  /* ============================================================================
+     TABLE (desktop)
+  ============================================================================ */
+  .blogs-table {
+    width: 100%;
+    border-collapse: separate; /* ✅ avoids some sticky+border-collapse oddities */
+    border-spacing: 0;         /* ✅ still no gaps */
+    min-width: 760px;          /* ✅ allows horizontal scroll instead of breaking */
+    background: var(--mat-sys-surface);
   }
 
   .blogs-table thead th {
     position: sticky;
-    top: 0;              /* ✅ stable; parent page scroll */
+    top: 0;
     z-index: 2;
 
     padding: 14px 16px;
@@ -138,46 +142,46 @@
     background: color-mix(in srgb, var(--mat-sys-surface) 78%, var(--mat-sys-primary) 22%);
 
     border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 70%, transparent);
+
+    /* subtle glass */
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
 
   .blogs-table tbody td {
     padding: 14px 16px;
-    border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
+    border-bottom: var(--line);
     color: var(--mat-sys-on-surface-variant);
     font-size: 14px;
     vertical-align: middle;
+    background-clip: padding-box;
   }
 
-  .blogs-table tbody tr:last-child td {
-    border-bottom: 0;
-  }
+  .blogs-table tbody tr:last-child td { border-bottom: 0; }
 
   /* zebra */
-  .blogs-table tbody tr:nth-child(odd) {
+  .blogs-table tbody tr:nth-child(odd) td {
     background: color-mix(in srgb, var(--mat-sys-surface) 92%, var(--mat-sys-primary) 8%);
   }
-
-  .blogs-table tbody tr:nth-child(even) {
+  .blogs-table tbody tr:nth-child(even) td {
     background: var(--mat-sys-surface);
   }
 
-  /* hover (no transform -> avoids layout shift/glitch) */
-  .blogs-table tbody tr:hover {
+  /* hover (no transform) */
+  .blogs-table tbody tr:hover td {
     background: color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface));
   }
 
-  /* ID column */
+  /* columns */
   .blogs-table tbody td:first-child {
     width: 90px;
+    white-space: nowrap;
     color: var(--mat-sys-primary);
     font-weight: 1000;
     font-size: 12.5px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   }
 
-  /* Title column */
   .blogs-table tbody td:nth-child(2) {
     color: var(--mat-sys-on-surface);
     font-weight: 950;
@@ -188,45 +192,28 @@
     text-overflow: ellipsis;
   }
 
-  /* Created */
-  .blogs-table tbody td:nth-child(3) {
-    white-space: nowrap;
-    font-size: 13px;
-  }
-
-  /* Actions */
+  .blogs-table tbody td:nth-child(3),
   .blogs-table tbody td:nth-child(4) {
     white-space: nowrap;
   }
 
   /* ============================================================================
-     BUTTONS (stable + clean)
+     BUTTONS
   ============================================================================ */
-
   button {
     border: 0;
     cursor: pointer;
     user-select: none;
-
     padding: 9px 12px;
     border-radius: 999px;
-
     font-size: 13px;
     font-weight: 1000;
     letter-spacing: 0.12px;
-
     transition: background 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
     box-shadow: 0 14px 34px rgba(0,0,0,0.14);
 
-    &:hover:not(:disabled) {
-      box-shadow: 0 20px 52px rgba(0,0,0,0.18);
-    }
-
-    &:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
+    &:hover:not(:disabled) { box-shadow: 0 20px 52px rgba(0,0,0,0.18); }
+    &:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
   }
 
   .view-btn {
@@ -262,20 +249,27 @@
   }
 
   /* ============================================================================
-     MOBILE: safe “card mode”
+     MOBILE CARD MODE (NO TABLE GLITCHES)
   ============================================================================ */
   @media (max-width: 860px) {
+    /* disable sticky header + horizontal min width */
+    .blogs-table { min-width: 0; }
+
     .blogs-table thead { display: none; }
+
+    .table-wrap {
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      overflow: visible;
+    }
+
     .blogs-table,
     .blogs-table tbody,
     .blogs-table tr,
-    .blogs-table td { display: block; width: 100%; }
-
-    .blogs-table {
-      border: 0;
-      box-shadow: none;
-      background: transparent;
-      overflow: visible;
+    .blogs-table td {
+      display: block;
+      width: 100%;
     }
 
     .blogs-table tbody tr {
@@ -285,92 +279,67 @@
       box-shadow: var(--shadow-1);
       margin-bottom: 12px;
       overflow: hidden;
+      padding: 8px 12px;
     }
 
     .blogs-table tbody td {
-      border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
-    }
-
-    .blogs-table tbody td:last-child {
-      border-bottom: 0;
-      background: color-mix(in srgb, var(--mat-sys-surface) 86%, var(--mat-sys-primary) 14%);
-      padding: 12px;
-    }
-
-    button {
-      width: 100%;
-      margin: 6px 0 0 !important;
-    }
-
-    .view-btn, .hide-btn { margin-right: 0 !important; }
-  }
-}
-@media (max-width: 860px) {
-  .admin-blogs {
-    /* ✅ remove desktop constraints that cause overflow/glitch */
-    .blogs-table tbody td,
-    .blogs-table tbody td:first-child,
-    .blogs-table tbody td:nth-child(2),
-    .blogs-table tbody td:nth-child(3),
-    .blogs-table tbody td:nth-child(4) {
-      width: 100% !important;
-      max-width: none !important;
-      white-space: normal !important;
-      overflow: visible !important;
-      text-overflow: initial !important;
-    }
-
-    /* ✅ make each row a proper card */
-    .blogs-table tbody tr {
-      display: block;
-      padding: 10px 12px;
-    }
-
-    /* ✅ make cells look like labeled sections */
-    .blogs-table tbody td {
-      display: flex !important;
+      display: flex;
       align-items: flex-start;
       justify-content: space-between;
       gap: 12px;
 
-      padding: 10px 0 !important;
-      border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
+      padding: 10px 0;
+      border-bottom: var(--line);
+
+      /* ✅ allow wrap on all content */
+      white-space: normal !important;
+      overflow: visible !important;
+      text-overflow: initial !important;
+      max-width: none !important;
     }
 
     .blogs-table tbody td:last-child {
       border-bottom: 0;
-      padding-top: 12px !important;
-      background: transparent !important; /* ✅ remove footer bg that can look broken */
+      padding-top: 12px;
     }
 
-    /* ✅ add labels using CSS (no HTML changes) */
-    .blogs-table tbody td:nth-child(1)::before { content: "ID"; }
-    .blogs-table tbody td:nth-child(2)::before { content: "Title"; }
-    .blogs-table tbody td:nth-child(3)::before { content: "Created"; }
-    .blogs-table tbody td:nth-child(4)::before { content: "Actions"; }
-
+    /* labels via CSS */
     .blogs-table tbody td::before {
-      flex: 0 0 76px;
+      flex: 0 0 78px;
       color: var(--mat-sys-on-surface-variant);
       font-size: 12px;
       font-weight: 900;
       letter-spacing: 0.6px;
       text-transform: uppercase;
-      opacity: 0.8;
+      opacity: 0.85;
       padding-top: 2px;
     }
 
-    /* ✅ title wraps nicely */
-    .blogs-table tbody td:nth-child(2) {
-      font-size: 15px !important;
-      font-weight: 950;
-      line-height: 1.25;
+    .blogs-table tbody td:nth-child(1)::before { content: "ID"; }
+    .blogs-table tbody td:nth-child(2)::before { content: "Title"; }
+    .blogs-table tbody td:nth-child(3)::before { content: "Created"; }
+    .blogs-table tbody td:nth-child(4)::before { content: "Actions"; }
+
+    /* value side */
+    .blogs-table tbody td:nth-child(1) {
+      color: var(--mat-sys-primary);
+      font-weight: 1000;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
 
-    /* ✅ actions become a clean vertical stack */
+    .blogs-table tbody td:nth-child(2) {
+      color: var(--mat-sys-on-surface);
+      font-size: 15px;
+      font-weight: 950;
+      line-height: 1.25;
+      word-break: break-word;
+      overflow-wrap: anywhere; /* ✅ handles super-long titles/URLs */
+    }
+
+    /* actions stack */
     .blogs-table tbody td:nth-child(4) {
-      flex-direction: column !important;
-      align-items: stretch !important;
+      flex-direction: column;
+      align-items: stretch;
       gap: 8px;
     }
 
@@ -379,8 +348,20 @@
     }
 
     button {
-      width: 100% !important;
+      width: 100%;
       margin: 0 !important;
     }
+    .view-btn, .hide-btn { margin-right: 0 !important; }
+  }
+
+  /* extra small devices: tighter label + spacing */
+  @media (max-width: 420px) {
+    .blogs-table tbody td::before {
+      flex-basis: 66px;
+      font-size: 11px;
+      letter-spacing: 0.45px;
+    }
+
+    button { padding: 10px 12px; }
   }
 }

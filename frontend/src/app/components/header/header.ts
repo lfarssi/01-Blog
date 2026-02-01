@@ -12,6 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { UserService } from '../../services/user.serivce';
 import { ThemeService } from '../../services/theme.service';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDivider } from "@angular/material/divider";
 
 @Component({
   selector: 'app-header',
@@ -32,7 +33,8 @@ import { MatMenuModule } from '@angular/material/menu';
     MatMenuModule,
     MatButtonModule,
     MatIconModule,
-  ],
+    MatDivider
+],
 })
 export class Header {
   private router = inject(Router);

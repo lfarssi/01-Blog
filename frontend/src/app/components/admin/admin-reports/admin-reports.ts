@@ -11,6 +11,9 @@ import { MatIcon } from '@angular/material/icon';
 
 // ✅ Confirm Dialog
 import { ConfirmDialogComponent } from '../../confirm-dialog/confirm-dialog';
+import { CommonModule } from '@angular/common';
+import { ReasonDialogComponent } from '../../reason-dialog/reason-dialog';
+import { Router } from '@angular/router';
 
 export interface AdminReport {
   id: number;
@@ -18,7 +21,7 @@ export interface AdminReport {
   type: string;
   reason: string;
   status: string;
-  reportedBy: string;
+  reportedByUsername: string;
   createdAt: string;
 }
 
@@ -28,13 +31,13 @@ export interface AdminReport {
   imports: [
     FormsModule,
     MatIcon,
-
+    CommonModule,
     // ✅ add dialog + snackbar
     MatDialogModule,
     MatSnackBarModule,
 
     // ✅ standalone confirm dialog
-    ],
+  ],
   templateUrl: './admin-reports.html',
   styleUrl: './admin-reports.scss',
 })
@@ -43,6 +46,7 @@ export class AdminReports implements OnInit {
 
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
+  private router = inject(Router);
 
   loading = signal(false);
   errorMsg = signal<string | null>(null);
@@ -58,11 +62,7 @@ export class AdminReports implements OnInit {
     this.loadReports();
   }
 
-  loadReports(
-    page = 0,
-    size = 20,
-    filter: 'all' | 'pending' | 'blog' | 'user' = 'all',
-  ) {
+  loadReports(page = 0, size = 20, filter: 'all' | 'pending' | 'blog' | 'user' = 'all') {
     this.loading.set(true);
     this.errorMsg.set(null);
     this.currentFilter.set(filter);
@@ -80,6 +80,7 @@ export class AdminReports implements OnInit {
       next: (res) => {
         const data = res.data;
         const list: AdminReport[] = (data?.reports ?? data?.content ?? data) as AdminReport[];
+        console.log('Admin Reports:', list);
 
         this.reports.set(Array.isArray(list) ? list : []);
         this.totalPages.set(data?.totalPages ?? 0);
@@ -92,8 +93,16 @@ export class AdminReports implements OnInit {
         this.loading.set(false);
         const msg = err.error?.message ?? err.message ?? 'Failed to load reports.';
         this.errorMsg.set(msg);
+
         this.snackBar.open(msg, 'OK', { duration: 3000 });
       },
+    });
+  }
+  openReasonDialog(reason: string): void {
+    this.dialog.open(ReasonDialogComponent, {
+      width: '500px',
+      maxWidth: '90vw',
+      data: { reason },
     });
   }
 
@@ -145,6 +154,23 @@ export class AdminReports implements OnInit {
         },
       });
     });
+  }
+  goToTarget(r: AdminReport): void {
+    const type = (r.type ?? '').toUpperCase();
+
+    if (type == 'BLOG') {
+      // ✅ adjust this path to your real blog detail route
+      this.router.navigate(['/blogs', r.targetId]);
+      return;
+    }
+
+    if (type == 'USER') {
+      // ✅ adjust this path to your real user detail route
+      this.router.navigate(['/profile', r.targetId]);
+      return;
+    }
+
+    this.snackBar.open('Unknown report type: ' + r.type, 'OK', { duration: 2000 });
   }
 
   setFilter(filter: 'all' | 'pending' | 'blog' | 'user'): void {

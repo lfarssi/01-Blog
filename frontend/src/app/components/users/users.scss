@@ -1,14 +1,16 @@
 /* users-sidebar.scss */
 
 .users-sidebar {
-  /* ================= LAYOUT ================= */
+  /* ✅ RESPONSIVE BASE */
   height: 100%;
+  min-height: 0; /* important when parent uses flex/grid */
   display: flex;
   flex-direction: column;
-  gap: 16px;
 
-  padding: 16px;
-  border-radius: 22px;
+  /* scale nicely */
+  gap: clamp(10px, 1.2vw, 16px);
+  padding: clamp(12px, 1.5vw, 16px);
+  border-radius: clamp(16px, 2vw, 22px);
 
   background: color-mix(in srgb, var(--mat-sys-surface) 90%, var(--mat-sys-primary) 10%);
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
@@ -20,6 +22,9 @@
   overflow: hidden;
 
   transition: box-shadow 180ms ease, transform 180ms ease;
+
+  /* ✅ container query support (better than only @media) */
+  container-type: inline-size;
 }
 
 /* ================= SEARCH ================= */
@@ -27,10 +32,12 @@
 .users-sidebar .search-input {
   width: 100%;
   margin: 0;
+  flex: 0 0 auto;
+  min-width: 0; /* prevents layout blowouts */
 }
 
 .users-sidebar .search-input ::ng-deep .mat-mdc-text-field-wrapper {
-  border-radius: 16px;
+  border-radius: clamp(12px, 1.6vw, 16px);
   background: color-mix(in srgb, var(--mat-sys-surface) 94%, var(--mat-sys-primary) 6%);
 }
 
@@ -48,8 +55,8 @@
 }
 
 .users-sidebar .search-input ::ng-deep .mat-mdc-form-field-infix {
-  padding: 13px 0;
-  min-height: 48px;
+  padding: 12px 0;
+  min-height: 46px;
 }
 
 .users-sidebar .search-input ::ng-deep input.mat-mdc-input-element {
@@ -62,6 +69,12 @@
   color: color-mix(in srgb, var(--mat-sys-on-surface-variant) 75%, transparent);
 }
 
+/* focus ring (works even without :has support) */
+.users-sidebar .search-input ::ng-deep .mat-mdc-text-field-wrapper:focus-within {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+}
+
+/* keep your :has enhancement if supported */
 .users-sidebar .search-input
 ::ng-deep .mat-mdc-text-field-wrapper:has(input:focus) {
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
@@ -73,6 +86,8 @@
   display: grid;
   place-items: center;
   padding: 14px 0;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .users-sidebar .no-results {
@@ -86,11 +101,14 @@
 /* ================= LIST ================= */
 
 .users-sidebar .users-list {
-  flex: 1;
-  overflow: auto;
-  padding: 8px;
+  /* ✅ THIS IS THE BIG ONE: allow the list to shrink and scroll */
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
 
-  border-radius: 16px;
+  overflow: auto;
+  padding: clamp(6px, 1vw, 8px);
+  border-radius: clamp(12px, 1.6vw, 16px);
 
   background: color-mix(in srgb, var(--mat-sys-surface) 97%, var(--mat-sys-primary) 3%);
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 45%, transparent);
@@ -99,6 +117,10 @@
   scrollbar-color:
     color-mix(in srgb, var(--mat-sys-outline) 35%, transparent)
     transparent;
+
+  /* smoother on mobile */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .users-sidebar .users-list::-webkit-scrollbar {
@@ -115,7 +137,7 @@
 /* ================= ITEM ================= */
 
 .users-sidebar .user-item {
-  border-radius: 14px;
+  border-radius: clamp(12px, 1.4vw, 14px);
   margin: 6px 0;
 
   background: transparent;
@@ -124,21 +146,27 @@
     background-color 140ms ease,
     transform 140ms ease,
     box-shadow 140ms ease;
+
+  /* better touch feedback */
+  -webkit-tap-highlight-color: transparent;
 }
 
-.users-sidebar .user-item:hover {
-  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+@media (hover: hover) and (pointer: fine) {
+  .users-sidebar .user-item:hover {
+    background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+  }
 }
 
 .users-sidebar .user-item:active {
   transform: translateY(0);
   box-shadow: none;
+  background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
 }
 
 .users-sidebar .user-item ::ng-deep .mdc-list-item__content {
-  padding: 14px 12px;
+  padding: clamp(10px, 1.3vw, 14px) clamp(10px, 1.2vw, 12px);
 }
 
 /* ================= USER INFO ================= */
@@ -147,14 +175,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: clamp(8px, 1vw, 12px);
   width: 100%;
+  min-width: 0;
 }
 
 .users-sidebar .user-info strong {
   font: var(--mat-sys-title-medium);
   color: var(--mat-sys-on-surface);
   letter-spacing: 0.25px;
+
+  /* ✅ prevents role chip from pushing text out */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .users-sidebar .user-info .user-role {
@@ -164,14 +199,14 @@
   padding: 5px 12px;
   border-radius: 999px;
 
-  background: color-mix(
-    in srgb,
-    var(--mat-sys-secondary-container) 75%,
-    transparent
-  );
+  background: color-mix(in srgb, var(--mat-sys-secondary-container) 75%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
 
-  border: 1px solid
-    color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
+  flex: 0 0 auto;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ================= ACTIVE ================= */
@@ -179,4 +214,48 @@
 .users-sidebar .user-item.active {
   background: color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--mat-sys-primary) 22%, transparent);
+}
+
+/* ================= CONTAINER QUERIES (sidebar width based) ================= */
+
+@container (max-width: 360px) {
+  .users-sidebar {
+    padding: 12px;
+    border-radius: 16px;
+    gap: 10px;
+  }
+
+  .users-sidebar .search-input ::ng-deep .mat-mdc-form-field-infix {
+    min-height: 44px;
+    padding: 10px 0;
+  }
+
+  .users-sidebar .user-info .user-role {
+    max-width: 52%;
+    padding: 4px 10px;
+  }
+}
+
+/* ================= VIEWPORT FALLBACKS ================= */
+
+@media (max-width: 575.98px) {
+  .users-sidebar {
+    padding: 12px;
+    border-radius: 16px;
+    box-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.03),
+      0 10px 24px rgba(0, 0, 0, 0.07);
+  }
+
+  .users-sidebar .users-list::-webkit-scrollbar {
+    width: 8px;
+  }
+}
+
+/* Reduce motion if user prefers */
+@media (prefers-reduced-motion: reduce) {
+  .users-sidebar,
+  .users-sidebar .user-item {
+    transition: none !important;
+  }
 }

@@ -1,11 +1,8 @@
 /* ============================================================================
-   BLOG DETAIL — ULTRA / PREMIUM (NO HTML CHANGES)
-   - Cinematic hero header
-   - Sticky action pill
-   - Better rhythm + typography
-   - Media feels like a real gallery
-   - Comments like a modern social app
-   Material tokens | Light/Dark
+   BLOG DETAIL — PREMIUM / RESPONSIVE / MINIFIED-ish (NO HTML CHANGES)
+   - Removes duplicates + tightens selectors
+   - Adds robust responsive behavior (wraps, clamps, safe breaks)
+   - Keeps your Material tokens + light/dark friendly
 ============================================================================ */
 
 /* ---------------- Page shell ---------------- */
@@ -19,12 +16,12 @@
   margin: 0 auto;
   padding: 18px 14px 48px !important;
   color: var(--mat-sys-on-surface);
+  overflow-wrap: anywhere; /* global safety */
+  word-break: break-word;
 }
 
 /* ---------------- Loading / errors ---------------- */
-.text-center.py-5 {
-  padding: 76px 0 !important;
-}
+.text-center.py-5 { padding: 76px 0 !important; }
 
 .alert.alert-danger {
   border-radius: 20px;
@@ -35,103 +32,66 @@
 }
 
 /* ---------------- Entry animation ---------------- */
-.blog-detail {
-  animation: bdIn 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-@keyframes bdIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+.blog-detail { animation: bdIn 260ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+@keyframes bdIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 /* ============================================================================
-   HERO HEADER (we “fake” a hero without changing HTML)
+   HERO HEADER
 ============================================================================ */
-
 .blog-header {
   position: relative;
   padding: 22px 18px 16px;
   border-radius: var(--bd-radius);
   border: var(--bd-border);
+  box-shadow: var(--bd-shadow);
+  overflow: hidden;
 
-  /* glass hero */
   background:
-    radial-gradient(
-      900px 240px at 15% -30%,
-      color-mix(in srgb, var(--mat-sys-primary) 35%, transparent),
-      transparent 60%
-    ),
-    radial-gradient(
-      900px 240px at 90% -30%,
-      color-mix(in srgb, var(--mat-sys-tertiary) 30%, transparent),
-      transparent 65%
-    ),
+    radial-gradient(900px 240px at 15% -30%, color-mix(in srgb, var(--mat-sys-primary) 35%, transparent), transparent 60%),
+    radial-gradient(900px 240px at 90% -30%, color-mix(in srgb, var(--mat-sys-tertiary) 30%, transparent), transparent 65%),
     color-mix(in srgb, var(--mat-sys-surface) 86%, transparent);
 
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 
-  box-shadow: var(--bd-shadow);
-  overflow: hidden;
-
-  /* subtle shine */
   &::after {
     content: '';
     position: absolute;
     inset: -40% -20% auto -20%;
     height: 220px;
     transform: rotate(8deg);
-    background: linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.2),
-      rgba(255, 255, 255, 0.06),
-      rgba(255, 255, 255, 0)
-    );
-    opacity: 0.35;
+    background: linear-gradient(90deg, rgba(255,255,255,.2), rgba(255,255,255,.06), rgba(255,255,255,0));
+    opacity: .35;
     pointer-events: none;
   }
 }
 
-/* Title: more premium + more “editorial” */
-/* Title: premium + wrap long words/content safely */
+/* Title */
 .blog-title.display-4 {
   margin: 0 0 14px !important;
-
-  font-size: clamp(30px, 3.7vw, 52px) !important;
+  font-size: clamp(28px, 3.7vw, 52px) !important;
   line-height: 1.15 !important;
   letter-spacing: -1.05px;
-
   font-weight: 1000 !important;
 
-  /* ✅ FIX: allow breaking long words/URLs */
   white-space: normal !important;
-  word-break: break-word;
   overflow-wrap: anywhere;
+  word-break: break-word;
   hyphens: auto;
-
-  max-width: 100%;
 
   background: linear-gradient(
     135deg,
     color-mix(in srgb, var(--mat-sys-on-surface) 92%, var(--mat-sys-primary) 8%),
     color-mix(in srgb, var(--mat-sys-on-surface) 86%, var(--mat-sys-tertiary) 14%)
   );
-
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* Author row: convert into a real “meta” panel */
+/* Meta row */
 .blog-header .d-flex.justify-content-between.align-items-center {
-  position: relative;
   margin: 0 !important;
-
-  padding: 12px 12px;
+  padding: 12px;
   border-radius: 20px;
 
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
@@ -139,33 +99,24 @@
 
   display: flex;
   gap: 12px;
+  flex-wrap: wrap; /* ✅ prevents overflow */
+  min-width: 0;
 
-  @media (max-width: 760px) {
-    flex-direction: column;
-    align-items: stretch !important;
-  }
+  > * { min-width: 0; } /* ✅ allow flex children to shrink */
 }
 
-/* Avatar: floating, glossy */
+/* Avatar */
 .avatar-circle {
-  width: 46px;
-  height: 46px;
+  width: 46px; height: 46px;
   border-radius: 50%;
-  display: grid;
-  place-items: center;
+  display: grid; place-items: center;
 
   background: linear-gradient(135deg, var(--mat-sys-primary), var(--mat-sys-tertiary));
   border: 3px solid var(--mat-sys-surface);
   outline: 4px solid color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+  box-shadow: 0 18px 40px rgba(0,0,0,.16);
 
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.16);
-
-  mat-icon {
-    width: 22px;
-    height: 22px;
-    font-size: 22px;
-    color: var(--mat-sys-on-primary);
-  }
+  mat-icon { width: 22px; height: 22px; font-size: 22px; color: var(--mat-sys-on-primary); }
 }
 
 .blog-header .d-flex.align-items-center p.mb-0 {
@@ -173,41 +124,38 @@
   font-weight: 950;
   letter-spacing: -0.2px;
   color: var(--mat-sys-on-surface);
+  overflow-wrap: anywhere;
 }
-
 .blog-header .d-flex.align-items-center small.text-muted {
   color: var(--mat-sys-on-surface-variant) !important;
   font: var(--mat-sys-body-small);
+  overflow-wrap: anywhere;
 }
 
 /* ============================================================================
-   STICKY ACTION PILL (like/comment/report)
+   STICKY ACTION PILL
 ============================================================================ */
-
 .blog-header .d-flex.align-items-center.gap-2 {
   position: sticky;
-  top: 82px; /* below your app header */
+  top: 82px;
   z-index: 10;
 
-  padding: 10px 10px;
+  padding: 10px;
   border-radius: 999px;
 
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
   background: color-mix(in srgb, var(--mat-sys-surface) 80%, transparent);
-
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 20px 55px rgba(0,0,0,.16);
 
-  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.16);
-
-  @media (max-width: 760px) {
-    width: 100%;
-    justify-content: space-between;
-    border-radius: 18px;
-  }
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;       /* ✅ wrap on small screens */
+  justify-content: flex-end;
+  min-width: 0;
 }
 
-/* counts */
 .blog-header .d-flex.align-items-center.gap-2 .text-muted.small {
   font: var(--mat-sys-label-large);
   font-weight: 900;
@@ -216,77 +164,54 @@
   text-align: center;
 }
 
-/* icon buttons look like “capsules” */
 :host ::ng-deep .blog-header button.mat-mdc-icon-button,
 .blog-header button.mat-mdc-icon-button {
-  width: 44px;
-  height: 44px;
+  width: 44px; height: 44px;
   border-radius: 16px;
 
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
   background: color-mix(in srgb, var(--mat-sys-surface) 82%, var(--mat-sys-primary) 18%);
 
-  transition:
-    transform 140ms ease,
-    box-shadow 140ms ease,
-    background 140ms ease;
+  transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
 
   &:hover:not(:disabled) {
     transform: translateY(-1px);
     background: color-mix(in srgb, var(--mat-sys-primary) 18%, var(--mat-sys-surface));
-    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.16);
+    box-shadow: 0 18px 44px rgba(0,0,0,.16);
   }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow: none;
-  }
+  &:active:not(:disabled) { transform: translateY(0); box-shadow: none; }
 }
 
-/* report special */
 .blog-header button[color='warn'] {
   background: color-mix(in srgb, var(--mat-sys-error) 12%, transparent) !important;
   border-color: color-mix(in srgb, var(--mat-sys-error) 35%, transparent) !important;
 }
 
-/* divider polish */
-mat-divider.mb-4 {
-  margin: 22px 0 !important;
-  opacity: 0.6;
-}
+mat-divider.mb-4 { margin: 22px 0 !important; opacity: .6; }
 
 /* ============================================================================
-   MEDIA — CINEMATIC CARD + THUMB RIBBON
+   MEDIA — CARD + THUMB RIBBON
 ============================================================================ */
-
-section.mb-4 mat-card {
+section.mb-4 mat-card,
+mat-card.mb-4 {
   border-radius: var(--bd-radius) !important;
   overflow: hidden;
-
   border: var(--bd-border);
   background: var(--mat-sys-surface);
   box-shadow: var(--bd-shadow);
 }
 
-section.mb-4 mat-card-content.p-0 {
-  position: relative;
-}
+section.mb-4 mat-card-content.p-0 { position: relative; }
 
-/* “cinema” frame */
 section.mb-4 img.img-fluid,
 section.mb-4 video.img-fluid {
   display: block;
   width: 100%;
-  max-height: 600px;
+  max-height: min(600px, 70vh); /* ✅ safer on small laptops */
   object-fit: cover;
   background: #000;
-
-  /* modern: soften corners inside card */
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
 }
 
-/* Thumb ribbon */
 section.mb-4 .p-2.d-flex.gap-2 {
   padding: 12px !important;
   gap: 10px !important;
@@ -298,101 +223,63 @@ section.mb-4 .p-2.d-flex.gap-2 {
   -webkit-overflow-scrolling: touch;
 
   scrollbar-width: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  &::-webkit-scrollbar { display: none; }
 }
 
 .thumb-btn {
   width: 92px;
-  height: 66px;
+  aspect-ratio: 92 / 66; /* ✅ responsive height */
+  height: auto;
+
   border-radius: 16px;
   overflow: hidden;
-
   border: 0;
   padding: 0;
   background: transparent;
 
   outline: 2px solid transparent;
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 16px 34px rgba(0,0,0,.14);
 
-  transition:
-    transform 140ms ease,
-    outline-color 140ms ease,
-    box-shadow 140ms ease;
+  transition: transform 140ms ease, outline-color 140ms ease, box-shadow 140ms ease;
 
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 20px 44px rgba(0, 0, 0, 0.18);
-  }
-
-  &.active {
-    outline-color: color-mix(in srgb, var(--mat-sys-primary) 78%, transparent);
-  }
+  &:hover { transform: translateY(-1px); box-shadow: 0 20px 44px rgba(0,0,0,.18); }
+  &.active { outline-color: color-mix(in srgb, var(--mat-sys-primary) 78%, transparent); }
 }
 
-.thumb-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
+.thumb-img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* ============================================================================
-   CONTENT — READABILITY FIRST (MEDIUM/NOTION VIBE)
+   CONTENT — READABILITY
 ============================================================================ */
+mat-card.mb-4 mat-card-content { padding: 20px 20px 22px !important; }
 
-mat-card.mb-4 {
-  border-radius: var(--bd-radius) !important;
-  overflow: hidden;
-
-  border: var(--bd-border);
-  background: var(--mat-sys-surface);
-  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.1);
-}
-
-mat-card.mb-4 mat-card-content {
-  padding: 20px 20px 22px !important;
-}
-
-/* innerHTML content */
 mat-card.mb-4 mat-card-content > div {
-  font-size: 1.08rem;
+  font-size: 1.06rem;
   line-height: 1.92;
   letter-spacing: 0.15px;
-
   color: var(--mat-sys-on-surface);
+  overflow-wrap: anywhere; /* ✅ long URLs in innerHTML */
+  word-break: break-word;
 }
 
-/* headings */
-mat-card.mb-4 mat-card-content > div h1,
-mat-card.mb-4 mat-card-content > div h2,
-mat-card.mb-4 mat-card-content > div h3 {
+mat-card.mb-4 mat-card-content > div :is(h1,h2,h3) {
   margin: 22px 0 10px;
   font-weight: 950;
   letter-spacing: -0.5px;
 }
 
-/* paragraphs */
-mat-card.mb-4 mat-card-content > div p {
-  margin: 0 0 14px;
-}
+mat-card.mb-4 mat-card-content > div p { margin: 0 0 14px; }
 
-/* links */
 mat-card.mb-4 mat-card-content > div a {
   color: var(--mat-sys-primary);
   text-decoration: none;
   font-weight: 850;
-
   padding-bottom: 1px;
   border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-primary) 40%, transparent);
 
-  &:hover {
-    border-bottom-color: var(--mat-sys-primary);
-  }
+  &:hover { border-bottom-color: var(--mat-sys-primary); }
 }
 
-/* blockquote */
 mat-card.mb-4 mat-card-content > div blockquote {
   margin: 18px 0;
   padding: 14px 16px;
@@ -408,37 +295,31 @@ mat-card.mb-4 mat-card-content > div blockquote {
 /* ============================================================================
    OWNER ACTIONS
 ============================================================================ */
-
 .blog-detail .d-flex.gap-2.mb-4 {
   gap: 10px !important;
+  flex-wrap: wrap; /* ✅ prevents overflow */
+}
 
-  button {
-    border-radius: 16px !important;
-    min-height: 42px;
+.blog-detail .d-flex.gap-2.mb-4 button {
+  border-radius: 16px !important;
+  min-height: 42px;
 
-    border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
-    background: color-mix(in srgb, var(--mat-sys-surface) 86%, var(--mat-sys-primary) 14%);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-surface) 86%, var(--mat-sys-primary) 14%);
 
-    transition:
-      transform 140ms ease,
-      box-shadow 140ms ease;
+  transition: transform 140ms ease, box-shadow 140ms ease;
 
-    &:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.14);
-    }
-  }
+  &:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 18px 44px rgba(0,0,0,.14); }
+}
 
-  button[color='warn'] {
-    background: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
-    border-color: color-mix(in srgb, var(--mat-sys-error) 35%, transparent);
-  }
+.blog-detail .d-flex.gap-2.mb-4 button[color='warn'] {
+  background: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
+  border-color: color-mix(in srgb, var(--mat-sys-error) 35%, transparent);
 }
 
 /* ============================================================================
-   COMMENT COMPOSER — CLEAN + MODERN
+   COMMENT COMPOSER
 ============================================================================ */
-
 mat-card.mb-4 textarea.form-control {
   border-radius: 18px;
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
@@ -446,12 +327,10 @@ mat-card.mb-4 textarea.form-control {
   background: color-mix(in srgb, var(--mat-sys-surface) 86%, var(--mat-sys-primary) 14%);
   color: var(--mat-sys-on-surface);
 
-  padding: 12px 12px;
+  padding: 12px;
   font: var(--mat-sys-body-medium);
 
-  transition:
-    box-shadow 140ms ease,
-    border-color 140ms ease;
+  transition: box-shadow 140ms ease, border-color 140ms ease;
 
   &:focus {
     outline: none;
@@ -463,22 +342,15 @@ mat-card.mb-4 textarea.form-control {
 mat-card.mb-4 button.mt-2 {
   border-radius: 999px !important;
   padding: 10px 16px !important;
+  box-shadow: 0 18px 44px rgba(0,0,0,.14);
+  transition: transform 140ms ease, box-shadow 140ms ease;
 
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.14);
-  transition:
-    transform 140ms ease,
-    box-shadow 140ms ease;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 24px 58px rgba(0, 0, 0, 0.18);
-  }
+  &:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 24px 58px rgba(0,0,0,.18); }
 }
 
 /* ============================================================================
-   COMMENTS — FEEL LIKE A REAL SOCIAL APP
+   COMMENTS LIST
 ============================================================================ */
-
 .text-center.text-muted.py-4 {
   border-radius: var(--bd-radius);
   padding: 42px 14px !important;
@@ -486,22 +358,10 @@ mat-card.mb-4 button.mt-2 {
   border: 1px dashed color-mix(in srgb, var(--mat-sys-outline) 55%, transparent);
   background: color-mix(in srgb, var(--mat-sys-surface-variant) 72%, var(--mat-sys-surface));
 
-  mat-icon {
-    width: 38px;
-    height: 38px;
-    font-size: 38px;
-    opacity: 0.85;
-    color: var(--mat-sys-on-surface-variant);
-  }
-
-  p {
-    margin: 8px 0 0;
-    color: var(--mat-sys-on-surface-variant) !important;
-    font: var(--mat-sys-body-large);
-  }
+  mat-icon { width: 38px; height: 38px; font-size: 38px; opacity: .85; color: var(--mat-sys-on-surface-variant); }
+  p { margin: 8px 0 0; color: var(--mat-sys-on-surface-variant) !important; font: var(--mat-sys-body-large); }
 }
 
-/* Each comment block in your HTML: div.border.rounded.p-3.mb-3 */
 .blog-detail > .border.rounded.p-3.mb-3 {
   position: relative;
   border-radius: 22px !important;
@@ -509,19 +369,15 @@ mat-card.mb-4 button.mt-2 {
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent) !important;
   background: color-mix(in srgb, var(--mat-sys-surface) 92%, var(--mat-sys-primary) 8%);
 
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.1);
-  transition:
-    transform 140ms ease,
-    box-shadow 140ms ease,
-    border-color 140ms ease;
+  box-shadow: 0 18px 44px rgba(0,0,0,.1);
+  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
 
   &:hover {
     transform: translateY(-1px);
     border-color: color-mix(in srgb, var(--mat-sys-primary) 58%, transparent) !important;
-    box-shadow: 0 24px 58px rgba(0, 0, 0, 0.14);
+    box-shadow: 0 24px 58px rgba(0,0,0,.14);
   }
 
-  /* left accent stripe */
   &::before {
     content: '';
     position: absolute;
@@ -531,20 +387,23 @@ mat-card.mb-4 button.mt-2 {
     width: 4px;
     border-radius: 999px;
     background: linear-gradient(180deg, var(--mat-sys-primary), var(--mat-sys-tertiary));
-    opacity: 0.7;
+    opacity: .7;
   }
 }
 
 .blog-detail > .border.rounded.p-3.mb-3 .d-flex.justify-content-between {
   align-items: center;
   margin-bottom: 10px;
-  padding-left: 10px; /* compensate stripe */
+  padding-left: 10px;
+  flex-wrap: wrap; /* ✅ delete button + name won’t collide */
+  gap: 10px;
 }
 
 .blog-detail > .border.rounded.p-3.mb-3 strong {
   font: var(--mat-sys-title-medium);
   font-weight: 950;
   letter-spacing: -0.2px;
+  overflow-wrap: anywhere;
 }
 
 .blog-detail > .border.rounded.p-3.mb-3 p.mb-1 {
@@ -553,6 +412,7 @@ mat-card.mb-4 button.mt-2 {
   font: var(--mat-sys-body-medium);
   color: var(--mat-sys-on-surface);
   line-height: 1.65;
+  overflow-wrap: anywhere;
 }
 
 .blog-detail > .border.rounded.p-3.mb-3 small.text-muted {
@@ -565,32 +425,28 @@ mat-card.mb-4 button.mt-2 {
   border-radius: 14px;
   background: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--mat-sys-error) 35%, transparent);
+  transition: transform 120ms ease, background 120ms ease;
 
-  transition:
-    transform 120ms ease,
-    background 120ms ease;
-
-  &:hover {
-    transform: translateY(-1px);
-    background: color-mix(in srgb, var(--mat-sys-error) 18%, transparent);
-  }
+  &:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--mat-sys-error) 18%, transparent); }
 }
 
 /* ============================================================================
-   SMALL RESPONSIVE TUNING
+   RESPONSIVE TUNING (single block)
 ============================================================================ */
+@media (max-width: 760px) {
+  .blog-header { padding: 18px 14px 14px; }
+  .blog-header .d-flex.justify-content-between.align-items-center { flex-direction: column; align-items: stretch !important; }
+  .blog-header .d-flex.align-items-center.gap-2 {
+    top: 72px;
+    width: 100%;
+    justify-content: space-between;
+    border-radius: 18px;
+  }
+}
 
 @media (max-width: 520px) {
-  .blog-header {
-    padding: 18px 14px 14px;
-  }
-
-  .thumb-btn {
-    width: 86px;
-    height: 62px;
-  }
-
-  mat-card.mb-4 mat-card-content {
-    padding: 16px 16px 18px !important;
-  }
+  mat-card.mb-4 mat-card-content { padding: 16px 16px 18px !important; }
+  .thumb-btn { width: 86px; }
+  section.mb-4 img.img-fluid,
+  section.mb-4 video.img-fluid { max-height: 52vh; } /* ✅ avoid huge media on phones */
 }

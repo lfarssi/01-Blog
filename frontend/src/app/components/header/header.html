@@ -1,9 +1,9 @@
 <mat-toolbar class="header-toolbar">
   <div class="container">
-    <!-- LEFT: Logo -->
+    <!-- LEFT -->
     <a routerLink="/" class="logo">01Blog</a>
 
-    <!-- CENTER: Desktop nav -->
+    <!-- CENTER (desktop only) -->
     @if (isAdmin()) {
       <nav class="nav d-none d-md-flex" aria-label="Admin navigation">
         <a routerLink="/admin/blogs" class="nav-link" routerLinkActive="active">Blogs</a>
@@ -12,57 +12,83 @@
       </nav>
     }
 
-    <!-- RIGHT: Actions -->
+    <!-- RIGHT -->
     <div class="actions">
-      <!-- Mobile Admin Menu -->
-      @if (isAdmin()) {
+      <!-- MOBILE: one menu for everything -->
+      @if (isLoggedIn()) {
         <button
           mat-icon-button
           class="menu-btn d-md-none"
-          [matMenuTriggerFor]="adminMenu"
-          aria-label="Open admin menu"
+          [matMenuTriggerFor]="mobileMenu"
+          aria-label="Open menu"
         >
           <mat-icon>menu</mat-icon>
         </button>
 
-        <mat-menu #adminMenu="matMenu" class="admin-menu">
-          <a mat-menu-item routerLink="/admin/blogs">
-            <mat-icon>article</mat-icon>
-            <span>Blogs</span>
-          </a>
+        <mat-menu #mobileMenu="matMenu" class="admin-menu">
+          <!-- Admin section -->
+          @if (isAdmin()) {
+            <a mat-menu-item routerLink="/admin/blogs">
+              <mat-icon>article</mat-icon><span>Blogs</span>
+            </a>
+            <a mat-menu-item routerLink="/admin/users">
+              <mat-icon>group</mat-icon><span>Users</span>
+            </a>
+            <a mat-menu-item routerLink="/admin/reports">
+              <mat-icon>flag</mat-icon><span>Reports</span>
+            </a>
+            <mat-divider></mat-divider>
+          }
 
-          <a mat-menu-item routerLink="/admin/users">
-            <mat-icon>group</mat-icon>
-            <span>Users</span>
-          </a>
+          <!-- User actions -->
+          <button mat-menu-item (click)="toggleTheme()">
+            <mat-icon>{{ isDarkMode() ? 'dark_mode' : 'light_mode' }}</mat-icon>
+            <span>Theme</span>
+          </button>
 
-          <a mat-menu-item routerLink="/admin/reports">
-            <mat-icon>flag</mat-icon>
-            <span>Reports</span>
-          </a>
+          <button mat-menu-item (click)="goToNotifications()">
+            <mat-icon>notifications</mat-icon><span>Notifications</span>
+          </button>
+
+          <button mat-menu-item (click)="createBlog()">
+            <mat-icon>add</mat-icon><span>Create blog</span>
+          </button>
+
+          <button mat-menu-item (click)="goToProfile()">
+            <mat-icon>person</mat-icon><span>Profile</span>
+          </button>
+
+          <mat-divider></mat-divider>
+
+          <button mat-menu-item (click)="logout()">
+            <mat-icon>logout</mat-icon><span>Logout</span>
+          </button>
         </mat-menu>
       }
 
+      <!-- DESKTOP: keep icon row -->
       @if (isLoggedIn()) {
-        <button mat-icon-button class="icon-btn" (click)="toggleTheme()" aria-label="Toggle theme">
-          <mat-icon>{{ isDarkMode() ? 'dark_mode' : 'light_mode' }}</mat-icon>
-        </button>
+        <div class="d-none d-md-inline-flex align-items-center gap-2">
+          <button mat-icon-button class="icon-btn" (click)="toggleTheme()" aria-label="Toggle theme">
+            <mat-icon>{{ isDarkMode() ? 'dark_mode' : 'light_mode' }}</mat-icon>
+          </button>
 
-        <button mat-icon-button class="icon-btn" (click)="goToNotifications()" aria-label="Notifications">
-          <mat-icon>notifications</mat-icon>
-        </button>
+          <button mat-icon-button class="icon-btn" (click)="goToNotifications()" aria-label="Notifications">
+            <mat-icon>notifications</mat-icon>
+          </button>
 
-        <button mat-icon-button class="icon-btn" (click)="createBlog()" aria-label="Create blog">
-          <mat-icon>add</mat-icon>
-        </button>
+          <button mat-icon-button class="icon-btn" (click)="createBlog()" aria-label="Create blog">
+            <mat-icon>add</mat-icon>
+          </button>
 
-        <button mat-icon-button class="icon-btn" (click)="goToProfile()" aria-label="Profile">
-          <mat-icon>person</mat-icon>
-        </button>
+          <button mat-icon-button class="icon-btn" (click)="goToProfile()" aria-label="Profile">
+            <mat-icon>person</mat-icon>
+          </button>
 
-        <button mat-icon-button class="icon-btn logout" (click)="logout()" aria-label="Logout">
-          <mat-icon>logout</mat-icon>
-        </button>
+          <button mat-icon-button class="icon-btn logout" (click)="logout()" aria-label="Logout">
+            <mat-icon>logout</mat-icon>
+          </button>
+        </div>
       }
     </div>
   </div>
