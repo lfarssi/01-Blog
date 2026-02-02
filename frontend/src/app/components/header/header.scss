@@ -1,8 +1,8 @@
 /* ============================================================================
    ULTRA PREMIUM HEADER v2 — RESPONSIVE HARDENED (NO HTML CHANGES)
-   - fixes overflow in ALL cases: long logo, many links, small phones, zoom 125–200%
-   - keeps glass + sticky + underline + mobile scroll
-   - removes layout brittleness (min-width traps, grid shrink issues)
+   - sticky glass + safe grid shrink + mobile scroll
+   - underline-only nav (no background / border / shadow)
+   - added smooth, lightweight animations (no layout jitter)
 ============================================================================ */
 
 .header-toolbar {
@@ -13,10 +13,14 @@
   height: 72px;
 
   background: color-mix(in srgb, var(--mat-sys-surface) 76%, transparent);
-  backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
   border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 60%, transparent);
   box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 18px 55px rgba(0,0,0,.14);
+
+  /* ✅ animations */
+  transition: backdrop-filter 220ms ease, background 220ms ease, box-shadow 220ms ease;
+  animation: headerDrop 420ms ease both;
 
   &::before {
     content: '';
@@ -34,8 +38,11 @@
     pointer-events: none;
   }
 
+  /* ✅ cover legacy + MDC toolbar classes */
   :host ::ng-deep &.mat-toolbar,
-  &.mat-toolbar { padding: 0; }
+  :host ::ng-deep &.mat-mdc-toolbar,
+  &.mat-toolbar,
+  &.mat-mdc-toolbar { padding: 0; }
 
   /* ========= GRID: allow shrinking + prevent overflow ========= */
   .container {
@@ -49,8 +56,8 @@
     align-items: center;
     gap: 16px;
 
-    min-width: 0;               /* ✅ critical */
-    > * { min-width: 0; }       /* ✅ critical */
+    min-width: 0;
+    > * { min-width: 0; }
 
     @media (max-width: 767.98px) {
       height: 68px;
@@ -70,20 +77,17 @@
     letter-spacing: -0.7px;
     text-decoration: none;
 
-    /* ✅ prevent logo from pushing grid */
     max-width: min(240px, 38vw);
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 
-    background: linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--mat-sys-primary) 92%, white),
-      color-mix(in srgb, var(--mat-sys-tertiary) 88%, white)
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    /* ✅ solid brand text (stable) */
+    color: var(--mat-sys-tertiary);
+
+    /* ✅ micro motion */
+    transition: transform 180ms ease;
 
     &::after {
       content: '';
@@ -98,22 +102,24 @@
       transform-origin: left center;
       transform: scaleX(.78);
       opacity: .9;
-      transition: transform 180ms ease, opacity 180ms ease;
+      transition: transform 220ms ease, opacity 220ms ease;
       pointer-events: none;
     }
 
+    &:hover {
+      transform: translateY(-1px);
+    }
     &:hover::after { transform: scaleX(1); opacity: 1; }
 
     @media (max-width: 767.98px) {
       font-size: 18px;
       max-width: min(200px, 34vw);
-
       &::after { width: 38px; bottom: -9px; }
     }
 
     @media (max-width: 420px) {
-      max-width: 30vw; /* ✅ super small phones */
-      &::after { display: none; } /* ✅ saves vertical space */
+      max-width: 30vw;
+      &::after { display: none; }
     }
   }
 
@@ -125,10 +131,9 @@
     gap: 10px;
     padding: 0 8px;
 
-    min-width: 0;        /* ✅ allow flex to shrink */
-    overflow: hidden;    /* ✅ desktop: avoid layout spill */
+    min-width: 0;
+    overflow: hidden;
 
-    /* Mobile/Small: always scroll horizontally */
     @media (max-width: 900px) {
       justify-content: flex-start;
       overflow-x: auto;
@@ -145,7 +150,6 @@
       -webkit-mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent);
     }
 
-    /* ✅ if there are tons of links, keep them reachable */
     @media (max-width: 360px) {
       mask-image: none;
       -webkit-mask-image: none;
@@ -164,40 +168,59 @@
     padding: 10px 14px;
     border-radius: 999px;
 
+    /* ✅ underline-only: no background/border/shadow */
     color: var(--mat-sys-on-surface-variant);
-    background: transparent;
-    border: 1px solid transparent;
+    background: none;
+    border: none;
+    box-shadow: none;
 
-    transition: background 140ms ease, color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+    transition: color 140ms ease, transform 140ms ease;
 
     &:hover {
-      background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
-      border-color: color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
       color: var(--mat-sys-on-surface);
       transform: translateY(-1px);
-      box-shadow: 0 18px 42px rgba(0,0,0,.12);
     }
+    &:active { transform: translateY(0); }
 
     &.active {
       color: var(--mat-sys-on-surface);
-      background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
-      border-color: color-mix(in srgb, var(--mat-sys-primary) 28%, var(--mat-sys-outline-variant) 72%);
-      box-shadow: 0 18px 44px rgba(0,0,0,.14);
+      animation: activePulse 220ms ease;
     }
 
-    &.active::after {
+    /* ✅ unified underline (smooth) */
+    &::after {
       content: '';
       position: absolute;
       left: 16px;
       right: 16px;
-      bottom: 6px;
-      height: 3px;
+      bottom: 4px;
+
+      height: 2px;
       border-radius: 999px;
-      background: linear-gradient(90deg, var(--mat-sys-primary), var(--mat-sys-tertiary));
-      opacity: .95;
+
+      background: var(--mat-sys-primary);
+      opacity: 0;
+      transform: scaleX(0.2);
+      transform-origin: center;
+
+      transition: transform 180ms ease, opacity 180ms ease, height 180ms ease, background 180ms ease;
+      pointer-events: none;
     }
 
-    /* ✅ tighter on small screens/zoom */
+    /* hover = thin underline */
+    &:hover::after {
+      opacity: 0.55;
+      transform: scaleX(1);
+    }
+
+    /* active = thicker underline (tertiary) */
+    &.active::after {
+      opacity: 1;
+      transform: scaleX(1);
+      height: 3px;
+      background: var(--mat-sys-tertiary);
+    }
+
     @media (max-width: 520px) {
       padding: 9px 12px;
       border-radius: 16px;
@@ -211,8 +234,6 @@
     justify-content: flex-end;
     gap: 10px;
     min-width: 0;
-
-    /* ✅ allow icons to stay visible */
     flex-wrap: nowrap;
 
     @media (max-width: 767.98px) { gap: 6px; }
@@ -238,9 +259,13 @@
       border-color: color-mix(in srgb, var(--mat-sys-primary) 26%, var(--mat-sys-outline-variant) 74%);
       box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 20px 52px rgba(0,0,0,.14);
     }
-    &:active:not(:disabled) { transform: translateY(0); box-shadow: none; }
 
-    /* ✅ smaller devices / high zoom */
+    &:active:not(:disabled) {
+      transform: translateY(0) scale(0.96);
+      transition-duration: 80ms;
+      box-shadow: none;
+    }
+
     @media (max-width: 520px) { width: 42px; height: 42px; }
     @media (max-width: 360px) { width: 40px; height: 40px; }
   }
@@ -256,17 +281,6 @@
       width: 19px; height: 19px; font-size: 19px;
     }
   }
-
-  :host ::ng-deep button.mat-mdc-icon-button.logout,
-  button.mat-mdc-icon-button.logout {
-    background: color-mix(in srgb, var(--mat-sys-surface) 84%, var(--mat-sys-error) 16%);
-    border-color: color-mix(in srgb, var(--mat-sys-error) 26%, var(--mat-sys-outline-variant) 74%);
-
-    &:hover:not(:disabled) {
-      background: color-mix(in srgb, var(--mat-sys-error) 18%, var(--mat-sys-surface));
-      border-color: color-mix(in srgb, var(--mat-sys-error) 34%, var(--mat-sys-outline-variant) 66%);
-    }
-  }
 }
 
 /* ================= MENU POLISH ================= */
@@ -275,14 +289,26 @@
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
   background: color-mix(in srgb, var(--mat-sys-surface) 92%, transparent);
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   box-shadow: 0 24px 68px rgba(0,0,0,.18);
 }
 :host ::ng-deep .admin-menu .mat-mdc-menu-item { font-weight: 700; }
 
-/* ================= EXTRA SAFETY (tiny screens + accessibility zoom) ================= */
+/* ================= EXTRA SAFETY ================= */
 @media (max-width: 420px) {
   .header-toolbar { height: 64px; }
   .header-toolbar .container { height: 64px; }
+}
+
+/* ================= ANIMATIONS ================= */
+@keyframes headerDrop {
+  from { transform: translateY(-6px); opacity: 0.85; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+
+@keyframes activePulse {
+  from { transform: translateY(0); }
+  50%  { transform: translateY(-1px); }
+  to   { transform: translateY(0); }
 }

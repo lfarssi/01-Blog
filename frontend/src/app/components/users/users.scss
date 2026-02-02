@@ -111,7 +111,7 @@
   border-radius: clamp(12px, 1.6vw, 16px);
 
   background: color-mix(in srgb, var(--mat-sys-surface) 97%, var(--mat-sys-primary) 3%);
-  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 45%, transparent);
+  // border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 45%, transparent);
 
   scrollbar-width: thin;
   scrollbar-color:
