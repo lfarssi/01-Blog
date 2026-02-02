@@ -35,11 +35,11 @@ public class JwtService {
 
     // ─────────────────────────────────────────────
     // ✅ Token Generation (stronger)
-    // - sub  = userId (stable)
-    // - jti  = random UUID (token id)
+    // - sub = userId (stable)
+    // - jti = random UUID (token id)
     // - username kept as a claim (optional)
     // ─────────────────────────────────────────────
-    public String generateToken(Long userId, String username) {
+    public String generateToken(Long userId, String username, String role) {
         String jti = UUID.randomUUID().toString();
         Instant now = Instant.now();
 
@@ -47,21 +47,7 @@ public class JwtService {
                 .setId(jti) // ✅ jti
                 .setSubject(String.valueOf(userId)) // ✅ sub = userId
                 .claim("username", username) // optional but useful
-                .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(now.plusMillis(EXPIRATION_MS)))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
-    }
-
-    // Backward-compatible overload (if you still call generateToken(username) somewhere)
-    // It will use username as subject (old style). Prefer generateToken(userId, username).
-    public String generateToken(String username) {
-        String jti = UUID.randomUUID().toString();
-        Instant now = Instant.now();
-
-        return Jwts.builder()
-                .setId(jti)
-                .setSubject(username)
+                .claim("role",role)
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(now.plusMillis(EXPIRATION_MS)))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -80,13 +66,19 @@ public class JwtService {
                 .getBody();
     }
 
+    public String extractRole(String token) {
+        Object role = extractAllClaims(token).get("role");
+        return role == null ? null : role.toString();
+    }
+
     // ─────────────────────────────────────────────
     // ✅ Extractors
     // ─────────────────────────────────────────────
     public String extractUsername(String token) {
         // If you generate using userId subject, username is in claim
         Object claim = extractAllClaims(token).get("username");
-        if (claim != null) return claim.toString();
+        if (claim != null)
+            return claim.toString();
 
         // fallback for old tokens where sub=username
         return extractAllClaims(token).getSubject();
@@ -122,13 +114,16 @@ public class JwtService {
             Claims claims = extractAllClaims(token);
 
             String sub = claims.getSubject();
-            if (sub == null || sub.isBlank()) return false;
+            if (sub == null || sub.isBlank())
+                return false;
 
             String jti = claims.getId();
-            if (jti == null || jti.isBlank()) return false;
+            if (jti == null || jti.isBlank())
+                return false;
 
             Date exp = claims.getExpiration();
-            if (exp == null || exp.before(new Date())) return false;
+            if (exp == null || exp.before(new Date()))
+                return false;
 
             return true;
         } catch (JwtException | IllegalArgumentException e) {
@@ -137,29 +132,29 @@ public class JwtService {
     }
 
     // public boolean isTokenValid(String token, UserDetails userDetails) {
-    //     try {
-    //         Claims claims = extractAllClaims(token);
+    // try {
+    // Claims claims = extractAllClaims(token);
 
-    //         String sub = claims.getSubject();
-    //         if (sub == null || sub.isBlank()) return false;
+    // String sub = claims.getSubject();
+    // if (sub == null || sub.isBlank()) return false;
 
-    //         String jti = claims.getId();
-    //         if (jti == null || jti.isBlank()) return false;
+    // String jti = claims.getId();
+    // if (jti == null || jti.isBlank()) return false;
 
-    //         Date exp = claims.getExpiration();
-    //         if (exp == null || exp.before(new Date())) return false;
+    // Date exp = claims.getExpiration();
+    // if (exp == null || exp.before(new Date())) return false;
 
-    //         // If token has username claim, enforce it matches.
-    //         Object usernameClaim = claims.get("username");
-    //         if (usernameClaim != null) {
-    //             return usernameClaim.toString().equals(userDetails.getUsername());
-    //         }
+    // // If token has username claim, enforce it matches.
+    // Object usernameClaim = claims.get("username");
+    // if (usernameClaim != null) {
+    // return usernameClaim.toString().equals(userDetails.getUsername());
+    // }
 
-    //         // Otherwise fallback to old style: sub=username
-    //         return sub.equals(userDetails.getUsername());
+    // // Otherwise fallback to old style: sub=username
+    // return sub.equals(userDetails.getUsername());
 
-    //     } catch (JwtException | IllegalArgumentException e) {
-    //         return false;
-    //     }
+    // } catch (JwtException | IllegalArgumentException e) {
+    // return false;
+    // }
     // }
 }

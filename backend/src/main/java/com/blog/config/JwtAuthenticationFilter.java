@@ -51,7 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 throw new JwtException("Invalid token");
             }
 
-            // ✅ NEW: subject = userId
+            // ✅ subject = userId
             Long userId = jwtService.extractUserId(token);
 
             if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -59,23 +59,44 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UserEntity userEntity = userRepository.findById(userId)
                         .orElseThrow(() -> new UsernameNotFoundException("User not found: " + userId));
 
+                if (userEntity.getBanned()) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+                    Map<String, Object> body = Map.of(
+                            "timestamp", LocalDateTime.now().toString(),
+                            "status", 403,
+                            "error", "Forbidden",
+                            "message", "Your account is banned");
+
+                    new ObjectMapper().writeValue(response.getOutputStream(), body);
+                    return;
+                }
+
                 // ✅ Optional: ensure username claim still matches DB (if claim exists)
                 String usernameClaim = jwtService.extractUsername(token);
                 if (usernameClaim != null && !usernameClaim.equals(userEntity.getUsername())) {
                     throw new JwtException("Token username mismatch");
                 }
 
+                // ✅ Role -> Spring authority (IMPORTANT)
+                // Spring's hasRole("ADMIN") expects "ROLE_ADMIN"
+                String roleDb = (userEntity.getRole() == null || userEntity.getRole().isBlank())
+                        ? "USER"
+                        : userEntity.getRole().trim();
+
+                String authority = roleDb.startsWith("ROLE_") ? roleDb : "ROLE_" + roleDb;
+
                 // ✅ Build Spring Security UserDetails for SecurityContext
                 var userDetails = User.withUsername(userEntity.getUsername())
                         .password(userEntity.getPassword() == null ? "" : userEntity.getPassword())
-                        .authorities(userEntity.getRole() == null ? "USER" : userEntity.getRole())
+                        .authorities(authority)
                         .build();
 
                 var authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
-                        userDetails.getAuthorities()
-                );
+                        userDetails.getAuthorities());
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
@@ -83,6 +104,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
 
         } catch (JwtException | UsernameNotFoundException | NumberFormatException ex) {
+            System.out.println(ex.getClass());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
@@ -90,8 +112,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     "timestamp", LocalDateTime.now().toString(),
                     "status", 401,
                     "error", "Unauthorized",
-                    "message", "Invalid token or user no longer exists"
-            );
+                    "message", "Invalid token or user no longer exists");
 
             new ObjectMapper().writeValue(response.getOutputStream(), body);
         }

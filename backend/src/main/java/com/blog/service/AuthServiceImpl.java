@@ -33,7 +33,7 @@ public class AuthServiceImpl implements AuthService {
             .orElseGet(() -> userRepository.findByEmail(principal)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + principal)));
 
-        String token = jwtService.generateToken(user.getUsername());
+        String token = jwtService.generateToken( user.getId(),user.getUsername(), user.getRole());
         return new LoginResponse(token, user.getId(), user.getUsername(), user.getEmail(), user.getRole());
     }
 }

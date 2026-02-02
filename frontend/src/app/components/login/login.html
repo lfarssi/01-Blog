@@ -9,55 +9,40 @@
       <form [formGroup]="form" (ngSubmit)="submit()" class="needs-validation">
         <mat-form-field appearance="outline" class="w-100 mb-3">
           <mat-label>Username or Email</mat-label>
-          <input
-            matInput
-            type="text"
-            formControlName="usernameOrEmail"
-            placeholder="Enter your username or email"
-          />
+          <input matInput type="text" formControlName="usernameOrEmail" placeholder="Enter your username or email" />
           @if (f['usernameOrEmail'].touched && f['usernameOrEmail'].errors?.['required']) {
-            <mat-error>Username or email is required</mat-error>
+          <mat-error>Username or email is required</mat-error>
           }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="w-100 mb-3">
           <mat-label>Password</mat-label>
-          <input
-            matInput
-            [type]="showPassword ? 'text' : 'password'"
-            formControlName="password"
-            placeholder="Enter your password"
-          />
-          <button
-            mat-icon-button
-            matSuffix
-            type="button"
-            (click)="togglePassword()"
-            aria-label="Toggle password visibility"
-          >
+          <input matInput [type]="showPassword ? 'text' : 'password'" formControlName="password"
+            placeholder="Enter your password" />
+          <button mat-icon-button matSuffix type="button" (click)="togglePassword()"
+            aria-label="Toggle password visibility">
             <mat-icon>{{ showPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
           </button>
           @if (f['password'].touched && f['password'].errors?.['required']) {
-            <mat-error>Password is required</mat-error>
+          <mat-error>Password is required</mat-error>
           }
           @if (f['password'].touched && f['password'].errors?.['minlength']) {
-            <mat-error>Password must be at least 8 characters</mat-error>
+          <mat-error>Password must be at least 8 characters</mat-error>
           }
         </mat-form-field>
 
-        @if (errorMsg) {
-          <mat-error class="d-block text-center mb-3">{{ errorMsg }}</mat-error>
+        @if (errorMsg()) {
+        <div class="login-error">
+          <mat-icon color="warn">error</mat-icon>
+          <span>{{ errorMsg() }}</span>
+        </div>
         }
 
-        <button
-          mat-raised-button
-          color="primary"
-          type="submit"
-          class="w-100"
-          [disabled]="loading || form.invalid"
-        >
-          {{ loading ? 'Logging in...' : 'Login' }}
+
+        <button mat-raised-button color="primary" type="submit" [disabled]="loading()">
+          {{ loading() ? 'Signing in...' : 'Login' }}
         </button>
+
 
         <div class="text-center mt-3">
           <small class="text-muted">Don't have an account? </small>

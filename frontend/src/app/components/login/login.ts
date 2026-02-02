@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -41,8 +41,8 @@ interface LoginResponse {
 })
 export class Login {
   form: FormGroup;
-  errorMsg: string | null = null;
-  loading = false;
+  errorMsg = signal<string | null>(null);
+  loading = signal(false);
   showPassword = false;
 
   constructor(
@@ -58,7 +58,7 @@ export class Login {
 
     // Clear error when user types
     this.form.valueChanges.subscribe(() => {
-      this.errorMsg = null;
+      this.errorMsg.set(null);
     });
   }
 
@@ -71,53 +71,55 @@ export class Login {
   }
 
   submit(): void {
-    this.errorMsg = null;  // Clear previous errors
-    
+    this.errorMsg.set( null); // Clear previous errors
+
     if (this.form.invalid) {
-      this.form.markAllAsTouched();  // ✅ Shows errors on submit for untouched fields
+      this.form.markAllAsTouched(); // ✅ Shows errors on submit for untouched fields
       return;
     }
 
-    this.loading = true;
+    this.loading.set(true);
 
     const body = {
       usernameOrEmail: this.form.value.usernameOrEmail?.trim(),
       password: this.form.value.password,
     };
+    setTimeout(() => {
+      this.http.post<LoginResponse>(`${BASE_URL}/auth/login`, body).subscribe({
+        next: (res) => {
+          this.loading.set( false);
+          const userData = res.data;
+          this.authService.setAuthData(userData.token, {
+            id: userData.id,
+            username: userData.username,
+            email: userData.email,
+            role: userData.role as 'ADMIN' | 'USER',
+          });
+          this.router.navigate(['/']);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.loading.set( false);
+          const backendMessage =
+            err.error?.message ||
+            err.error?.error ||
+            err.error?.msg ||
+            (typeof err.error === 'string' ? err.error : null);
 
-    this.http.post<LoginResponse>(`${BASE_URL}/auth/login`, body).subscribe({
-      next: (res) => {
-        this.loading = false;
-        const userData = res.data;
-        this.authService.setAuthData(userData.token, {
-          id: userData.id,
-          username: userData.username,
-          email: userData.email,
-          role: userData.role as 'ADMIN' | 'USER',
-        });
-        this.router.navigate(['/']);
-      },
-      error: (err: HttpErrorResponse) => {
-        this.loading = false;
-        const backendMessage =
-          typeof err.error === 'string'
-            ? err.error
-            : (err.error?.message ?? err.error?.error ?? null);
-
-        if (err.status === 0) {
-          this.errorMsg = 'Cannot reach server. Is backend running?';
-          return;
-        }
-        if (err.status === 403) {
-          this.errorMsg = backendMessage ?? 'Your account is banned.';
-          return;
-        }
-        if (err.status === 401) {
-          this.errorMsg = backendMessage ?? 'Invalid credentials.';
-          return;
-        }
-        this.errorMsg = backendMessage ?? `Login failed (HTTP ${err.status}).`;
-      },
-    });
+          if (err.status === 0) {
+            this.errorMsg .set('Cannot reach server. Is backend running?');
+            return;
+          }
+          if (err.status === 403) {
+            this.errorMsg.set(backendMessage ?? 'Your account is banned.');
+            return;
+          }
+          if (err.status === 401) {
+            this.errorMsg.set(backendMessage ?? 'Invalid credentials.');
+            return;
+          }
+          this.errorMsg.set(backendMessage ?? `Login failed (HTTP ${err.status}).`);
+        },
+      });
+    }, 0);
   }
 }

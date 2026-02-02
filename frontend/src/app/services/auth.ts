@@ -17,6 +17,7 @@
     
     // Computed auth states (reactive!)
     isLoggedIn = computed(() => !!this.currentUser());
+    
     isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
 
     constructor() {
