@@ -215,8 +215,8 @@ public class GlobalExceptionHandler {
                 if (raw != null) {
                         String lower = raw.toLowerCase();
 
-                        if (lower.contains("value too long") && lower.contains("character varying(255)")) {
-                                msg = "Text is too long (max 255 characters).";
+                        if (lower.contains("value too long") && lower.contains("character varying(10000)") || lower.contains("character varying")) {
+                                msg = "Text is too long (max 10000 characters).";
                         } else if (lower.contains("duplicate key") || lower.contains("unique constraint")) {
                                 msg = "This value already exists.";
                         } else if (lower.contains("not-null") || lower.contains("null value")) {

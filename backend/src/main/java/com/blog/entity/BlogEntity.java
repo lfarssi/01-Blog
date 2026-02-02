@@ -35,7 +35,8 @@ public class BlogEntity {
     private Long id;
 
     private String title;
-
+    
+    @Column(length = 10000)
     private String content;
 
     @ManyToOne
