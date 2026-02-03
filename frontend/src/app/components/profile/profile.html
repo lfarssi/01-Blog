@@ -24,7 +24,7 @@
         <!-- ✅ FOLLOW STATS AS BUTTONS -->
         <mat-chip-set class="stats">
           <mat-chip class="stat">
-            <strong>{{ blogsCount() }}</strong> Blogs
+            <strong> {{ blogsCount() }}</strong> Blogs
           </mat-chip>
 
           <button mat-chip class="stat clickable" (click)="openFollowers()">
@@ -74,15 +74,7 @@
     <div class="blogs-grid" infiniteList (loadMore)="loadMoreBlogs()">
       @for (blog of blogs(); track blog.id) {
       <mat-card class="blog-card" (click)="viewBlog(blog.id)">
-        <!-- @if (hasMedia(blog)) {
-        <div class="media-container">
-          @if (isBlogVideo(blog)) {
-          <video [src]="getBlogMedia(blog)[0]" class="blog-media"></video>
-          } @else {
-          <img [src]="getBlogMedia(blog)[0]" class="blog-media">
-          }
-        </div>
-        } -->
+
 
         <mat-card-content>
           <h3>{{ blog.title || 'Untitled' }}</h3>
@@ -91,6 +83,13 @@
       </mat-card>
       }
     </div>
+    <div infiniteList (loadMore)="loadMoreBlogs()" style="height: 1px;">
+    </div>
+    @if (blogsLoadingMore()) {
+    <div class="text-center py-3">
+      <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+    </div>
+    }
     }
   </section>
 

@@ -40,7 +40,9 @@
           "border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent)",
           "border-color: color-mix(in srgb, var(--mat-sys-primary) 26%, var(--mat-sys-outline-variant) 74%)",
           "border-color: color-mix(in srgb, var(--mat-sys-error) 26%, var(--mat-sys-outline-variant) 74%)",
-          "border-color: color-mix(in srgb, var(--mat-sys-error) 34%, var(--mat-sys-outline-variant) 66%)"
+          "border-color: color-mix(in srgb, var(--mat-sys-error) 34%, var(--mat-sys-outline-variant) 66%)",
+          "border: 1px dashed color-mix(in srgb, var(--mat-sys-outline) 50%, transparent)",
+          "border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 58%, transparent)"
         ]
       }
     ],

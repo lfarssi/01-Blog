@@ -296,7 +296,7 @@
         padding: 0 16px !important;
 
         background: color-mix(in srgb, var(--mat-sys-surface) 84%, var(--mat-sys-primary) 16%);
-        border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 56%, transparent);
+        border:none;
 
         color: var(--mat-sys-on-surface);
         font-weight: 760;
@@ -531,6 +531,10 @@
     margin: 10px 0 0;
     color: var(--mat-sys-on-surface-variant);
   }
+}
+.blogs-section {
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
 /* Mobile padding */
