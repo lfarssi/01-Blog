@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,6 +26,7 @@ import com.blog.entity.BlogEntity;
 import com.blog.entity.FollowEntity;
 import com.blog.entity.UserEntity;
 import com.blog.exception.AccessDeniedException;
+import com.blog.exception.JsonWriteException;
 import com.blog.exception.ResourceNotFoundException;
 import com.blog.helper.MediaValidator;
 import com.blog.mapper.BlogMapper;
@@ -112,7 +114,7 @@ public class BlogServiceImpl implements BlogService {
         try {
             mediaJson = objectMapper.writeValueAsString(mediaPaths);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize media", e);
+            throw new JsonWriteException("Failed to serialize media paths", e);
         }
 
         BlogEntity blog = BlogEntity.builder()
@@ -202,7 +204,7 @@ public class BlogServiceImpl implements BlogService {
             try {
                 blog.setMedia(objectMapper.writeValueAsString(finalMedia));
             } catch (JsonProcessingException e) {
-                throw new RuntimeException("Failed to serialize media", e);
+                throw new JsonWriteException("Failed to serialize media paths", e);
             }
 
         } else {
@@ -218,7 +220,7 @@ public class BlogServiceImpl implements BlogService {
                 try {
                     blog.setMedia(objectMapper.writeValueAsString(mediaPaths));
                 } catch (JsonProcessingException e) {
-                    throw new RuntimeException("Failed to serialize media", e);
+                    throw new JsonWriteException("Failed to serialize media paths", e);
                 }
             }
         }
@@ -283,7 +285,7 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public List<BlogResponse> getFollowingBlogs(String username, int page, int size) {
         var me = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         List<Long> followedIds = followRepository.findFollowingIdsByFollowerId(me.getId());
         if (followedIds.isEmpty())

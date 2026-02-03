@@ -12,6 +12,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.blog.exception.JsonWriteException;
+
 @Service
 public class MediaStorageService {
 
@@ -34,10 +36,9 @@ public class MediaStorageService {
                 Files.copy(
                         file.getInputStream(),
                         destination,
-                        StandardCopyOption.REPLACE_EXISTING
-                );
+                        StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
-                throw new RuntimeException("Failed to store file " + filename, e);
+                throw new JsonWriteException("Failed to store media", e);
             }
 
             paths.add("/api/uploads/" + filename);
@@ -45,23 +46,25 @@ public class MediaStorageService {
 
         return paths;
     }
+
     public void delete(List<String> mediaPaths) {
-    if (mediaPaths == null || mediaPaths.isEmpty()) return;
+        if (mediaPaths == null || mediaPaths.isEmpty())
+            return;
 
-    for (String path : mediaPaths) {
-        try {
-            // "/api/uploads/abc.jpg" → "uploads/abc.jpg"
-            String filename = path.replace("/api/uploads/", "");
+        for (String path : mediaPaths) {
+            try {
+                // "/api/uploads/abc.jpg" → "uploads/abc.jpg"
+                String filename = path.replace("/api/uploads/", "");
 
-            Path filePath = Paths.get(UPLOAD_DIR).resolve(filename);
+                Path filePath = Paths.get(UPLOAD_DIR).resolve(filename);
 
-            Files.deleteIfExists(filePath);
+                Files.deleteIfExists(filePath);
 
-        } catch (IOException e) {
-            // Log only, don't crash update
-            System.err.println("Failed to delete file: " + path);
+            } catch (IOException e) {
+                // Log only, don't crash update
+                System.err.println("Failed to delete file: " + path);
+            }
         }
     }
-}
 
 }

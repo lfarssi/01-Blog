@@ -11,8 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.blog.dto.ReportRequest;
 import com.blog.dto.ReportResponse;
+import com.blog.entity.BlogEntity;
 import com.blog.entity.ReportEntity;
 import com.blog.entity.UserEntity;
+import com.blog.exception.BlogUnavailableException;
 // import com.blog.exception.ResourceAlreadyExistsException;
 import com.blog.exception.ResourceNotFoundException;
 import com.blog.mapper.ReportMapper;
@@ -42,6 +44,11 @@ public class ReportServiceImpl implements ReportService {
                         case "BLOG" -> {
                                 // If you have soft delete like isDeleted/hidden, check it here too.
                                 boolean exists = blogRepository.existsById(targetId);
+                                BlogEntity blog = blogRepository.findById(targetId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Blog not found"));
+                                if (blog.getVisible() != null && !blog.getVisible()) {
+                                        throw new BlogUnavailableException("Cannot report on a hidden blog");
+                                }
                                 if (!exists)
                                         throw new ResourceNotFoundException("Blog not found");
                         }

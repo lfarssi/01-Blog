@@ -7,6 +7,7 @@ import com.blog.dto.LikeResponse;
 import com.blog.entity.BlogEntity;
 import com.blog.entity.LikeEntity;
 import com.blog.entity.UserEntity;
+import com.blog.exception.BlogUnavailableException;
 import com.blog.exception.ResourceNotFoundException;
 import com.blog.repository.BlogRepository;
 import com.blog.repository.LikeRepository;
@@ -37,7 +38,7 @@ public class LikeServiceImpl implements LikeService {
 
         // Prevent liking hidden or deleted blogs
         if (blog.getVisible() != null && !blog.getVisible()){
-            throw new RuntimeException("Cannot like a hidden or deleted blog");
+            throw new BlogUnavailableException("Cannot like a hidden or deleted blog");
         }
 
         Optional<LikeEntity> existingLike = likeRepository.findByBlog_IdAndUser_Id(blogId, user.getId());
@@ -83,7 +84,7 @@ public class LikeServiceImpl implements LikeService {
 
         // Prevent fetching like status for hidden/deleted blogs
         if (blog.getVisible() != null && !blog.getVisible()) {
-            throw new RuntimeException("Cannot get like status for a hidden or deleted blog");
+            throw new BlogUnavailableException("Cannot get like status for a hidden or deleted blog");
         }
 
         boolean liked = likeRepository.existsByBlog_IdAndUser_Id(blogId, user.getId());

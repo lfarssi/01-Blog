@@ -1,24 +1,241 @@
-// Make Material fields look more integrated
+/* ===============================
+   REGISTER PAGE — ULTRA COMFORT LIGHT
+   Warm paper UI • Low contrast • Soft edges
+   Material + Bootstrap friendly
+=============================== */
+
+:host {
+  display: block;
+  min-height: 100vh;
+
+  /* Warm paper palette (eye-friendly) */
+  --bg-main: #f3f0ea; /* warm light */
+  --bg-secondary: #efeae2; /* subtle depth */
+  --card-bg: #fbfaf7; /* paper surface */
+  --text-main: #2b2a28; /* warm charcoal */
+  --text-muted: rgba(43, 42, 40, 0.58);
+
+  /* Accent (used for title + links) */
+  --primary: #2f6f63; /* muted teal */
+  --primary-2: rgba(47, 111, 99, 0.12);
+
+  /* Button accent (your blue) */
+  --btn-blue: rgb(0, 110, 255);
+
+  /* Softer borders & shadows */
+  --border-soft: rgba(43, 42, 40, 0.08);
+  --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.02);
+  --shadow-2: 0 18px 48px rgba(23, 19, 13, 0.1);
+  --focus-ring: rgba(47, 111, 99, 0.18);
+}
+
+/* ===============================
+   Page Background
+=============================== */
+
+.container {
+  /* Keep background calm/neutral */
+  filter: saturate(0.95);
+}
+
+/* ===============================
+   Card
+=============================== */
+
+.card {
+  background: var(--card-bg);
+  color: var(--text-main);
+  border-radius: 24px;
+
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-1), var(--shadow-2);
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 2px 10px rgba(23, 19, 13, 0.06),
+      0 22px 60px rgba(23, 19, 13, 0.14);
+  }
+}
+
+/* ===============================
+   Header
+=============================== */
+
+.text-center {
+  h4 {
+    font-size: 1.55rem;
+    letter-spacing: -0.4px;
+    color: var(--primary);
+  }
+
+  p {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+  }
+}
+
+/* ===============================
+   Material Fields
+=============================== */
+
 mat-form-field {
+  width: 100%;
+
   .mat-mdc-form-field {
-    border-radius: 8px;
+    border-radius: 16px;
   }
 
-  .mat-mdc-form-field-subscript-wrapper {
-    margin-top: 4px;
+  .mat-mdc-text-field-wrapper {
+    background: rgba(43, 42, 40, 0.025);
+    border-radius: 16px;
+  }
+
+  .mat-mdc-form-field-focus-overlay {
+    opacity: 0;
+  }
+
+  .mat-mdc-form-field-outline {
+    color: rgba(43, 42, 40, 0.1);
+  }
+
+  input {
+    color: var(--text-main);
+  }
+
+  ::placeholder {
+    color: rgba(43, 42, 40, 0.4);
+  }
+
+  &.mat-focused {
+    .mat-mdc-text-field-wrapper {
+      box-shadow: 0 0 0 5px var(--focus-ring);
+      background: rgba(47, 111, 99, 0.03);
+    }
+
+    .mat-mdc-form-field-outline {
+      color: rgba(47, 111, 99, 0.55);
+    }
+  }
+
+  mat-error {
+    color: rgba(220, 38, 38, 0.9);
   }
 }
 
-// Button style
+/* ===============================
+   Password Toggles
+=============================== */
+
+button[mat-icon-button] {
+  color: rgba(43, 42, 40, 0.52);
+  transition:
+    color 0.15s ease,
+    transform 0.15s ease;
+
+  &:hover {
+    color: var(--primary);
+    transform: translateY(-1px);
+  }
+}
+
+/* ===============================
+   Server Error Message (your template uses <mat-error class="...">)
+=============================== */
+
+mat-error.d-block {
+  padding: 10px 14px;
+  border-radius: 12px;
+
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  background: rgba(220, 38, 38, 0.06);
+  color: rgba(185, 28, 28, 0.95);
+
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+/* ===============================
+   Submit Button (same as your login button)
+=============================== */
+
 button[mat-raised-button] {
-  border-radius: 8px;
-  padding: 10px 24px;
-  font-weight: 500;
+  width: 100%;
+  height: 46px;
+  margin-top: 6px;
+
+  border-radius: 14px;
+  font-weight: 650;
+  letter-spacing: 0.2px;
+
+  box-shadow: none;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+
+  background: white;
+  border: 1px solid var(--btn-blue);
+  color: var(--btn-blue);
+
+  &:hover:not(:disabled) {
+    filter: brightness(1.05);
+    background: var(--btn-blue);
+    border-color: transparent;
+    color: #fff;
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0px);
+    filter: brightness(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.65;
+  }
 }
 
-// Responsive adjustments
-@media (max-width: 575.98px) {
+/* ===============================
+   Footer Links
+=============================== */
+
+.text-center.mt-3 {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+
+  a {
+    font-weight: 600;
+    color: var(--primary);
+    transition: color 0.15s ease;
+
+    &:hover {
+      text-decoration: underline;
+      color: #23584f;
+    }
+  }
+}
+
+/* ===============================
+   Mobile Optimization
+=============================== */
+
+@media (max-width: 480px) {
+  .card {
+    border-radius: 18px;
+  }
+
   .card-body {
-    padding: 1.5rem;
+    padding: 1.75rem !important;
+  }
+
+  .text-center h4 {
+    font-size: 1.35rem;
   }
 }

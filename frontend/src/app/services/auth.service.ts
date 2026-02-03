@@ -1,7 +1,6 @@
 // auth.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { BASE_URL } from './env';
 
@@ -22,7 +21,6 @@ interface RegisterResponse {
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly router = inject(Router);
   private readonly apiUrl = `${BASE_URL}/auth`;
 
   register(data: RegisterRequest): Observable<RegisterResponse> {

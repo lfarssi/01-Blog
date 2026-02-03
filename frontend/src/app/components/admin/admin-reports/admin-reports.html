@@ -30,7 +30,7 @@
   }
 
   @if (!loading() && !errorMsg()) {
-  <div class="meta mb-3 text-muted small">
+  <div class="meta mb-3 small">
     Total: {{ totalElements() }} | Page {{ currentPage() + 1 }} / {{ totalPages() }}
   </div>
 
@@ -73,7 +73,7 @@
             }
           </td>
           <td>{{ r.reportedByUsername }}</td>
-          <td><small class="text-muted">{{ r.createdAt}}</small></td>
+          <td><small >{{ r.createdAt}}</small></td>
           <td (click)="$event.stopPropagation()">
             <div class="btn-group btn-group-sm" role="group">
               <button class="btn btn-outline-warning" (click)="updateStatus(r.id, 'PENDING')"

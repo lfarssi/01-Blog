@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
@@ -24,6 +23,8 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
 
 import org.springframework.web.server.ResponseStatusException;
+
+
 
 import io.jsonwebtoken.JwtException;
 import jakarta.validation.ConstraintViolationException;
@@ -50,6 +51,16 @@ public class GlobalExceptionHandler {
                                                 "status", HttpStatus.FORBIDDEN.value(),
                                                 "error", "Forbidden",
                                                 "message", "Account is banned"));
+        }
+
+        @ExceptionHandler(BlogUnavailableException.class)
+        public ResponseEntity<Map<String, Object>> handleBlogUnavailable(BlogUnavailableException ex) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body(Map.of(
+                                                "timestamp", LocalDateTime.now().toString(),
+                                                "status", HttpStatus.NOT_FOUND.value(),
+                                                "error", "Not Found",
+                                                "message", ex.getMessage()));
         }
 
         @ExceptionHandler(AccessDeniedException.class)
@@ -136,6 +147,17 @@ public class GlobalExceptionHandler {
                                                 "message", "Invalid JSON or request body"));
         }
 
+        @ExceptionHandler(JsonWriteException.class)
+        public ResponseEntity<Map<String, Object>> handleJsonWrite(JsonWriteException ex) {
+
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(Map.of(
+                                                "timestamp", LocalDateTime.now().toString(),
+                                                "status", HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                                "error", "Internal Server Error",
+                                                "message", "JSON serialization failed"));
+        }
+
         // ✅ invalid multipart/form-data request
         @ExceptionHandler(MultipartException.class)
         public ResponseEntity<Map<String, Object>> handleMultipart(MultipartException ex) {
@@ -215,7 +237,8 @@ public class GlobalExceptionHandler {
                 if (raw != null) {
                         String lower = raw.toLowerCase();
 
-                        if (lower.contains("value too long") && lower.contains("character varying(10000)") || lower.contains("character varying")) {
+                        if (lower.contains("value too long") && lower.contains("character varying(10000)")
+                                        || lower.contains("character varying")) {
                                 msg = "Text is too long (max 10000 characters).";
                         } else if (lower.contains("duplicate key") || lower.contains("unique constraint")) {
                                 msg = "This value already exists.";

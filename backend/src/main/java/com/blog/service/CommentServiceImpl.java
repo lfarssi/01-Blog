@@ -13,6 +13,7 @@ import com.blog.entity.BlogEntity;
 import com.blog.entity.CommentEntity;
 import com.blog.entity.UserEntity;
 import com.blog.exception.AccessDeniedException;
+import com.blog.exception.BlogUnavailableException;
 import com.blog.exception.ResourceNotFoundException;
 import com.blog.mapper.CommentMapper;
 import com.blog.repository.BlogRepository;
@@ -42,7 +43,7 @@ public class CommentServiceImpl implements CommentService {
 
                 // Prevent commenting on hidden or deleted posts
                 if (blog.getVisible() != null && !blog.getVisible()) {
-                        throw new AccessDeniedException("Cannot comment on a hidden blog");
+                        throw new BlogUnavailableException("Cannot comment on a hidden blog");
                 }
 
                 CommentEntity comment = CommentEntity.builder()

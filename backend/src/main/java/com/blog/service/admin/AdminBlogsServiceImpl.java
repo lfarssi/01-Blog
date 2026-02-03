@@ -2,6 +2,7 @@ package com.blog.service.admin;
 
 import com.blog.dto.BlogResponse;
 import com.blog.entity.BlogEntity;
+import com.blog.exception.BlogUnavailableException;
 import com.blog.mapper.BlogMapper;
 import com.blog.repository.BlogRepository;
 import com.blog.repository.CommentRepository;
@@ -50,7 +51,7 @@ public class AdminBlogsServiceImpl implements AdminBlogsService {
     @Transactional
     public boolean toggleVisible(Long blogId) {
         BlogEntity blog = blogRepository.findById(blogId)
-                .orElseThrow(() -> new RuntimeException("Blog not found"));
+                .orElseThrow(() -> new BlogUnavailableException("Blog not found"));
 
         blog.setVisible(!blog.getVisible());
         blogRepository.save(blog);
