@@ -37,7 +37,7 @@ Admins can:
 ## 🛠 Technologies Used
 
 ### Backend
-- Java 17+
+- Java 21+
 - Spring Boot
 - Spring Security
 - JWT Authentication
